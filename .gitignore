@@ -1,21 +1,23 @@
-# Node modules
+# Build outputs
+dist/
+build/
+
+# Node dependencies
 node_modules/
 
 # Environment files
 .env
 .env.local
 .env.*.local
+.env.development
+.env.production
 
 # Logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
-
-# Build outputs
-dist/
-build/
-.cache/
+vite-debug.log*
 
 # IDE / OS files
 .vscode/
@@ -23,18 +25,17 @@ build/
 .DS_Store
 Thumbs.db
 
-# Dependency lock files
-package-lock.json
-pnpm-lock.yaml
-yarn.lock
-
-# Temporary files
+# Cache
+.cache/
+.vite/
+coverage/
 *.tmp
 *.swp
 
-# Coverage / test outputs
-coverage/
-*.lcov
+# Dependency lock files (ako svi koristite isti package manager, možeš zadržati jedan)
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
 
 # Misc
 *.log
