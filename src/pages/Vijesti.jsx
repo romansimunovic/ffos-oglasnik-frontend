@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import axios from "../api/axiosInstance"; 
 
 export default function Vijesti() {
   const [vijesti, setVijesti] = useState([]);
@@ -8,9 +8,7 @@ export default function Vijesti() {
   useEffect(() => {
     const fetchVijesti = async () => {
       try {
-        const res = await axios.get(
-          `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/vijesti`
-        );
+        const res = await axios.get("/vijesti"); // baseURL već sadrži /api
         setVijesti(res.data || []);
       } catch (err) {
         console.error("❌ Greška pri dohvaćanju vijesti:", err);
@@ -28,7 +26,9 @@ export default function Vijesti() {
         Vijesti
       </h1>
       <p className="text-center text-gray-600 mb-8">
-        Ovdje ćeš moći saznati sve o novim radionicama, Erasmus+ prilikama, studentskim projektima i konferencijama, do zanimljivih predavanja i gostujućih profesora.
+        Ovdje ćeš pronaći najnovije informacije o radionicama, Erasmus+
+        prilikama, studentskim projektima, konferencijama i gostujućim
+        predavanjima na Filozofskom fakultetu u Osijeku.
       </p>
 
       {loading ? (
