@@ -1,0 +1,43 @@
+:root {
+  --ffos-red: #b41f24;
+  --ffos-dark: #000000;
+  --ffos-light: #ffffff;
+  --ffos-gray: #f7f7f7;
+}
+
+/* osnovni izgled */
+body {
+  background-color: var(--ffos-light);
+  color: var(--ffos-dark);
+  font-family: 'Inter', sans-serif;
+  margin: 0;
+  padding: 0;
+  line-height: 1.6;
+}
+
+/* naslovi */
+h1, h2, h3 {
+  color: var(--ffos-red);
+  font-weight: 600;
+  text-align: center;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+/* linkovi */
+a {
+  color: var(--ffos-red);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  color: #8f191f; /* tamnija nijansa crvene */
+}
+
+/* osnovni kontejner */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1rem;
+}
