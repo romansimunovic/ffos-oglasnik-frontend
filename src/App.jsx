@@ -7,6 +7,7 @@ import Objava from "./pages/Objava.jsx";
 import NovaObjava from "./pages/NovaObjava.jsx";
 import Kontakt from "./pages/Kontakt.jsx";
 import Login from "./pages/Login.jsx";
+import Registracija from "./pages/Registracija.jsx";
 import AdminPanel from "./pages/AdminPanel.jsx";
 import Inbox from "./pages/Inbox.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
@@ -22,6 +23,7 @@ export default function App() {
             <Route path="/objave" element={<Objava />} />
             <Route path="/kontakt" element={<Kontakt />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/registracija" element={<Registracija />} />
 
             <Route
               path="/nova-objava"

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import api from "../api/axiosInstance";
 
 export default function Login() {
@@ -29,7 +30,6 @@ export default function Login() {
           navigate("/");
         }
       }, 1000);
-
     } catch (err) {
       setMsg(err.response?.data?.message || "Greška pri prijavi.");
     }
@@ -71,6 +71,15 @@ export default function Login() {
             {msg}
           </p>
         )}
+        <p className="text-sm text-center mt-4">
+          Nemaš profil?{" "}
+          <Link
+            to="/registracija"
+            className="font-semibold text-[#b41f24] hover:underline"
+          >
+            Kreiraj ga!
+          </Link>
+        </p>
       </div>
     </div>
   );
