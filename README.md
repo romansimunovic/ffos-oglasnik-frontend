@@ -1,16 +1,93 @@
-# React + Vite
+# FFOS Oglasnik – Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Frontend aplikacija za **FFOS Oglasnik**, razvijena u sklopu diplomskog studija Informacijskih tehnologija na Filozofskom fakultetu u Osijeku.  
+**Mentor:** izv. prof. dr. sc. Tomislav Jakopec
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Preduvjeti
 
-## React Compiler
+Prije pokretanja frontend-a, provjerite imate li instalirano:
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- Node.js ≥ 18  
+- Visual Studio Code  
+- Git  
 
-## Expanding the ESLint configuration
+Provjera verzije:
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+```bash
+node -v
+npm -v
+````
+
+---
+
+## Instalacija i pokretanje
+
+### 1. Kloniranje repozitorija
+
+```bash
+git clone https://github.com/romansimunovic/ffos-oglasnik-frontend.git
+cd ffos-oglasnik-frontend
+```
+
+Otvorite folder u Visual Studio Codeu.
+
+---
+
+### 2. Instalacija ovisnosti
+
+```bash
+npm install
+```
+
+---
+
+### 3. Konfiguracija `.env` datoteke
+
+Provjerite da u root folderu postoji `.env` s:
+
+```
+VITE_API_URL=http://localhost:5000
+```
+
+> **Napomena:** Ova URL adresa treba odgovarati portu na kojem radi backend.
+
+---
+
+### 4. Pokretanje frontend aplikacije
+
+```bash
+npm run dev
+```
+
+Frontend će biti dostupan na: [http://localhost:5176](http://localhost:5176)
+
+---
+
+## Testiranje login funkcionalnosti
+
+* URL: [http://localhost:5176/login](http://localhost:5176/login)
+* Testni korisnički podaci:
+
+  | Email                                 | Lozinka  |
+  | ------------------------------------- | -------- |
+  | [admin@ffos.hr](mailto:admin@ffos.hr) | admin123 |
+
+---
+
+## Dodatne napomene
+
+* Dizajn elemenata aplikacije prilagođen je uputama mentora i može se nadograđivati.
+* Za produkciju, definirati server, domenu i dodatne sigurnosne mjere.
+* Svaka nadogradnja backend dijela treba biti verzionirana kako frontend uvijek zna API endpointove.
+
+---
+
+## Troubleshooting
+
+* **Frontend ne može dohvatiti API**: Provjerite `VITE_API_URL` i da backend radi.
+* **Port već zauzet**: Promijenite port u `vite.config.js` ili zatvorite aplikaciju koja koristi isti port.
+* **Node modules error**: Pokrenite `npm install` prije `npm run dev`.
+
+---
