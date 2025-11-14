@@ -9,9 +9,11 @@ export default function Kontakt() {
       <p className="text-gray-700 text-center mb-4">
         Za sve upite ili prijedloge za poboljšanja, možete nas kontaktirati putem e-mail adrese:
       </p>
-      <p className="text-center font-semibold text-[#b41f24]">
-        oglasnik@ffos.hr
-      </p>
+      <p className="text-center text-[#b41f24] text-lg font-semibold mt-6">
+  <a href="mailto:oglasnik@ffos.hr" className="hover:underline">
+    oglasnik@ffos.hr
+  </a>
+</p>
     </div>
   );
 }

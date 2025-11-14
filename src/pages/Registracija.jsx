@@ -1,4 +1,5 @@
 import { useState } from "react";
+import api from "../api/axiosInstance";
 import { useNavigate, Link } from "react-router-dom";
 
 export default function Registracija() {
@@ -10,33 +11,58 @@ export default function Registracija() {
     lozinka: "",
     potvrdaLozinke: "",
   });
+  const [msg, setMsg] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setMsg("");
 
+    // Validacija lozinke
     if (form.lozinka !== form.potvrdaLozinke) {
-      alert("Lozinke se ne podudaraju.");
+      setMsg("Lozinke se ne podudaraju.");
       return;
     }
 
-    // lozinka minimalno 8 znakova
-    // mora sadržavati barem 1 veliko, 1 malo slovo, 1 broj
     const regExp = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
     if (!regExp.test(form.lozinka)) {
-      alert(
+      setMsg(
         "Lozinka mora imati najmanje 8 znakova, jedno malo slovo, jedno veliko slovo i jedan broj."
       );
       return;
     }
 
-    // kasnije cemo ovdje raditi slanje na backend
-    // za sada samo simulacija i redirect
-    alert("Profil kreiran! Sada se možete prijaviti.");
-    navigate("/login");
+    setLoading(true);
+    try {
+      // API poziv za registraciju
+      await api.post("/auth/register", {
+        ime: form.ime,
+        email: form.email,
+        lozinka: form.lozinka,
+        uloga: "student",
+      });
+
+      // automatski login odmah nakon registracije
+      const { data } = await api.post("/auth/login", {
+        email: form.email,
+        lozinka: form.lozinka,
+      });
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+
+      // Preusmjeri korisnika na stranicu Profil
+      navigate("/profil");
+    } catch (err) {
+      setMsg(
+        err.response?.data?.message ||
+          "Greška pri registraciji ili automatskoj prijavi."
+      );
+    }
+    setLoading(false);
   };
 
   return (
@@ -48,7 +74,6 @@ export default function Registracija() {
         <h2 className="text-2xl font-semibold mb-6 text-center">
           Registracija
         </h2>
-
         <label className="block mb-2">Ime</label>
         <input
           type="text"
@@ -99,16 +124,21 @@ export default function Registracija() {
           required
         />
 
+        {msg && (
+          <p className="text-red-600 text-sm mb-3 text-center">{msg}</p>
+        )}
+
         <button
           type="submit"
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded"
+          className="w-full bg-[#b41f24] hover:bg-[#a11c20] text-white py-2 rounded"
+          disabled={loading}
         >
-          Kreiraj profil
+          {loading ? "Kreiranje..." : "Kreiraj profil"}
         </button>
 
         <p className="text-sm mt-4 text-center">
           Već imaš profil?{" "}
-          <Link to="/login" className="font-semibold text-blue-600">
+          <Link to="/login" className="font-semibold text-[#b41f24]">
             Prijavi se!
           </Link>
         </p>
