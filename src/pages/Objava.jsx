@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from "react";
-import axios from "../api/axiosInstance";
+import { useState, useEffect } from "react";
+import api from "../api/axiosInstance";
+import { Link } from "react-router-dom";
+import { ODSJECI } from "../constants/odsjeci";
 
 export default function Objava() {
   const [objave, setObjave] = useState([]);
-  const [odsjeci, setOdsjeci] = useState([]);
   const [filterTip, setFilterTip] = useState("sve");
   const [odsjek, setOdsjek] = useState("");
   const [sortBy, setSortBy] = useState("newest");
@@ -11,33 +12,16 @@ export default function Objava() {
 
   const tipovi = ["sve", "radionice", "kvizovi", "projekti", "natječaji", "ostalo"];
 
-  // 🔹 Dohvati odsjeke
-  useEffect(() => {
-    const fetchOdsjeci = async () => {
-      try {
-        const res = await axios.get("/odsjeci");
-        setOdsjeci(res.data);
-      } catch (err) {
-        console.error("Greška pri dohvaćanju odsjeka:", err);
-      }
-    };
-    fetchOdsjeci();
-  }, []);
-
-  // 🔹 Dohvati objave
   useEffect(() => {
     const fetchObjave = async () => {
       setLoading(true);
       try {
-        const res = await axios.get("/objave", {
+        const res = await api.get("/objave", {
           params: { tip: filterTip, odsjekId: odsjek, sortBy },
         });
         setObjave(res.data);
-      } catch (err) {
-        console.error("Greška pri dohvaćanju objava:", err);
-      } finally {
-        setLoading(false);
-      }
+      } catch {}
+      setLoading(false);
     };
     fetchObjave();
   }, [filterTip, odsjek, sortBy]);
@@ -47,11 +31,8 @@ export default function Objava() {
       <h1 className="text-3xl font-bold text-center text-[#b41f24] mb-8">
         Studentski Oglasnik
       </h1>
-
-      {/* 🔹 Filter sekcija */}
+      {/* Filter sekcija */}
       <div className="flex flex-col md:flex-row items-center justify-center gap-4 mb-8">
-
-        {/* Tip objave */}
         <div className="flex flex-wrap justify-center gap-2">
           {tipovi.map((tip) => (
             <button
@@ -67,65 +48,52 @@ export default function Objava() {
             </button>
           ))}
         </div>
-
-        {/* Odsjek filter */}
         <select
           value={odsjek}
-          onChange={(e) => setOdsjek(e.target.value)}
+          onChange={e => setOdsjek(e.target.value)}
           className="border border-gray-300 rounded-lg p-2 text-sm"
         >
           <option value="">Svi odsjeci</option>
-          {odsjeci.map((o) => (
-            <option key={o._id} value={o._id}>
-              {o.naziv}
-            </option>
+          {ODSJECI.map((ods) => (
+            <option key={ods.id} value={ods.id}>{ods.naziv}</option>
           ))}
         </select>
-
-        {/* Sortiranje */}
         <select
           value={sortBy}
-          onChange={(e) => setSortBy(e.target.value)}
+          onChange={e => setSortBy(e.target.value)}
           className="border border-gray-300 rounded-lg p-2 text-sm"
         >
           <option value="newest">Najnovije</option>
           <option value="oldest">Najstarije</option>
         </select>
       </div>
-
-      {/* 🔹 Prikaz objava */}
+      {/* Prikaz objava */}
       {loading ? (
         <p className="text-center text-gray-500">Učitavanje objava...</p>
       ) : objave.length === 0 ? (
         <p className="text-center text-gray-500">Nema dostupnih objava.</p>
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {objave.map((o) => (
-            <div
-              key={o._id}
-              className="border border-gray-200 rounded-lg shadow-sm bg-white p-5 hover:shadow-md transition"
+          {objave.map((obj) => (
+            <Link
+              key={obj._id}
+              to={`/objava/${obj._id}`}
+              className="border border-gray-200 rounded-lg shadow-sm bg-white p-5 hover:shadow-md transition cursor-pointer block"
             >
               <h2 className="text-lg font-semibold text-[#b41f24] mb-2">
-                {o.naslov || "Bez naslova"}
+                {obj.naslov || "Bez naslova"}
               </h2>
-
-              <p className="text-sm text-gray-700 mb-2">
-                {o.sadrzaj || "Nema opisa."}
-              </p>
-
+              <p className="text-sm text-gray-700 mb-2">{obj.sadrzaj || "Nema opisa."}</p>
               <div className="text-xs text-gray-500">
+                <p>Tip: <span className="italic">{obj.tip}</span></p>
                 <p>
-                  Tip: <span className="italic">{o.tip}</span>
-                </p>
-                <p>
-                  Odsjek:{" "}
-                  <span>{o.odsjek?.naziv || "Filozofski fakultet"}</span>
+                  Odsjek: {ODSJECI.find(ods => ods.id === obj.odsjek)?.naziv || '-'}
                 </p>
                 <p className="text-gray-400 mt-1">
-                  {new Date(o.datum).toLocaleDateString("hr-HR")}
+                  {obj.datum ? new Date(obj.datum).toLocaleDateString("hr-HR") : ""}
                 </p>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       )}

@@ -1,91 +1,115 @@
-import React from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import LoginModal from "./LoginModal.jsx";
 
 export default function Navbar() {
+  const [loginOpen, setLoginOpen] = useState(false);
+  const [user, setUser] = useState(() =>
+    JSON.parse(localStorage.getItem("user") || "null")
+  );
   const navigate = useNavigate();
-  const user = JSON.parse(localStorage.getItem("user") || "null");
 
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
+    setUser(null);
     navigate("/");
   };
 
-  return (
-    <nav className="bg-[#b41f24] shadow-md">
-      <div className="max-w-7xl mx-auto flex justify-between items-center px-6 py-3">
-        {/* Logo / naslov */}
-        <Link
-          to="/"
-          className="text-xl font-semibold tracking-wide text-white select-none"
-        >
-          FFOS Oglasnik
-        </Link>
+  const handleProfileClick = () => {
+    if (user) {
+      navigate("/profil");
+    } else {
+      setLoginOpen(true);
+    }
+  };
 
-        {/* Navigacija */}
-        <div className="flex gap-3 items-center">
+  const onLoginSuccess = (userObj) => {
+    setUser(userObj);
+    setLoginOpen(false);
+    navigate("/profil");
+  };
+
+  return (
+    <>
+      <nav className="bg-[#b41f24] shadow-md">
+        <div className="max-w-7xl mx-auto flex justify-between items-center px-6 py-3">
           <Link
             to="/"
-            className="bg-white text-[#b41f24] px-4 py-1 rounded-md font-medium border border-[#b41f24]"
+            className="text-xl font-semibold tracking-wide text-white select-none"
           >
-            Početna
-          </Link>
-          <Link
-            to="/objave"
-            className="bg-white text-[#b41f24] px-4 py-1 rounded-md font-medium border border-[#b41f24]"
-          >
-            Objave
-          </Link>
-          <Link
-            to="/kontakt"
-            className="bg-white text-[#b41f24] px-4 py-1 rounded-md font-medium border border-[#b41f24]"
-          >
-            Kontakt
+            FFOS Oglasnik
           </Link>
 
-          {user?.uloga === "student" && (
+          <div className="flex gap-3 items-center">
             <Link
-              to="/nova-objava"
+              to="/"
               className="bg-white text-[#b41f24] px-4 py-1 rounded-md font-medium border border-[#b41f24]"
             >
-              Nova objava
+              Početna
             </Link>
-          )}
+            <Link
+              to="/objave"
+              className="bg-white text-[#b41f24] px-4 py-1 rounded-md font-medium border border-[#b41f24]"
+            >
+              Objave
+            </Link>
+            <Link
+              to="/kontakt"
+              className="bg-white text-[#b41f24] px-4 py-1 rounded-md font-medium border border-[#b41f24]"
+            >
+              Kontakt
+            </Link>
 
-          {user?.uloga === "admin" && (
-            <>
+            {user?.uloga === "student" && (
               <Link
-                to="/admin"
+                to="/nova-objava"
                 className="bg-white text-[#b41f24] px-4 py-1 rounded-md font-medium border border-[#b41f24]"
               >
-                Admin panel
+                Nova objava
               </Link>
-              <Link
-                to="/inbox"
-                className="bg-white text-[#b41f24] px-4 py-1 rounded-md font-medium border border-[#b41f24]"
-              >
-                Inbox
-              </Link>
-            </>
-          )}
+            )}
 
-          {user ? (
+            {user?.uloga === "admin" && (
+              <>
+                <Link
+                  to="/admin"
+                  className="bg-white text-[#b41f24] px-4 py-1 rounded-md font-medium border border-[#b41f24]"
+                >
+                  Admin panel
+                </Link>
+                <Link
+                  to="/inbox"
+                  className="bg-white text-[#b41f24] px-4 py-1 rounded-md font-medium border border-[#b41f24]"
+                >
+                  Inbox
+                </Link>
+              </>
+            )}
+
             <button
-              onClick={handleLogout}
+              onClick={handleProfileClick}
               className="bg-white text-[#b41f24] px-4 py-1 rounded-md font-medium border border-[#b41f24]"
             >
-              Odjava
+              Profil
             </button>
-          ) : (
-            <Link
-              to="/login"
-              className="bg-white text-[#b41f24] px-4 py-1 rounded-md font-medium border border-[#b41f24]"
-            >
-              Prijava
-            </Link>
-          )}
+
+            {user && (
+              <button
+                onClick={handleLogout}
+                className="bg-white text-[#b41f24] px-4 py-1 rounded-md font-medium border border-[#b41f24]"
+              >
+                Odjava
+              </button>
+            )}
+          </div>
         </div>
-      </div>
-    </nav>
+      </nav>
+      <LoginModal
+        open={loginOpen}
+        onClose={() => setLoginOpen(false)}
+        onLogin={onLoginSuccess}
+      />
+    </>
   );
 }
