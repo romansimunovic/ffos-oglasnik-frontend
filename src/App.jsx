@@ -12,12 +12,14 @@ import AdminPanel from "./pages/AdminPanel.jsx";
 import Inbox from "./pages/Inbox.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import MojeObjave from "./pages/MojeObjave.jsx";
+import Breadcrumbs from "./components/Breadcrumbs.jsx";
 
 export default function App() {
   return (
     <Router>
       <div className="flex flex-col min-h-screen bg-gray-50">
         <Navbar />
+        <Breadcrumbs />
         <main className="flex-grow">
           <Routes>
             <Route path="/" element={<Home />} />
@@ -26,7 +28,6 @@ export default function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/registracija" element={<Registracija />} />
             <Route path="/moje-objave" element={<MojeObjave />} />
-
             <Route
               path="/nova-objava"
               element={
