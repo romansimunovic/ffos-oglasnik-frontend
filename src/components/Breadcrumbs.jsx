@@ -7,7 +7,6 @@ const routeLabelMap = {
   "/kontakt": "Kontakt",
   "/login": "Prijava",
   "/registracija": "Registracija",
-  "/moje-objave": "Moje objave",
   "/inbox": "Inbox",
   "/admin": "Admin panel",
 };

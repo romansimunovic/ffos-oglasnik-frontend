@@ -9,12 +9,9 @@ import NovaObjava from "./pages/NovaObjava.jsx";
 import Kontakt from "./pages/Kontakt.jsx";
 import Registracija from "./pages/Registracija.jsx";
 import AdminPanel from "./pages/AdminPanel.jsx";
-import Inbox from "./pages/Inbox.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
-import MojeObjave from "./pages/MojeObjave.jsx";
 import ObjavaDetalj from "./pages/ObjavaDetalj.jsx";
-import Profil from "./pages/Profil.jsx"; 
-
+import Profil from "./pages/Profil.jsx";
 
 export default function App() {
   return (
@@ -30,7 +27,6 @@ export default function App() {
             <Route path="/kontakt" element={<Kontakt />} />
             <Route path="/registracija" element={<Registracija />} />
             <Route path="/profil" element={<Profil />} />
-            <Route path="/moje-objave" element={<MojeObjave />} />
             <Route
               path="/nova-objava"
               element={
@@ -39,14 +35,7 @@ export default function App() {
                 </ProtectedRoute>
               }
             />
-            <Route
-              path="/inbox"
-              element={
-                <ProtectedRoute>
-                  <Inbox />
-                </ProtectedRoute>
-              }
-            />
+
             <Route
               path="/admin"
               element={
