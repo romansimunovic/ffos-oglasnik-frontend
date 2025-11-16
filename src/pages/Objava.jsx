@@ -5,12 +5,20 @@ import { ODSJECI } from "../constants/odsjeci";
 
 export default function Objava() {
   const [objave, setObjave] = useState([]);
+  const user = JSON.parse(localStorage.getItem("user") || "null");
   const [filterTip, setFilterTip] = useState("sve");
   const [odsjek, setOdsjek] = useState("");
   const [sortBy, setSortBy] = useState("newest");
   const [loading, setLoading] = useState(true);
 
-  const tipovi = ["sve", "radionice", "kvizovi", "projekti", "natječaji", "ostalo"];
+  const tipovi = [
+    "sve",
+    "radionice",
+    "kvizovi",
+    "projekti",
+    "natječaji",
+    "ostalo",
+  ];
 
   useEffect(() => {
     const fetchObjave = async () => {
@@ -25,6 +33,30 @@ export default function Objava() {
     };
     fetchObjave();
   }, [filterTip, odsjek, sortBy]);
+
+  // 🔹 handler za spremanje objave
+  const spremiObjavu = async (e, id) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const token = localStorage.getItem("token");
+
+    try {
+      await api.post(
+        `/korisnik/spremiObjavu/${id}`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      alert("Objava je spremljena.");
+    } catch (err) {
+      console.error("Greška pri spremanju objave:", err.response?.data || err);
+      alert(err.response?.data?.message || "Greška pri spremanju objave.");
+    }
+  };
 
   return (
     <div className="container mx-auto py-10 px-4">
@@ -50,17 +82,19 @@ export default function Objava() {
         </div>
         <select
           value={odsjek}
-          onChange={e => setOdsjek(e.target.value)}
+          onChange={(e) => setOdsjek(e.target.value)}
           className="border border-gray-300 rounded-lg p-2 text-sm"
         >
           <option value="">Svi odsjeci</option>
           {ODSJECI.map((ods) => (
-            <option key={ods.id} value={ods.id}>{ods.naziv}</option>
+            <option key={ods.id} value={ods.id}>
+              {ods.naziv}
+            </option>
           ))}
         </select>
         <select
           value={sortBy}
-          onChange={e => setSortBy(e.target.value)}
+          onChange={(e) => setSortBy(e.target.value)}
           className="border border-gray-300 rounded-lg p-2 text-sm"
         >
           <option value="newest">Najnovije</option>
@@ -83,16 +117,32 @@ export default function Objava() {
               <h2 className="text-lg font-semibold text-[#b41f24] mb-2">
                 {obj.naslov || "Bez naslova"}
               </h2>
-              <p className="text-sm text-gray-700 mb-2">{obj.sadrzaj || "Nema opisa."}</p>
+              <p className="text-sm text-gray-700 mb-2">
+                {obj.sadrzaj || "Nema opisa."}
+              </p>
               <div className="text-xs text-gray-500">
-                <p>Tip: <span className="italic">{obj.tip}</span></p>
                 <p>
-                  Odsjek: {ODSJECI.find(ods => ods.id === obj.odsjek)?.naziv || '-'}
+                  Tip: <span className="italic">{obj.tip}</span>
+                </p>
+                <p>
+                  Odsjek:{" "}
+                  {ODSJECI.find((ods) => ods.id === obj.odsjek)?.naziv || "-"}
                 </p>
                 <p className="text-gray-400 mt-1">
-                  {obj.datum ? new Date(obj.datum).toLocaleDateString("hr-HR") : ""}
+                  {obj.datum
+                    ? new Date(obj.datum).toLocaleDateString("hr-HR")
+                    : ""}
                 </p>
               </div>
+
+              {user && (
+                <button
+                  onClick={(e) => spremiObjavu(e, obj._id)}
+                  className="mt-3 inline-block text-sm bg-yellow-400 hover:bg-yellow-500 text-black px-3 py-1 rounded"
+                >
+                  Pohrani objavu
+                </button>
+              )}
             </Link>
           ))}
         </div>
