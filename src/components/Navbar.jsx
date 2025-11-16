@@ -78,12 +78,6 @@ export default function Navbar() {
                 >
                   Admin panel
                 </Link>
-                <Link
-                  to="/inbox"
-                  className="bg-white text-[#b41f24] px-4 py-1 rounded-md font-medium border border-[#b41f24]"
-                >
-                  Inbox
-                </Link>
               </>
             )}
 
