@@ -28,32 +28,26 @@ export default function Objava() {
           params: { tip: filterTip, odsjekId: odsjek, sortBy },
         });
         setObjave(res.data);
-      } catch {}
+      } catch (err) {
+        setObjave([]);
+      }
       setLoading(false);
     };
     fetchObjave();
   }, [filterTip, odsjek, sortBy]);
 
-  // 🔹 handler za spremanje objave
   const spremiObjavu = async (e, id) => {
     e.preventDefault();
     e.stopPropagation();
-
     const token = localStorage.getItem("token");
-
     try {
       await api.post(
         `/korisnik/spremiObjavu/${id}`,
         {},
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
       alert("Objava je spremljena.");
     } catch (err) {
-      console.error("Greška pri spremanju objave:", err.response?.data || err);
       alert(err.response?.data?.message || "Greška pri spremanju objave.");
     }
   };
@@ -61,9 +55,8 @@ export default function Objava() {
   return (
     <div className="container mx-auto py-10 px-4">
       <h1 className="text-3xl font-bold text-center text-[#b41f24] mb-8">
-        Studentski Oglasnik
+        Objave
       </h1>
-      {/* Filter sekcija */}
       <div className="flex flex-col md:flex-row items-center justify-center gap-4 mb-8">
         <div className="flex flex-wrap justify-center gap-2">
           {tipovi.map((tip) => (
@@ -101,7 +94,6 @@ export default function Objava() {
           <option value="oldest">Najstarije</option>
         </select>
       </div>
-      {/* Prikaz objava */}
       {loading ? (
         <p className="text-center text-gray-500">Učitavanje objava...</p>
       ) : objave.length === 0 ? (
@@ -126,7 +118,7 @@ export default function Objava() {
                 </p>
                 <p>
                   Odsjek:{" "}
-                  {ODSJECI.find((ods) => ods.id === obj.odsjek)?.naziv || "-"}
+                  {ODSJECI.find((ods) => ods.id === (obj.odsjek?._id || obj.odsjek))?.naziv || "-"}
                 </p>
                 <p className="text-gray-400 mt-1">
                   {obj.datum
@@ -134,15 +126,14 @@ export default function Objava() {
                     : ""}
                 </p>
               </div>
-
-              {user && (
+              {user && user.uloga !== "admin" && (
                 <button
-                  onClick={(e) => spremiObjavu(e, obj._id)}
-                  className="mt-3 inline-block text-sm bg-yellow-400 hover:bg-yellow-500 text-black px-3 py-1 rounded"
-                >
-                  Pohrani objavu
-                </button>
-              )}
+    onClick={(e) => spremiObjavu(e, obj._id)}
+    className="mt-3 inline-block text-sm bg-yellow-400 hover:bg-yellow-500 text-black px-3 py-1 rounded"
+  >
+    Pohrani objavu
+  </button>
+)}
             </Link>
           ))}
         </div>

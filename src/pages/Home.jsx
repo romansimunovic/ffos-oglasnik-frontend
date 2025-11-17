@@ -80,14 +80,15 @@ export default function Home() {
                   {new Date(o.datum).toLocaleDateString("hr-HR")}
                 </p>
 
-                {user && (
+                {user && user.uloga !== "admin" && (
                   <button
-                    onClick={(e) => spremiObjavu(e, o._id)}
-                    className="mt-3 inline-block text-sm bg-yellow-400 hover:bg-yellow-500 text-black px-3 py-1 rounded"
-                  >
-                    Pohrani objavu
-                  </button>
-                )}
+    onClick={(e) => spremiObjavu(e, o._id)}
+    className="mt-3 inline-block text-sm bg-yellow-400 hover:bg-yellow-500 text-black px-3 py-1 rounded"
+  >
+    Pohrani objavu
+  </button>
+)}
+
 
                 {o.sadrzaj.length > 120 && (
                   <span className="text-xs text-[#b41f24] underline">

@@ -5,7 +5,7 @@ import { ODSJECI } from "../constants/odsjeci";
 export default function NovaObjava() {
   const [naslov, setNaslov] = useState("");
   const [sadrzaj, setSadrzaj] = useState("");
-  const [tip, setTip] = useState("ostalo");
+  const [tip, setTip] = useState("radionice");
   const [odsjek, setOdsjek] = useState("");
   const [msg, setMsg] = useState("");
 
@@ -22,6 +22,7 @@ export default function NovaObjava() {
       setNaslov("");
       setSadrzaj("");
       setOdsjek("");
+      setTip("radionice");
     } catch (err) {
       setMsg("Greška pri slanju objave.");
     }
@@ -58,17 +59,16 @@ export default function NovaObjava() {
           <option value="ostalo">Ostalo</option>
         </select>
         <select
-  value={odsjek}
-  onChange={e => setOdsjek(e.target.value)}
-  required
-  className="border w-full p-2 rounded"
->
-  <option value="">Odaberite odsjek</option>
-  {ODSJECI.map(o => (
-    <option value={o.id} key={o.id}>{o.naziv}</option>
-  ))}
-</select>
-
+          value={odsjek}
+          onChange={e => setOdsjek(e.target.value)}
+          required
+          className="border w-full p-2 rounded"
+        >
+          <option value="">Odaberite odsjek</option>
+          {ODSJECI.map(o => (
+            <option value={o.id} key={o.id}>{o.naziv}</option>
+          ))}
+        </select>
         <button className="bg-[#b41f24] text-white px-4 py-2 rounded w-full">
           Pošalji
         </button>
