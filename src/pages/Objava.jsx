@@ -109,7 +109,7 @@ export default function Objava() {
               <h2 className="text-lg font-semibold text-[#b41f24] mb-2">
                 {obj.naslov || "Bez naslova"}
               </h2>
-              <p className="text-sm text-gray-700 mb-2">
+              <p className="text-sm text-gray-700 mb-1">
                 {obj.sadrzaj || "Nema opisa."}
               </p>
               <div className="text-xs text-gray-500">
@@ -120,6 +120,7 @@ export default function Objava() {
                   Odsjek:{" "}
                   {ODSJECI.find((ods) => ods.id === (obj.odsjek?._id || obj.odsjek))?.naziv || "-"}
                 </p>
+                <p>Autor: {obj.autor || "Nepoznato"}</p>
                 <p className="text-gray-400 mt-1">
                   {obj.datum
                     ? new Date(obj.datum).toLocaleDateString("hr-HR")
@@ -128,12 +129,12 @@ export default function Objava() {
               </div>
               {user && user.uloga !== "admin" && (
                 <button
-    onClick={(e) => spremiObjavu(e, obj._id)}
-    className="mt-3 inline-block text-sm bg-yellow-400 hover:bg-yellow-500 text-black px-3 py-1 rounded"
-  >
-    Pohrani objavu
-  </button>
-)}
+                  onClick={(e) => spremiObjavu(e, obj._id)}
+                  className="mt-3 inline-block text-sm bg-yellow-400 hover:bg-yellow-500 text-black px-3 py-1 rounded"
+                >
+                  Pohrani objavu
+                </button>
+              )}
             </Link>
           ))}
         </div>

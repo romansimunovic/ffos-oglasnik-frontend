@@ -1,6 +1,6 @@
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
-import axios from "../api/axiosInstance";
+import api from "../api/axiosInstance";
 import { ODSJECI } from "../constants/odsjeci";
 
 export default function ObjavaDetalj() {
@@ -8,7 +8,7 @@ export default function ObjavaDetalj() {
   const [objava, setObjava] = useState(null);
 
   useEffect(() => {
-    axios.get(`/objave/${id}`)
+    api.get(`/objave/${id}`)
       .then(res => setObjava(res.data))
       .catch(() => setObjava(null));
   }, [id]);
@@ -21,8 +21,9 @@ export default function ObjavaDetalj() {
       <p className="mb-4 text-gray-700">{objava.sadrzaj}</p>
       <div className="text-sm text-gray-500">
         <p>Tip: {objava.tip}</p>
-        <p>Odsjek: {ODSJECI.find(x => x.id === objava.odsjek)?.naziv || '-'}</p>
-        <p>{new Date(objava.datum).toLocaleDateString("hr-HR")}</p>
+        <p>Odsjek: {ODSJECI.find(x => x.id === (objava.odsjek?._id || objava.odsjek))?.naziv || '-'}</p>
+        <p>Autor: {objava.autor || "Nepoznato"}</p>
+        <p>{objava.datum ? new Date(objava.datum).toLocaleDateString("hr-HR") : ""}</p>
       </div>
     </div>
   );

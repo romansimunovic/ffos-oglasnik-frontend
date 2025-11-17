@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import api from "../api/axiosInstance";
+import { Link } from "react-router-dom";
 
 export default function Profil() {
   const user = JSON.parse(localStorage.getItem("user") || "null");
@@ -52,24 +54,24 @@ export default function Profil() {
           ) : (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {spremljene.map((o) => (
-                <Link
-                  key={o._id}
-                  to={`/objava/${o._id}`}
-                  className="border border-gray-200 rounded-lg bg-white p-4 shadow-sm hover:shadow-md transition block"
-                >
-                  <h4 className="text-lg font-semibold text-[#b41f24] mb-1">
-                    {o.naslov || "Bez naslova"}
-                  </h4>
-                  <p className="text-sm text-gray-700 mb-2">
-                    {o.sadrzaj?.length > 120
-                      ? o.sadrzaj.slice(0, 120) + "..."
-                      : o.sadrzaj || "Nema opisa."}
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    {o.datum ? new Date(o.datum).toLocaleDateString("hr-HR") : ""}
-                  </p>
-                </Link>
-              ))}
+  <Link
+    key={o._id}
+    to={`/objava/${o._id}`}
+    className="border border-gray-200 rounded-lg bg-white p-4 shadow-sm hover:shadow-md transition block"
+  >
+    <h4 className="text-lg font-semibold text-[#b41f24] mb-1">
+      {o.naslov || "Bez naslova"}
+    </h4>
+    <p className="text-sm text-gray-700 mb-2">
+      {o.sadrzaj?.length > 120
+        ? o.sadrzaj.slice(0, 120) + "..."
+        : o.sadrzaj || "Nema opisa."}
+    </p>
+    <p className="text-xs text-gray-500">
+      {o.datum ? new Date(o.datum).toLocaleDateString("hr-HR") : ""}
+    </p>
+  </Link>
+))}
             </div>
           )}
         </section>
