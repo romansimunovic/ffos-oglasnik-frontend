@@ -36,21 +36,23 @@ export default function Objava() {
     fetchObjave();
   }, [filterTip, odsjek, sortBy]);
 
-  const spremiObjavu = async (e, id) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const token = localStorage.getItem("token");
-    try {
-      await api.post(
-        `/korisnik/spremiObjavu/${id}`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      alert("Objava je spremljena.");
-    } catch (err) {
-      alert(err.response?.data?.message || "Greška pri spremanju objave.");
-    }
-  };
+  // Spremi objavu i signaliziraj profilu da refetcha spremljene
+const spremiObjavu = async (e, id) => {
+  e.preventDefault();
+  e.stopPropagation();
+  const token = localStorage.getItem("token");
+  try {
+    await api.post(
+      `/korisnik/spremiObjavu/${id}`,
+      {},
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    alert("Objava je spremljena.");
+    localStorage.setItem("refreshSpremljene", Date.now());
+  } catch (err) {
+    alert(err.response?.data?.message || "Greška pri spremanju objave.");
+  }
+};
 
   return (
     <div className="container mx-auto py-10 px-4">

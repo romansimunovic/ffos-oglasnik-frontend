@@ -6,44 +6,44 @@ export default function Profil() {
   const user = JSON.parse(localStorage.getItem("user") || "null");
   const [spremljene, setSpremljene] = useState([]);
 
-  if (!user)
-    return <p className="text-center my-6 text-red-600">Niste prijavljeni.</p>;
+  if (!user) return <p className="text-center my-6 text-red-600">Niste prijavljeni.</p>;
 
-  useEffect(() => {
-    // Fetch only for non-admin users
-    if (user.uloga !== "admin") {
-      const fetchSpremljene = async () => {
-        try {
-          const { data } = await api.get("/korisnik/spremljene");
-          setSpremljene(data || []);
-        } catch (err) {
-          console.error("Greška pri dohvaćanju spremljenih objava:", err);
-        }
-      };
-      fetchSpremljene();
-    }
-  }, [user.uloga]);
+useEffect(() => {
+  if (user.uloga !== "admin") {
+    const fetchSpremljene = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const { data } = await api.get("/korisnik/spremljene", {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setSpremljene(data || []);
+      } catch (err) {
+        setSpremljene([]);
+      }
+    };
+    fetchSpremljene();
+    const storageHandler = () => fetchSpremljene();
+    window.addEventListener("storage", storageHandler);
+    return () => window.removeEventListener("storage", storageHandler);
+  }
+}, [user.uloga]);
+
 
   return (
     <div className="max-w-4xl mx-auto mt-10 px-4">
-      {/* Osnovni podaci */}
       <div className="bg-white shadow-md rounded-lg p-8 mb-8 max-w-lg">
         <h2 className="text-2xl font-bold text-[#b41f24] mb-6">Moj Profil</h2>
         <p className="mb-2">
-          <span className="font-bold">Ime: </span>
-          {user.ime}
+          <span className="font-bold">Ime: </span>{user.ime}
         </p>
         <p className="mb-2">
-          <span className="font-bold">Email: </span>
-          {user.email}
+          <span className="font-bold">Email: </span>{user.email}
         </p>
         <p className="mb-2">
-          <span className="font-bold">Uloga: </span>
-          {user.uloga}
+          <span className="font-bold">Uloga: </span>{user.uloga}
         </p>
       </div>
 
-      {/* Prikaži spremljene objave SAMO AKO korisnik NIJE admin */}
       {user.uloga !== "admin" && (
         <section className="bg-white shadow-md rounded-lg p-6">
           <h3 className="text-xl font-semibold mb-4 text-[#b41f24]">
@@ -54,24 +54,19 @@ export default function Profil() {
           ) : (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {spremljene.map((o) => (
-  <Link
-    key={o._id}
-    to={`/objava/${o._id}`}
-    className="border border-gray-200 rounded-lg bg-white p-4 shadow-sm hover:shadow-md transition block"
-  >
-    <h4 className="text-lg font-semibold text-[#b41f24] mb-1">
-      {o.naslov || "Bez naslova"}
-    </h4>
-    <p className="text-sm text-gray-700 mb-2">
-      {o.sadrzaj?.length > 120
-        ? o.sadrzaj.slice(0, 120) + "..."
-        : o.sadrzaj || "Nema opisa."}
-    </p>
-    <p className="text-xs text-gray-500">
-      {o.datum ? new Date(o.datum).toLocaleDateString("hr-HR") : ""}
-    </p>
-  </Link>
-))}
+                <Link key={o._id} to={`/objava/${o._id}`}
+                  className="border border-gray-200 rounded-lg bg-white p-4 shadow-sm hover:shadow-md transition block">
+                  <h4 className="text-lg font-semibold text-[#b41f24] mb-1">
+                    {o.naslov || "Bez naslova"}
+                  </h4>
+                  <p className="text-sm text-gray-700 mb-2">
+                    {o.sadrzaj?.length > 120 ? o.sadrzaj.slice(0, 120) + "..." : o.sadrzaj || "Nema opisa."}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {o.datum ? new Date(o.datum).toLocaleDateString("hr-HR") : ""}
+                  </p>
+                </Link>
+              ))}
             </div>
           )}
         </section>
