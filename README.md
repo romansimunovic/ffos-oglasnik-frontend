@@ -76,14 +76,6 @@ Frontend će biti dostupan na: [http://localhost:5176](http://localhost:5176)
 
 ---
 
-## Dodatne napomene
-
-* Dizajn elemenata aplikacije prilagođen je uputama mentora i može se nadograđivati.
-* Za produkciju, definirati server, domenu i dodatne sigurnosne mjere.
-* Svaka nadogradnja backend dijela treba biti verzionirana kako frontend uvijek zna API endpointove.
-
----
-
 ## Troubleshooting
 
 * **Frontend ne može dohvatiti API**: Provjerite `VITE_API_URL` i da backend radi.
