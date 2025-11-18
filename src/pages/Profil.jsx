@@ -6,28 +6,31 @@ export default function Profil() {
   const user = JSON.parse(localStorage.getItem("user") || "null");
   const [spremljene, setSpremljene] = useState([]);
 
-  if (!user) return <p className="text-center my-6 text-red-600">Niste prijavljeni.</p>;
+  if (!user)
+    return <p className="text-center my-6 text-red-600">Niste prijavljeni.</p>;
 
-useEffect(() => {
-  if (user.uloga !== "admin") {
-    const fetchSpremljene = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const { data } = await api.get("/korisnik/spremljene", {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        setSpremljene(data || []);
-      } catch (err) {
-        setSpremljene([]);
-      }
-    };
-    fetchSpremljene();
-    const storageHandler = () => fetchSpremljene();
-    window.addEventListener("storage", storageHandler);
-    return () => window.removeEventListener("storage", storageHandler);
-  }
-}, [user.uloga]);
+  useEffect(() => {
+    if (user.uloga !== "admin") {
+      const fetchSpremljene = async () => {
+        try {
+          const token = localStorage.getItem("token");
+          const { data } = await api.get("/korisnik/spremljene", {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          setSpremljene(data || []);
+        } catch (err) {
+          setSpremljene([]);
+        }
+      };
 
+      fetchSpremljene();
+
+      // refresh listener na custom event za spremanje
+      const handler = () => fetchSpremljene();
+      window.addEventListener("refreshSpremljene", handler);
+      return () => window.removeEventListener("refreshSpremljene", handler);
+    }
+  }, [user.uloga]);
 
   return (
     <div className="max-w-4xl mx-auto mt-10 px-4">
@@ -43,7 +46,6 @@ useEffect(() => {
           <span className="font-bold">Uloga: </span>{user.uloga}
         </p>
       </div>
-
       {user.uloga !== "admin" && (
         <section className="bg-white shadow-md rounded-lg p-6">
           <h3 className="text-xl font-semibold mb-4 text-[#b41f24]">

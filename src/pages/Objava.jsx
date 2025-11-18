@@ -2,9 +2,11 @@ import { useState, useEffect } from "react";
 import api from "../api/axiosInstance";
 import { Link } from "react-router-dom";
 import { ODSJECI } from "../constants/odsjeci";
+import NovaObjava from "./NovaObjava";
 
 export default function Objava() {
   const [objave, setObjave] = useState([]);
+  const [showForm, setShowForm] = useState(false);
   const user = JSON.parse(localStorage.getItem("user") || "null");
   const [filterTip, setFilterTip] = useState("sve");
   const [odsjek, setOdsjek] = useState("");
@@ -34,31 +36,41 @@ export default function Objava() {
       setLoading(false);
     };
     fetchObjave();
+
+    const handler = () => fetchObjave();
+    window.addEventListener("refreshObjave", handler);
+    return () => window.removeEventListener("refreshObjave", handler);
   }, [filterTip, odsjek, sortBy]);
 
-  // Spremi objavu i signaliziraj profilu da refetcha spremljene
-const spremiObjavu = async (e, id) => {
-  e.preventDefault();
-  e.stopPropagation();
-  const token = localStorage.getItem("token");
-  try {
-    await api.post(
-      `/korisnik/spremiObjavu/${id}`,
-      {},
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
-    alert("Objava je spremljena.");
-    localStorage.setItem("refreshSpremljene", Date.now());
-  } catch (err) {
-    alert(err.response?.data?.message || "Greška pri spremanju objave.");
-  }
-};
+  const spremiObjavu = async (e, id) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("Niste prijavljeni.");
+      return;
+    }
+    try {
+      const res = await api.post(
+        `/korisnik/spremiObjavu/${id}`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      alert(res.data?.message || "Objava je spremljena.");
+      window.dispatchEvent(new Event("refreshSpremljene"));
+    } catch (err) {
+      const msg = err.response?.data?.message || err.message || "Greška pri spremanju objave.";
+      alert(msg);
+    }
+  };
 
   return (
     <div className="container mx-auto py-10 px-4">
       <h1 className="text-3xl font-bold text-center text-[#b41f24] mb-8">
         Objave
       </h1>
+
+      {/* FILTERI I GUMB NA ISTOJ LINIJI */}
       <div className="flex flex-col md:flex-row items-center justify-center gap-4 mb-8">
         <div className="flex flex-wrap justify-center gap-2">
           {tipovi.map((tip) => (
@@ -95,7 +107,24 @@ const spremiObjavu = async (e, id) => {
           <option value="newest">Najnovije</option>
           <option value="oldest">Najstarije</option>
         </select>
+        {user && user.uloga !== "admin" && (
+          <button
+            onClick={() => setShowForm(v => !v)}
+            className="bg-[#b41f24] text-white px-4 py-2 rounded ml-4"
+          >
+            Nova objava
+          </button>
+        )}
       </div>
+
+      {/* FORMA prikazuje se samo kad je showForm true, ispod filtera */}
+      {showForm && (
+        <div className="flex justify-center mb-8">
+          <NovaObjava closeForm={() => setShowForm(false)} />
+        </div>
+      )}
+
+      {/* OBJAVE */}
       {loading ? (
         <p className="text-center text-gray-500">Učitavanje objava...</p>
       ) : objave.length === 0 ? (
@@ -119,14 +148,11 @@ const spremiObjavu = async (e, id) => {
                   Tip: <span className="italic">{obj.tip}</span>
                 </p>
                 <p>
-                  Odsjek:{" "}
-                  {ODSJECI.find((ods) => ods.id === (obj.odsjek?._id || obj.odsjek))?.naziv || "-"}
+                  Odsjek: {ODSJECI.find((ods) => ods.id === obj.odsjek)?.naziv || "-"}
                 </p>
                 <p>Autor: {obj.autor || "Nepoznato"}</p>
                 <p className="text-gray-400 mt-1">
-                  {obj.datum
-                    ? new Date(obj.datum).toLocaleDateString("hr-HR")
-                    : ""}
+                  {obj.datum ? new Date(obj.datum).toLocaleDateString("hr-HR") : ""}
                 </p>
               </div>
               {user && user.uloga !== "admin" && (
