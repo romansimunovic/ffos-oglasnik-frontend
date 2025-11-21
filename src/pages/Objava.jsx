@@ -257,7 +257,7 @@ export default function Objava() {
                       type="button"
                       className="save-btn"
                     >
-                      Pohrani
+                      Spremi
                     </button>
                   )}
                 </div>

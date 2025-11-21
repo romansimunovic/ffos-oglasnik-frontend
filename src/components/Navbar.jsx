@@ -30,12 +30,9 @@ export default function Navbar({ zahtjeviCount = 0 }) {
 
   return (
     <>
-      <nav
-        className={`shadow-md border-b fixed w-full z-50 ${dark ? "bg-[#181926]" : "bg-[#b41f24]"}`}
-        aria-label="Glavni meni"
-      >
+      <nav className={`shadow-md border-b fixed w-full z-50 ${dark ? "bg-[#181926]" : "bg-[#b41f24]"}`} aria-label="Glavni meni">
         <div className="max-w-7xl mx-auto flex justify-between items-center px-5 py-2">
-          {/* LOGO kao 'Početna' */}
+          {/* FFOS logo je 'Početna' */}
           <div className="flex items-center gap-3">
             <Link to="/">
               <img
@@ -49,20 +46,32 @@ export default function Navbar({ zahtjeviCount = 0 }) {
           <div className="flex gap-3 items-center">
             <Link
               to="/objave"
-              className={`px-4 py-2 rounded font-bold border border-white text-lg ${dark ? "bg-gray-700 text-white" : "bg-white text-[#b41f24]"}`}
+              className={`px-4 py-2 rounded font-bold border border-white text-lg ${
+                dark
+                  ? "bg-gray-700 text-white"
+                  : "bg-white text-[#b41f24]"
+              }`}
             >
               Objave
             </Link>
             <Link
               to="/kontakt"
-              className={`px-4 py-2 rounded font-bold border border-white text-lg ${dark ? "bg-gray-700 text-white" : "bg-white text-[#b41f24]"}`}
+              className={`px-4 py-2 rounded font-bold border border-white text-lg ${
+                dark
+                  ? "bg-gray-700 text-white"
+                  : "bg-white text-[#b41f24]"
+              }`}
             >
               Kontakt
             </Link>
             {user?.uloga === "student" && (
               <Link
                 to="/nova-objava"
-                className={`px-4 py-2 rounded font-bold border border-white text-lg ${dark ? "bg-gray-700 text-white" : "bg-white text-[#b41f24]"}`}
+                className={`px-4 py-2 rounded font-bold border border-white text-lg ${
+                  dark
+                    ? "bg-gray-700 text-white"
+                    : "bg-white text-[#b41f24]"
+                }`}
               >
                 Nova objava
               </Link>
@@ -71,27 +80,58 @@ export default function Navbar({ zahtjeviCount = 0 }) {
               <div className="relative flex items-center">
                 <Link
                   to="/admin"
-                  className={`px-4 py-2 rounded font-bold border border-white text-lg ${dark ? "bg-gray-700 text-white" : "bg-white text-[#b41f24]"}`}
+                  className={`px-4 py-2 rounded font-bold border border-white text-lg ${
+                    dark
+                      ? "bg-gray-700 text-white"
+                      : "bg-white text-[#b41f24]"
+                  }`}
+                  style={{ position: "relative", display: "inline-block" }}
                 >
                   Admin panel
+                  {zahtjeviCount > 0 && (
+                    <span
+                      className="zahtjev-badge"
+                      style={{
+                        position: "absolute",
+                        top: "-10px",
+                        right: "-16px",
+                        background: "#e11d28",
+                        color: "#fff",
+                        borderRadius: "20px",
+                        fontSize: "0.88rem",
+                        padding: "1px 7px",
+                        fontWeight: 700,
+                        minWidth: "22px",
+                        textAlign: "center",
+                        zIndex: 2
+                      }}
+                    >
+                      {zahtjeviCount}
+                    </span>
+                  )}
                 </Link>
-                {zahtjeviCount > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full text-xs px-2 py-1">{zahtjeviCount}</span>
-                )}
               </div>
             )}
           </div>
           <div className="flex gap-2 items-center">
             <button
               onClick={handleProfileClick}
-              className={`px-4 py-2 rounded font-bold border border-white text-lg ${dark ? "bg-gray-700 text-white" : "bg-white text-[#b41f24]"}`}
+              className={`px-4 py-2 rounded font-bold border border-white text-lg ${
+                dark
+                  ? "bg-gray-700 text-white"
+                  : "bg-white text-[#b41f24]"
+              }`}
             >
               Profil
             </button>
             {user && (
               <button
                 onClick={handleLogout}
-                className={`px-4 py-2 rounded font-bold border border-white text-lg ${dark ? "bg-gray-700 text-white" : "bg-white text-[#b41f24]"}`}
+                className={`px-4 py-2 rounded font-bold border border-white text-lg ${
+                  dark
+                    ? "bg-gray-700 text-white"
+                    : "bg-white text-[#b41f24]"
+                }`}
               >
                 Odjava
               </button>

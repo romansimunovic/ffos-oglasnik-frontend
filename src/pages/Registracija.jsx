@@ -25,16 +25,19 @@ export default function Registracija() {
     potvrdaLozinke: "",
   });
   const [msg, setMsg] = useState("");
+  const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
     setMsg("");
+    setSuccess(false);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMsg("");
+    setSuccess(false);
     if (!form.ime || !form.email || !form.lozinka) {
       setMsg("Popuni obavezna polja.");
       return;
@@ -66,7 +69,9 @@ export default function Registracija() {
         localStorage.setItem("user", JSON.stringify(user));
         api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
       }
-      navigate("/profil");
+      setSuccess(true);
+      setMsg("Uspješna registracija! Preusmjeravanje...");
+      setTimeout(() => navigate("/profil"), 1100);
     } catch (err) {
       setMsg(err.response?.data?.message || "Greška pri registraciji.");
     }
@@ -85,79 +90,96 @@ export default function Registracija() {
             maxWidth: 370,
             width: "100%",
             margin: "auto",
-            background: "var(--ffos-light-card)",
             boxShadow: "0 4px 18px rgba(40,30,50,0.16)"
           }}
         >
-          <h2 className="text-2xl font-semibold mb-6 text-center" style={{ color: "var(--ffos-red)" }}>Registracija</h2>
-          <label className="block mb-2">Ime</label>
+          <h2 className="form-label" style={{ fontSize: "1.6rem", marginBottom: "1.5rem", color: "var(--ffos-red)", textAlign: "center" }}>
+            Registracija
+          </h2>
+          <label className="form-label" htmlFor="ime">Ime</label>
           <input
+            id="ime"
             name="ime"
             autoFocus
             value={form.ime}
             onChange={handleChange}
-            className="form-input mb-4"
+            className="form-input"
+            placeholder="Unesi ime..."
             required
           />
-          <label className="block mb-2">Prezime</label>
+          <label className="form-label" htmlFor="prezime">Prezime</label>
           <input
+            id="prezime"
             name="prezime"
             value={form.prezime}
             onChange={handleChange}
-            className="form-input mb-4"
+            className="form-input"
+            placeholder="Unesi prezime..."
           />
-          <label className="block mb-2">E-mail</label>
+          <label className="form-label" htmlFor="email">E-mail</label>
           <input
+            id="email"
             type="email"
             name="email"
             value={form.email}
             onChange={handleChange}
-            className="form-input mb-2"
+            className="form-input"
+            placeholder="npr. ime.prezime@ffos.hr"
             required
           />
-          <p className="text-xs text-gray-500 mb-3">Morate koristiti {DOMAIN} email.</p>
-          <label className="block mb-2 flex items-center justify-between">
+          <p className="text-xs" style={{ color: "var(--ffos-red)", marginBottom: "0.8rem" }}>
+            Morate koristiti {DOMAIN} email.
+          </p>
+          <label className="form-label flex items-center justify-between" htmlFor="lozinka" style={{ display: "flex", justifyContent: "space-between" }}>
             <span>Lozinka</span>
-            <span className="text-xs text-gray-500">Snaga: <strong>{strength.label}</strong></span>
+            <span className="text-xs" style={{ color: "var(--ffos-red)" }}>Snaga: <strong>{strength.label}</strong></span>
           </label>
           <input
+            id="lozinka"
             type="password"
             name="lozinka"
             value={form.lozinka}
             onChange={handleChange}
-            className="form-input mb-2"
+            className="form-input"
             required
           />
-          <div className="h-2 w-full bg-gray-200 rounded mb-4">
+          {/* Strength bar */}
+          <div className="h-2 w-full rounded mb-3" style={{ background: "#454654" }}>
             <div
               style={{
                 width: `${(strength.score / 4) * 100}%`,
-                background: strength.score < 2 ? "#e21a1a" : strength.score < 4 ? "#f6af24" : "#23cb63"
+                height: "100%",
+                borderRadius: "5px",
+                background: strength.score < 2 ? "#e21a1a" : strength.score < 4 ? "#f6af24" : "#23cb63",
+                transition: "all 0.13s"
               }}
-              className="h-2 rounded transition-all"
             ></div>
           </div>
-          <label className="block mb-2">Ponovi lozinku</label>
+          <label className="form-label" htmlFor="potvrdaLozinke">Ponovi lozinku</label>
           <input
+            id="potvrdaLozinke"
             type="password"
             name="potvrdaLozinke"
             value={form.potvrdaLozinke}
             onChange={handleChange}
-            className="form-input mb-4"
+            className="form-input"
             required
           />
-          {msg && <p className="text-red-600 text-sm mb-3 text-center">{msg}</p>}
+          {msg && (
+            <p className={`form-msg ${success ? "form-success" : "form-error"}`} style={{ marginBottom: "1.1rem" }}>
+              {msg}
+            </p>
+          )}
           <button
             type="submit"
             className="form-submit"
             disabled={loading}
-            style={{ marginTop: 8, marginBottom: 3 }}
           >
             {loading ? "Kreiranje..." : "Kreiraj profil"}
           </button>
           <p className="text-sm mt-4 text-center">
             Već imaš profil?{" "}
-            <Link to="/login" className="font-semibold" style={{ color: "var(--ffos-red)" }}>
+            <Link to="/login" className="form-link" style={{ fontWeight: 700, color: "var(--ffos-red)" }}>
               Prijavi se!
             </Link>
           </p>
