@@ -11,6 +11,7 @@ import AdminPanel from "./pages/AdminPanel.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import ObjavaDetalj from "./pages/ObjavaDetalj.jsx";
 import Profil from "./pages/Profil.jsx";
+import NotFoundOrFallback from "./pages/NotFoundOrFallback.jsx";
 import { AccessibilityProvider } from "./context/AccessibilityContext.jsx";
 
 export default function App() {
@@ -36,6 +37,8 @@ export default function App() {
                   </ProtectedRoute>
                 }
               />
+              {/* Fallback/catchall NOT FOUND ruta */}
+              <Route path="*" element={<NotFoundOrFallback />} />
             </Routes>
           </main>
           <Footer />

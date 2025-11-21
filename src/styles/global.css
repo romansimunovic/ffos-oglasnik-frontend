@@ -697,3 +697,103 @@ body.dark .access-desc {
   pointer-events: none;
 }
 
+body.dark .MuiFormControl-root,
+body.dark .MuiInputBase-root,
+body.dark .MuiOutlinedInput-notchedOutline,
+body.dark .MuiSelect-select,
+body.dark .MuiPaper-root {
+  background: var(--ffos-dark-card) !important;
+  color: var(--ffos-dark-txt) !important;
+  border-color: #43445d !important;
+}
+
+body.dark .MuiFormLabel-root,
+body.dark .MuiInputLabel-root,
+body.dark .MuiTypography-root {
+  color: var(--ffos-dark-txt) !important;
+}
+
+body.dark .MuiMenu-paper {
+  background: var(--ffos-dark-bg-secondary) !important;
+  color: var(--ffos-dark-txt) !important;
+}
+
+body.dark .MuiSelect-icon {
+  color: var(--ffos-dark-txt) !important;
+}
+
+/* Odabrana stavka i hover */
+body.dark .MuiMenuItem-root.Mui-selected,
+body.dark .MuiMenuItem-root:hover {
+  background: #282a45 !important;
+  color: var(--ffos-red) !important;
+}
+
+body.dark .MuiButton-root {
+  background: var(--ffos-dark-card) !important;
+  color: var(--ffos-red) !important;
+  border: 1px solid #444;
+}
+body.dark .MuiButton-root:hover {
+  background: #ffe5e9 !important;
+  color: var(--ffos-red) !important;
+}
+
+/* Dodatni helper za vizualnu konzistentnost kao na AboutYou */
+.filters-grid {
+  background: transparent;
+  padding: 8px 0 15px 0;
+  border-radius: 5px;
+  justify-content: left;
+}
+
+/* Select grid u tamnom - padding možeš povećati ako želiš istaknut "block" */
+body.dark .filters-grid {
+  background: var(--ffos-dark-bg-secondary);
+}
+
+
+.better-filters {
+  display: flex;
+  justify-content: left;
+  align-items: flex-end;
+  gap: 10px;
+  background: var(--ffos-light-card);
+  padding: 10px 28px 11px 28px;
+  border-radius: 5px;
+  margin-bottom: 1.7rem;
+  box-shadow: 0 2px 8px rgba(40,40,40,0.05);
+}
+body.dark .better-filters {
+  background: var(--ffos-dark-card);
+}
+
+.filter-col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 50px;
+}
+.filter-label {
+  font-size: 0.99rem;
+  color: #7a7a7a;
+  margin-bottom: 2px;
+  margin-left: 3px;
+  font-weight: 600;
+}
+body.dark .filter-label {
+  color: #e4e2fa;
+}
+.form-select {
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+}
+/* Riješi pomicanje kad se otvara Select (scrollbar compensator) */
+html {
+  scrollbar-gutter: stable;
+}
+
+/* (Za starije browsere): prisilno */
+body {
+  overflow-y: scroll;
+}
