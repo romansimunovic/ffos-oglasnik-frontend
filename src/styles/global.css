@@ -1,9 +1,10 @@
 :root {
-  --ffos-red: #b41f24;
+  --ffos-red: #971d21;
   --ffos-dark-bg: #232536;
   --ffos-dark-bg-secondary: #181926;
   --ffos-dark-card: #26283b;
-  --ffos-dark-txt: #fff;
+  --ffos-dark-txt: #e6e6e6
+;
   --ffos-light-bg: #f7f7f7;
   --ffos-light-card: #fff;
   --ffos-light-txt: #181926;
