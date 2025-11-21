@@ -6,7 +6,7 @@ import { useAccessibility } from "../context/AccessibilityContext";
 
 export default function Navbar({ zahtjeviCount = 0 }) {
   const [loginOpen, setLoginOpen] = useState(false);
-   const { dark } = useAccessibility();
+  const { dark } = useAccessibility();
   const [user, setUser] = useState(() =>
     JSON.parse(localStorage.getItem("user") || "null")
   );
@@ -35,13 +35,15 @@ export default function Navbar({ zahtjeviCount = 0 }) {
         aria-label="Glavni meni"
       >
         <div className="max-w-7xl mx-auto flex justify-between items-center px-5 py-2">
+          {/* LOGO kao 'Početna' */}
           <div className="flex items-center gap-3">
-            <img src={FFOSLogo} alt="FFOS logo" className="h-10 w-auto mr-2" />
-            <Link
-              to="/"
-              className={`px-4 py-2 rounded font-bold border border-white text-lg ${dark ? "bg-gray-700 text-white" : "bg-white text-[#b41f24]"}`}
-            >
-              Početna
+            <Link to="/">
+              <img
+                src={FFOSLogo}
+                alt="FFOS logo"
+                className="h-10 w-auto mr-2 transition-opacity hover:opacity-80"
+                style={{ cursor: "pointer" }}
+              />
             </Link>
           </div>
           <div className="flex gap-3 items-center">
