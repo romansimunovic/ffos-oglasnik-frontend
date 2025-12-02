@@ -3,7 +3,7 @@ import { useState } from "react";
 import { FaUniversalAccess, FaMoon, FaSun, FaBold, FaTimes } from "react-icons/fa";
 
 export default function AccessibilityFab() {
-  const { dark, setDark, bold, setBold } = useAccessibility();
+  const { dark, setDark, setBold } = useAccessibility();
   const [open, setOpen] = useState(false);
 
   return (

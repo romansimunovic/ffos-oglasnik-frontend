@@ -60,7 +60,6 @@ body.dark .card {
 
 .page-bg {
   min-height: calc(100vh - 120px); /* možeš prilagoditi prema navbar/footeru */
-  width: 100vw;
   background: var(--ffos-light-bg);
 }
 body.dark .page-bg {
@@ -796,4 +795,280 @@ html {
 /* (Za starije browsere): prisilno */
 body {
   overflow-y: scroll;
+}
+
+/* MUI Select – tekst u gumbu da se vidi i u dark modu */
+.MuiSelect-select {
+color: var(--ffos-light-txt);
+}
+
+body.dark .MuiSelect-select {
+color: var(--ffos-dark-txt) !important;
+}
+
+/* Outlined okvir */
+.MuiOutlinedInput-notchedOutline {
+border-color: #b3b3b3;
+}
+body.dark .MuiOutlinedInput-notchedOutline {
+border-color: #555 !important;
+}
+
+/* Ikona strelice */
+.MuiSelect-icon {
+color: var(--ffos-light-txt);
+}
+body.dark .MuiSelect-icon {
+color: var(--ffos-dark-txt) !important;
+}
+
+.profile-avatar {
+width: 96px;
+height: 96px;
+border-radius: 50%;
+object-fit: cover;
+border: 3px solid var(--ffos-red);
+margin-bottom: 0.8rem;
+}
+
+.avatar-wrap {
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+gap: 0.5rem;
+margin-bottom: 1rem;
+}
+
+.avatar-upload-btn {
+background: var(--ffos-red);
+color: #fff;
+padding: 6px 12px;
+border-radius: 6px;
+font-size: 0.9rem;
+cursor: pointer;
+}
+
+body.dark .avatar-upload-btn {
+background: #fff;
+color: var(--ffos-red);
+}
+
+/* Profil - centriranje avatar-a i stilovi */
+.profile-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: center; /* centriraj sadržaj karte */
+  text-align: center;  /* tekst centriran unutar karte */
+  padding: 1.5rem;
+}
+
+/* Wrap oko avatara */
+.avatar-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+}
+
+/* Slika profilne */
+.profile-avatar {
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid rgba(0,0,0,0.08);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+
+/* mala animacija kad hoveraš */
+.profile-avatar:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 10px 28px rgba(0,0,0,0.12);
+}
+
+/* Label koji služi kao gumb za upload */
+.avatar-upload-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: .6rem;
+  padding: 0.45rem 0.85rem;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #ffffff, #f3f4f6);
+  border: 1px solid rgba(0,0,0,0.06);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.93rem;
+  color: #111827;
+  user-select: none;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.04);
+  transition: transform .12s ease, box-shadow .12s ease, opacity .12s;
+}
+
+/* disable stil dok upload traje */
+.avatar-upload-btn[disabled],
+.avatar-upload-btn.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* vizualno sakrij input ali ostavi pristupačnost */
+.avatar-upload-btn input[type="file"] {
+  display: none;
+}
+
+/* metadata ispod (ime, email) */
+.profile-card p {
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Spacing za saved-card (ako treba vratiti kartice lijevo/desno) */
+.container > .card.saved-card {
+  margin-top: 1.25rem;
+}
+
+/* Mobile tweak */
+@media (max-width: 480px) {
+  .profile-avatar {
+    width: 110px;
+    height: 110px;
+  }
+  .avatar-upload-btn {
+    padding: 0.35rem 0.7rem;
+    font-size: 0.88rem;
+  }
+}
+
+/* tiny avatar used in lists and details */
+.tiny-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(0,0,0,0.06);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+}
+
+/* profile avatar already predložen ranije - ponavljam ako treba */
+.profile-avatar {
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid rgba(0,0,0,0.08);
+}
+
+.better-filters {
+  margin: 1.5rem 0 1.25rem;
+  padding: 0.75rem 1rem;
+  border-radius: 999px;
+  background-color: #ffffff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.filters-left {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 600;
+  color: #b71c1c; /* primarna crvena iz headera */
+  white-space: nowrap;
+}
+
+.filters-right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  flex: 1;
+}
+
+/* MUI FormControl koje koristimo za selecte */
+.filter-control {
+  min-width: 150px;
+}
+
+.filter-control .MuiInputBase-root {
+  background-color: #fafafa;
+  border-radius: 999px;
+}
+
+.filter-control .MuiOutlinedInput-notchedOutline {
+  border-color: #dddddd;
+}
+
+.filter-control .MuiInputBase-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+  border-color: #b71c1c;
+}
+
+.filter-control .MuiSelect-select {
+  padding: 8px 32px 8px 12px;
+  font-size: 0.9rem;
+}
+
+/* Responsivnost */
+@media (max-width: 768px) {
+  .better-filters {
+    flex-direction: column;
+    align-items: stretch;
+    border-radius: 18px;
+  }
+
+  .filters-right {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .filter-control {
+    flex: 1 1 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .filters-right {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+
+  .filter-control {
+    min-width: 100%;
+  }
+}
+
+.filters-right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  flex: 1;
+}
+
+.filter-control {
+  min-width: 170px;
+  flex: 0 0 auto; /* svaki ima svoju širinu, ne stišću se previše */
+}
+
+/* na manjim ekranima neka se razvuku */
+@media (max-width: 768px) {
+  .filter-control {
+    flex: 1 1 45%;
+  }
+}
+
+@media (max-width: 480px) {
+  .filter-control {
+    flex: 1 1 100%;
+    min-width: 100%;
+  }
 }

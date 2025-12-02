@@ -1,5 +1,3 @@
-import { useAccessibility } from "../context/AccessibilityContext";
-
 export default function Footer() {
   return (
     <footer className="footer">

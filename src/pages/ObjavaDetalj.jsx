@@ -1,48 +1,98 @@
-import { useParams } from "react-router-dom";
+// src/pages/ObjavaDetalj.jsx
+import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { ODSJECI } from "../constants/odsjeci";
 import Linkify from "linkify-react";
+import api from "../api/axiosInstance";
 
 export default function ObjavaDetalj() {
   const { id } = useParams();
   const [objava, setObjava] = useState(null);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    fetch(`/api/objave/${id}`)
-      .then((res) => res.json())
-      .then((data) => {
-        setObjava(data);
-        setLoading(false);
-      });
+    let mounted = true;
+    (async () => {
+      try {
+        const res = await api.get(`/objave/${id}`);
+        if (mounted) {
+          setObjava(res.data);
+        }
+      } catch (err) {
+        console.error("fetch objava detail:", err);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
   }, [id]);
 
   if (loading || !objava)
     return <p className="center-msg">Nema dostupnih objava.</p>;
 
-  // Opcije za linkify-react: podržava automatsko linkanje weba, telefona i e-maila
-  const options = {
-    nl2br: true,
-    defaultProtocol: "https",
-    formatHref: {
-      tel: (href) => href,
-      mailto: (href) => href
-    }
+  const autor =
+    objava.autor && typeof objava.autor === "object" ? objava.autor : null;
+  const autorIme = autor?.ime || objava.autor || "Nepoznato";
+  const autorId = autor?._id || objava.autorId || null;
+  const autorAvatar = autor?.avatar || objava.autorAvatar || null;
+
+  const buildAvatarSrc = (avatarPath) => {
+    if (!avatarPath) return "/default-avatar.png";
+    if (avatarPath.startsWith("http://") || avatarPath.startsWith("https://"))
+      return `${avatarPath}?t=${Date.now()}`;
+    const base = api.defaults.baseURL || "";
+    const backendOrigin = base.replace(/\/api\/?$/i, "");
+    const origin = backendOrigin || "";
+    return `${origin}${avatarPath}?t=${Date.now()}`;
   };
+
+  const avatarSrc = buildAvatarSrc(autorAvatar);
 
   return (
     <section className="page-bg">
       <div className="container">
         <div className="card">
-          <h1>{objava.naslov}</h1>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+              marginBottom: 12,
+            }}
+          >
+            <img
+              src={avatarSrc}
+              alt={`Avatar ${autorIme}`}
+              className="tiny-avatar"
+              style={{ cursor: autorId ? "pointer" : "default" }}
+              onClick={() => autorId && navigate(`/profil/${autorId}`)}
+            />
+            <div>
+              <h1 style={{ margin: 0 }}>{objava.naslov}</h1>
+              <div style={{ color: "#666", fontSize: 14 }}>{autorIme}</div>
+            </div>
+          </div>
+
           <p className="card-desc">
-            <Linkify options={options}>{objava.sadrzaj}</Linkify>
+            <Linkify options={{ nl2br: true }}>{objava.sadrzaj}</Linkify>
           </p>
+
           <div className="meta-info">
             <span>Tip: {objava.tip}</span>
-            <span>Odsjek: {ODSJECI.find((x) => x.id === (objava.odsjek?._id || objava.odsjek))?.naziv || "-"}</span>
-            <span>Autor: {objava.autor || "Nepoznato"}</span>
-            <span className="card-date">{objava.datum ? new Date(objava.datum).toLocaleDateString("hr-HR") : ""}</span>
+            <span>
+              Odsjek:{" "}
+              {ODSJECI.find(
+                (x) => x.id === (objava.odsjek?._id || objava.odsjek)
+              )?.naziv || "-"}
+            </span>
+            <span className="card-date">
+              {objava.datum
+                ? new Date(objava.datum).toLocaleDateString("hr-HR")
+                : ""}
+            </span>
           </div>
         </div>
       </div>

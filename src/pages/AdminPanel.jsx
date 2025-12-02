@@ -1,3 +1,4 @@
+// src/pages/AdminPanel.jsx
 import { useEffect, useState } from "react";
 import api from "../api/axiosInstance";
 
@@ -9,9 +10,10 @@ export default function AdminPanel() {
   useEffect(() => {
     const fetchObjave = async () => {
       try {
-        const { data } = await api.get("/objave/admin");
-        setObjave(data);
+        const { data } = await api.get("/objave/admin/sve");
+        setObjave(data || []);
       } catch (err) {
+        console.error("fetch admin objave:", err);
         setMsg("Greška pri dohvaćanju objava.");
       }
     };
@@ -21,13 +23,20 @@ export default function AdminPanel() {
   const handleStatusChange = async (id, noviStatus) => {
     setLoadingId(id);
     try {
-      await api.put(`/objave/${id}/status`, { status: noviStatus });
-      setObjave(prev =>
-        prev.map(o => o._id === id ? { ...o, status: noviStatus } : o)
+      await api.patch(`/objave/${id}/status`, { status: noviStatus });
+      setObjave((prev) =>
+        prev.map((o) =>
+          o._id === id ? { ...o, status: noviStatus } : o
+        )
       );
-      setMsg(noviStatus === "odobreno" ? "Objava odobrena!" : "Objava odbijena!");
+      setMsg(
+        noviStatus === "odobreno"
+          ? "Objava odobrena!"
+          : "Objava odbijena!"
+      );
       setTimeout(() => setMsg(""), 1500);
     } catch (err) {
+      console.error("update status error:", err);
       setMsg("Greška pri promjeni statusa.");
     }
     setLoadingId(null);
@@ -37,27 +46,30 @@ export default function AdminPanel() {
     setLoadingId(id);
     try {
       await api.delete(`/objave/${id}`);
-      setObjave(prev => prev.filter(o => o._id !== id));
+      setObjave((prev) => prev.filter((o) => o._id !== id));
       setMsg("Objava obrisana!");
       setTimeout(() => setMsg(""), 1500);
     } catch (err) {
+      console.error("delete objava error:", err);
       setMsg("Greška pri brisanju objave.");
     }
     setLoadingId(null);
   };
 
-  // Grupiraj objave po statusu
+  // grupiranje po statusu
   const grupirane = {
     "na čekanju": [],
-    "odobreno": [],
-    "odbijeno": []
+    odobreno: [],
+    odbijeno: [],
   };
-  objave.forEach(o => grupirane[o.status]?.push(o));
+  objave.forEach((o) => {
+    if (grupirane[o.status]) grupirane[o.status].push(o);
+  });
 
   const statusi = [
     { key: "na čekanju", label: "Na čekanju" },
     { key: "odobreno", label: "Prihvaćene" },
-    { key: "odbijeno", label: "Odbijene" }
+    { key: "odbijeno", label: "Odbijene" },
   ];
 
   return (
@@ -65,42 +77,73 @@ export default function AdminPanel() {
       <div className="container">
         <h1>Admin panel</h1>
         {msg && <p className="center-msg">{msg}</p>}
+
         <div className="card-grid" style={{ gridTemplateColumns: "1fr 1fr 1fr" }}>
-          {statusi.map(st => (
+          {statusi.map((st) => (
             <div key={st.key} className="card status-card">
               <h2>{st.label}</h2>
+
               {grupirane[st.key].length === 0 ? (
-                <p className="center-msg" style={{ fontSize: "0.98rem" }}>Nema dostupnih objava.</p>
+                <p className="center-msg" style={{ fontSize: "0.98rem" }}>
+                  Nema dostupnih objava.
+                </p>
               ) : (
-                grupirane[st.key].map(o => (
-                  <div key={o._id} className="card inner-card" style={{ marginBottom: "1.1rem", marginTop: "0.8rem" }}>
+                grupirane[st.key].map((o) => (
+                  <div
+                    key={o._id}
+                    className="card inner-card"
+                    style={{ marginBottom: "1.1rem", marginTop: "0.8rem" }}
+                  >
                     <h3 style={{ marginBottom: "0.7rem" }}>{o.naslov}</h3>
                     <p>{o.sadrzaj}</p>
+
                     <div className="meta-info">
-                      <span>Autor: {o.autor || "Nepoznato"}</span>
+                      <span>
+                        Autor:{" "}
+                        {o.autorIme ||
+                          o.autor?.ime ||
+                          o.autor ||
+                          "Nepoznato"}
+                      </span>
                       <span>Tip: {o.tip}</span>
-                      <span>Odsjek: {o.odsjek?.naziv || o.odsjek || "-"}</span>
-                      <span className="card-date">{o.datum ? new Date(o.datum).toLocaleDateString("hr-HR") : ""}</span>
+                      <span>
+                        Odsjek:{" "}
+                        {o.odsjek?.naziv || o.odsjek || "-"}
+                      </span>
+                      <span className="card-date">
+                        {o.datum
+                          ? new Date(o.datum).toLocaleDateString("hr-HR")
+                          : ""}
+                      </span>
                     </div>
-                    <div className="card-btn-group" style={{ marginTop: "0.9rem" }}>
+
+                    <div
+                      className="card-btn-group"
+                      style={{ marginTop: "0.9rem" }}
+                    >
                       {st.key === "na čekanju" && (
                         <>
                           <button
                             disabled={loadingId === o._id}
-                            onClick={() => handleStatusChange(o._id, "odobreno")}
+                            onClick={() =>
+                              handleStatusChange(o._id, "odobreno")
+                            }
                             className="approve-btn"
                           >
                             {loadingId === o._id ? "..." : "Odobri"}
                           </button>
                           <button
                             disabled={loadingId === o._id}
-                            onClick={() => handleStatusChange(o._id, "odbijeno")}
+                            onClick={() =>
+                              handleStatusChange(o._id, "odbijeno")
+                            }
                             className="reject-btn"
                           >
                             {loadingId === o._id ? "..." : "Odbij"}
                           </button>
                         </>
                       )}
+
                       <button
                         disabled={loadingId === o._id}
                         onClick={() => handleDelete(o._id)}
