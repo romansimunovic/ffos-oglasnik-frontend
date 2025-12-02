@@ -15,6 +15,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Home from "./pages/Home";
 import Objava from "./pages/Objava";
 import ObjavaDetalj from "./pages/ObjavaDetalj";
+import Kalendar from "./pages/Kalendar"; // ✅ NOVO
 import Kontakt from "./pages/Kontakt";
 import Registracija from "./pages/Registracija";
 import Login from "./pages/Login";
@@ -38,8 +39,9 @@ export default function App() {
                 <Route path="/" element={<Home />} />
                 <Route path="/objave" element={<Objava />} />
                 <Route path="/objava/:id" element={<ObjavaDetalj />} />
+                <Route path="/kalendar" element={<Kalendar />} /> {/* ✅ NOVO */}
                 <Route path="/kontakt" element={<Kontakt />} />
-                
+
                 {/* Auth stranice */}
                 <Route path="/login" element={<Login />} />
                 <Route path="/registracija" element={<Registracija />} />
@@ -53,7 +55,7 @@ export default function App() {
                     </ProtectedRoute>
                   }
                 />
-                
+
                 {/* Javni profili */}
                 <Route path="/profil/:id" element={<UserProfil />} />
 

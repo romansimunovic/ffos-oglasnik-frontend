@@ -7,8 +7,13 @@ import {
   InputLabel,
   TextField,
   Button,
+  Chip,
 } from "@mui/material";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
+import ClearIcon from "@mui/icons-material/Clear";
+import PushPinIcon from "@mui/icons-material/PushPin";
+import NewReleasesIcon from "@mui/icons-material/NewReleases";
+import SearchIcon from "@mui/icons-material/Search";
 import Linkify from "linkify-react";
 import api from "../api/axiosInstance";
 import { ODSJECI } from "../constants/odsjeci";
@@ -24,15 +29,14 @@ export default function Objava() {
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  
-  // Pagination state
+  const [periodFilter, setPeriodFilter] = useState("");
+
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [hasMore, setHasMore] = useState(false);
 
   const debouncedSearch = useDebounce(search, 300);
 
-  // Nova objava form state
   const [novaNaslov, setNovaNaslov] = useState("");
   const [novaSadrzaj, setNovaSadrzaj] = useState("");
   const [novaTip, setNovaTip] = useState("radionice");
@@ -41,6 +45,8 @@ export default function Objava() {
   const navigate = useNavigate();
   const toast = useToast();
   const user = JSON.parse(localStorage.getItem("user") || "null");
+
+  const userOdsjek = user?.odsjek || "";
 
   const tipovi = [
     { value: "Sve", label: "Sve" },
@@ -55,6 +61,13 @@ export default function Objava() {
     { value: "newest", label: "Najnovije" },
     { value: "oldest", label: "Najstarije" },
     { value: "views", label: "Najpopularnije" },
+  ];
+
+  const periodOptions = [
+    { value: "", label: "Svi datumi" },
+    { value: "week", label: "Ovaj tjedan" },
+    { value: "month", label: "Ovaj mjesec" },
+    { value: "past", label: "Prošli događaji" },
   ];
 
   const departmentOptions = [
@@ -76,7 +89,6 @@ export default function Objava() {
     return `${backendOrigin}${avatarPath}?t=${Date.now()}`;
   };
 
-  // Fetch objave sa pagination
   const fetchObjave = async (page = 1, append = false) => {
     if (!append) setLoading(true);
 
@@ -86,17 +98,16 @@ export default function Objava() {
         limit: "9",
         ...(filterTip !== "Sve" && { tip: filterTip }),
         ...(odsjek && { odsjek }),
+        ...(periodFilter && { periodFilter }),
         sortBy,
         ...(debouncedSearch && { search: debouncedSearch }),
       });
 
       const res = await api.get(`/objave/paginated?${params}`);
-      
+
       if (append) {
-        // Append za "Učitaj još"
         setObjave((prev) => [...prev, ...(res.data.objave || [])]);
       } else {
-        // Replace za novi filter/search
         setObjave(res.data.objave || []);
       }
 
@@ -112,21 +123,39 @@ export default function Objava() {
     }
   };
 
-  // Initial load
   useEffect(() => {
     fetchObjave(1, false);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []); // eslint-disable-line
 
-  // Reset na prvu stranicu kad se promijeni filter
   useEffect(() => {
     setCurrentPage(1);
     fetchObjave(1, false);
-  }, [filterTip, odsjek, sortBy, debouncedSearch]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [filterTip, odsjek, sortBy, debouncedSearch, periodFilter]); // eslint-disable-line
 
-  // Load more
   const handleLoadMore = () => {
     const nextPage = currentPage + 1;
     fetchObjave(nextPage, true);
+  };
+
+  const handleQuickFilter = (type) => {
+    if (type === "myDepartment") {
+      setOdsjek(userOdsjek);
+      setFilterTip("Sve");
+    } else if (type === "radionice") {
+      setFilterTip("radionice");
+      setOdsjek("");
+    } else if (type === "natječaji") {
+      setFilterTip("natječaji");
+      setOdsjek("");
+    }
+  };
+
+  const handleClearFilters = () => {
+    setFilterTip("Sve");
+    setOdsjek("");
+    setSortBy("newest");
+    setSearch("");
+    setPeriodFilter("");
   };
 
   const spremiObjavu = async (e, id) => {
@@ -158,151 +187,166 @@ export default function Objava() {
   };
 
   const handleCreateObjava = async (e) => {
-    e.preventDefault();
-    const token = localStorage.getItem("token");
-    if (!token)
-      return toast("Za kreiranje objave morate biti prijavljeni.", "error");
-    if (!novaNaslov.trim() || !novaSadrzaj.trim() || !novaOdsjek) {
-      return toast("Naslov, sadržaj i odsjek su obavezni.", "error");
-    }
+  e.preventDefault();
+  
+  // 1. Validacija
+  if (!novaNaslov.trim() || !novaSadrzaj.trim() || !novaOdsjek) {
+    return toast("Naslov, sadržaj i odsjek su obavezni.", "error");
+  }
 
-    try {
-      await api.post(
-        "/objave",
-        {
-          naslov: novaNaslov,
-          sadrzaj: novaSadrzaj,
-          tip: novaTip,
-          odsjek: novaOdsjek,
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      toast("Objava poslana na odobrenje.", "success");
-      setNovaNaslov("");
-      setNovaSadrzaj("");
-      setNovaTip("radionice");
-      setNovaOdsjek("");
-      setShowForm(false);
-      fetchObjave(1, false);
-    } catch (err) {
-      toast(
-        err?.response?.data?.message || "Greška pri slanju objave.",
-        "error"
-      );
+  // 2. Provjeri je li user prijavljen
+  const token = localStorage.getItem("token");
+  if (!token) {
+    toast("Morate biti prijavljeni.", "error");
+    navigate("/login");
+    return;
+  }
+
+  // 3. Spremi loading state
+  const submitBtn = e.target.querySelector("button[type='submit']");
+  const originalText = submitBtn?.textContent;
+  if (submitBtn) submitBtn.textContent = "Slanje...";
+  if (submitBtn) submitBtn.disabled = true;
+
+  try {
+    console.log("📤 Slanje objave:", {
+      naslov: novaNaslov,
+      sadrzaj: novaSadrzaj,
+      tip: novaTip,
+      odsjek: novaOdsjek,
+    });
+
+    const response = await api.post("/objave", {
+      naslov: novaNaslov.trim(),
+      sadrzaj: novaSadrzaj.trim(),
+      tip: novaTip,
+      odsjek: novaOdsjek,
+    });
+
+    console.log("✅ Objava kreirana:", response.data);
+
+    // 4. Uspješno - resetiraj formu
+    toast("✅ Objava poslana na odobrenje!", "success");
+    setNovaNaslov("");
+    setNovaSadrzaj("");
+    setNovaTip("radionice");
+    setNovaOdsjek("");
+    setShowForm(false);
+
+    // 5. Osvježi objave
+    await fetchObjave(1, false);
+  } catch (err) {
+    console.error("❌ Greška pri slanju:", err);
+    
+    const errorMsg =
+      err?.response?.data?.message ||
+      err?.response?.data?.error ||
+      err?.message ||
+      "Greška pri slanju objave.";
+    
+    toast(errorMsg, "error");
+  } finally {
+    if (submitBtn) {
+      submitBtn.textContent = originalText;
+      submitBtn.disabled = false;
     }
-  };
+  }
+};
+
 
   return (
     <section className="page-bg">
       <div className="container">
+        {/* HEADER */}
         <div
           style={{
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
             gap: 16,
-            marginBottom: "1.5rem",
+            marginBottom: "2rem",
           }}
         >
           <h1>Objave</h1>
           {user && user.uloga !== "admin" && (
             <Button
               variant="contained"
-              color="error"
+              sx={{
+                backgroundColor: "#971d21",
+                "&:hover": { backgroundColor: "#701013" },
+              }}
               onClick={() => setShowForm((s) => !s)}
             >
-              {showForm ? "Zatvori formu" : "Nova objava"}
+              {showForm ? "Zatvori" : "+ Nova objava"}
             </Button>
           )}
         </div>
 
-        {/* FILTERI */}
+        {/* BRZI FILTERI */}
         <div
-          className="better-filters"
           style={{
-            alignItems: "flex-end",
-            gap: 20,
+            display: "flex",
+            gap: 10,
             flexWrap: "wrap",
             marginBottom: "2rem",
           }}
         >
-          <TextField
-            size="small"
+          <Button
             variant="outlined"
-            label="Pretraži objave"
-            value={search}
-            style={{ minWidth: 180, maxWidth: 240 }}
-            onChange={(e) => setSearch(e.target.value)}
-            autoComplete="off"
-            placeholder="Upiši pojam..."
-          />
-          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-            <FormControl size="small" className="filter-control">
-              <InputLabel id="tip-label" shrink>
-                Tip
-              </InputLabel>
-              <Select
-                labelId="tip-label"
-                value={filterTip}
-                label="Tip"
-                onChange={(e) => setFilterTip(e.target.value)}
-                IconComponent={ArrowDropDownIcon}
-              >
-                {tipovi.map((t) => (
-                  <MenuItem key={t.value} value={t.value}>
-                    {t.label}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-
-            <FormControl
-              size="small"
-              className="filter-control odsjek-control"
-            >
-              <InputLabel id="odsjek-label" shrink>
-                Odsjek
-              </InputLabel>
-              <Select
-                labelId="odsjek-label"
-                value={odsjek}
-                label="Odsjek"
-                onChange={(e) => setOdsjek(e.target.value)}
-                IconComponent={ArrowDropDownIcon}
-              >
-                {departmentOptions.map((opt) => (
-                  <MenuItem key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-
-            <FormControl size="small" className="filter-control">
-              <InputLabel id="sort-label" shrink>
-                Sortiraj
-              </InputLabel>
-              <Select
-                labelId="sort-label"
-                value={sortBy}
-                label="Sortiraj"
-                onChange={(e) => setSortBy(e.target.value)}
-                IconComponent={ArrowDropDownIcon}
-              >
-                {sortOptions.map((opt) => (
-                  <MenuItem key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </div>
+            size="small"
+            onClick={() => handleQuickFilter("myDepartment")}
+            disabled={!userOdsjek}
+            sx={{
+              borderColor: "#971d21",
+              color: "#971d21",
+              "&:hover": { backgroundColor: "rgba(151, 29, 33, 0.05)" },
+            }}
+          >
+            📍 Moj odsjek
+          </Button>
+          <Button
+            variant="outlined"
+            size="small"
+            onClick={() => handleQuickFilter("radionice")}
+            sx={{
+              borderColor: "#971d21",
+              color: "#971d21",
+              "&:hover": { backgroundColor: "rgba(151, 29, 33, 0.05)" },
+            }}
+          >
+            🎓 Radionice
+          </Button>
+          <Button
+            variant="outlined"
+            size="small"
+            onClick={() => handleQuickFilter("natječaji")}
+            sx={{
+              borderColor: "#971d21",
+              color: "#971d21",
+              "&:hover": { backgroundColor: "rgba(151, 29, 33, 0.05)" },
+            }}
+          >
+            🏆 Natječaji
+          </Button>
+          <Button
+            variant="outlined"
+            size="small"
+            startIcon={<ClearIcon />}
+            onClick={handleClearFilters}
+            sx={{
+              borderColor: "#666",
+              color: "#666",
+              "&:hover": { backgroundColor: "rgba(0, 0, 0, 0.05)" },
+            }}
+          >
+            Očisti
+          </Button>
         </div>
 
         {/* FORMA ZA NOVU OBJAVU */}
         {showForm && user && user.uloga !== "admin" && (
-          <div className="card" style={{ marginBottom: "1.5rem" }}>
-            <h2 style={{ marginTop: 0 }}>Nova objava</h2>
+          <div className="card" style={{ marginBottom: "2rem" }}>
+            <h2 style={{ marginTop: 0, color: "#971d21" }}>Nova objava</h2>
             <form onSubmit={handleCreateObjava}>
               <TextField
                 label="Naslov"
@@ -310,6 +354,7 @@ export default function Objava() {
                 margin="normal"
                 value={novaNaslov}
                 onChange={(e) => setNovaNaslov(e.target.value)}
+                placeholder="Upiši naslov objave..."
                 required
               />
               <TextField
@@ -320,22 +365,23 @@ export default function Objava() {
                 minRows={4}
                 value={novaSadrzaj}
                 onChange={(e) => setNovaSadrzaj(e.target.value)}
+                placeholder="Detaljno objasni što objavljuješ..."
                 required
               />
               <div
                 style={{
-                  display: "flex",
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
                   gap: 12,
-                  flexWrap: "wrap",
-                  marginTop: 8,
+                  marginTop: 16,
                 }}
               >
-                <FormControl size="small" style={{ minWidth: 160 }}>
-                  <InputLabel id="nova-tip-label">Tip</InputLabel>
+                <FormControl fullWidth size="small">
+                  <InputLabel id="nova-tip-label">Vrsta</InputLabel>
                   <Select
                     labelId="nova-tip-label"
                     value={novaTip}
-                    label="Tip"
+                    label="Vrsta"
                     onChange={(e) => setNovaTip(e.target.value)}
                   >
                     {tipovi
@@ -347,7 +393,7 @@ export default function Objava() {
                       ))}
                   </Select>
                 </FormControl>
-                <FormControl size="small" style={{ minWidth: 180 }}>
+                <FormControl fullWidth size="small">
                   <InputLabel id="nova-odsjek-label">Odsjek</InputLabel>
                   <Select
                     labelId="nova-odsjek-label"
@@ -366,16 +412,210 @@ export default function Objava() {
               <Button
                 type="submit"
                 variant="contained"
-                color="error"
-                style={{ marginTop: 16 }}
+                fullWidth
+                sx={{
+                  marginTop: 2,
+                  backgroundColor: "#971d21",
+                  "&:hover": { backgroundColor: "#701013" },
+                }}
               >
-                Pošalji objavu
+                Pošalji na odobrenje
               </Button>
             </form>
           </div>
         )}
 
-        {/* LOADING SKELETON */}
+        {/* SEARCH & FILTERS - POBOLJŠANI */}
+        <div className="filters-section">
+          {/* SEARCH BAR */}
+          <div
+            style={{
+              marginBottom: "2rem",
+              display: "flex",
+              gap: 12,
+              alignItems: "center",
+            }}
+          >
+            <SearchIcon
+              sx={{
+                color: "#971d21",
+                fontSize: 28,
+                opacity: 0.7,
+              }}
+            />
+            <TextField
+              size="small"
+              variant="outlined"
+              label="Pretraži objave"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              autoComplete="off"
+              placeholder="Upiši pojam..."
+              sx={{
+                flex: 1,
+                maxWidth: 400,
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: "8px",
+                  transition: "all 0.2s",
+                  "&:hover": {
+                    borderColor: "#971d21",
+                  },
+                  "&.Mui-focused": {
+                    boxShadow: "0 0 0 3px rgba(151, 29, 33, 0.1)",
+                  },
+                },
+              }}
+            />
+          </div>
+
+          {/* FILTERI - VERTIKALNI LAYOUT */}
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+              gap: 20,
+              marginBottom: "2rem",
+              padding: "1.5rem",
+              backgroundColor: "var(--ffos-light-card)",
+              borderRadius: "10px",
+              border: "1px solid var(--border-color)",
+            }}
+          >
+            {/* VRSTA OBJAVE */}
+            <div>
+              <label
+                style={{
+                  display: "block",
+                  fontSize: "0.85rem",
+                  fontWeight: "bold",
+                  marginBottom: "8px",
+                  color: "#666",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.5px",
+                }}
+              >
+                Vrsta objave
+              </label>
+              <FormControl fullWidth size="small">
+                <Select
+                  value={filterTip}
+                  onChange={(e) => setFilterTip(e.target.value)}
+                  IconComponent={ArrowDropDownIcon}
+                  sx={{
+                    backgroundColor: "transparent",
+                  }}
+                >
+                  {tipovi.map((t) => (
+                    <MenuItem key={t.value} value={t.value}>
+                      {t.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </div>
+
+            {/* ODSJEK */}
+            <div>
+              <label
+                style={{
+                  display: "block",
+                  fontSize: "0.85rem",
+                  fontWeight: "bold",
+                  marginBottom: "8px",
+                  color: "#666",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.5px",
+                }}
+              >
+                Odsjek
+              </label>
+              <FormControl fullWidth size="small">
+                <Select
+                  value={odsjek}
+                  onChange={(e) => setOdsjek(e.target.value)}
+                  IconComponent={ArrowDropDownIcon}
+                  sx={{
+                    backgroundColor: "transparent",
+                  }}
+                >
+                  {departmentOptions.map((opt) => (
+                    <MenuItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </div>
+
+            {/* PERIOD */}
+            <div>
+              <label
+                style={{
+                  display: "block",
+                  fontSize: "0.85rem",
+                  fontWeight: "bold",
+                  marginBottom: "8px",
+                  color: "#666",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.5px",
+                }}
+              >
+                Vremenski period
+              </label>
+              <FormControl fullWidth size="small">
+                <Select
+                  value={periodFilter}
+                  onChange={(e) => setPeriodFilter(e.target.value)}
+                  IconComponent={ArrowDropDownIcon}
+                  sx={{
+                    backgroundColor: "transparent",
+                  }}
+                >
+                  {periodOptions.map((opt) => (
+                    <MenuItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </div>
+
+            {/* SORTIRANJE */}
+            <div>
+              <label
+                style={{
+                  display: "block",
+                  fontSize: "0.85rem",
+                  fontWeight: "bold",
+                  marginBottom: "8px",
+                  color: "#666",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.5px",
+                }}
+              >
+                Sortiranje
+              </label>
+              <FormControl fullWidth size="small">
+                <Select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  IconComponent={ArrowDropDownIcon}
+                  sx={{
+                    backgroundColor: "transparent",
+                  }}
+                >
+                  {sortOptions.map((opt) => (
+                    <MenuItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </div>
+          </div>
+        </div>
+
+        {/* LOADING */}
         {loading ? (
           <div className="card-grid">
             {[1, 2, 3, 4, 5, 6].map((i) => (
@@ -385,8 +625,8 @@ export default function Objava() {
         ) : objave.length === 0 ? (
           <p className="center-msg">
             {debouncedSearch
-              ? `Nema rezultata za "${debouncedSearch}"`
-              : "Nema dostupnih objava."}
+              ? `📭 Nema rezultata za "${debouncedSearch}"`
+              : "📭 Nema dostupnih objava."}
           </p>
         ) : (
           <>
@@ -402,11 +642,16 @@ export default function Objava() {
                 const autorAvatar = autor?.avatar || obj.autorAvatar || null;
                 const avatarSrc = buildAvatarSrc(autorAvatar);
 
+                // Provjeri je li objava nova (manje od 3 dana)
+                const isNew =
+                  obj.datum &&
+                  new Date() - new Date(obj.datum) < 3 * 24 * 60 * 60 * 1000;
+
                 return (
                   <div
                     key={obj._id}
                     className="card-link"
-                    style={{ cursor: "pointer" }}
+                    style={{ cursor: "pointer", position: "relative" }}
                     onClick={() => openObjava(obj._id)}
                     role="link"
                     tabIndex={0}
@@ -414,31 +659,96 @@ export default function Objava() {
                       if (e.key === "Enter") openObjava(obj._id);
                     }}
                   >
+                    {/* ✅ BADGES */}
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: 8,
+                        marginBottom: "12px",
+                        flexWrap: "wrap",
+                      }}
+                    >
+                      {isNew && (
+                        <Chip
+                          label="Novo!"
+                          size="small"
+                          sx={{
+                            backgroundColor: "#10b981",
+                            color: "#fff",
+                            fontWeight: "bold",
+                            height: 28,
+                            fontSize: "0.8rem",
+                          }}
+                        />
+                      )}
+                      {obj.pinned && (
+                        <Chip
+                          icon={<PushPinIcon />}
+                          label="Istaknuto"
+                          size="small"
+                          color="primary"
+                          sx={{
+                            height: 28,
+                            fontSize: "0.8rem",
+                          }}
+                        />
+                      )}
+                      {obj.urgentno && (
+                        <Chip
+                          icon={<NewReleasesIcon />}
+                          label="Hitno"
+                          size="small"
+                          color="error"
+                          sx={{
+                            height: 28,
+                            fontSize: "0.8rem",
+                          }}
+                        />
+                      )}
+                    </div>
+
                     <div className="card">
+                      {/* AUTOR */}
                       <div
                         style={{
                           display: "flex",
                           alignItems: "center",
                           gap: 12,
-                          marginBottom: 8,
+                          marginBottom: 12,
                         }}
                       >
                         <img
                           src={avatarSrc}
                           alt={`Avatar ${autorIme}`}
                           className="tiny-avatar"
-                          onClick={(e) => autorId && openProfil(e, autorId)}
+                          onClick={(e) =>
+                            autorId && openProfil(e, autorId)
+                          }
                           style={{ cursor: autorId ? "pointer" : "default" }}
                         />
                         <div style={{ flex: 1 }}>
-                          <h2 style={{ margin: 0 }}>
+                          <h2
+                            style={{
+                              margin: 0,
+                              fontSize: "1.1rem",
+                              color: "#971d21",
+                            }}
+                          >
                             {obj.naslov || "Bez naslova"}
                           </h2>
-                          <div style={{ fontSize: 13, color: "#666" }}>
+                          <div
+                            style={{
+                              fontSize: "0.85rem",
+                              color: "#666",
+                              marginTop: "2px",
+                            }}
+                          >
                             {autorIme}
                           </div>
                         </div>
                       </div>
+
+                      {/* SADRŽAJ */}
                       <p
                         className="card-desc"
                         onClick={(e) => e.stopPropagation()}
@@ -447,23 +757,74 @@ export default function Objava() {
                           {obj.sadrzaj || "Nema opisa."}
                         </Linkify>
                       </p>
-                      <div className="meta-info">
-                        <span>
-                          Tip: <i>{obj.tip}</i>
+
+                      {/* META INFO - POJEDNOSTAVLJENO */}
+                      <div
+                        style={{
+                          display: "flex",
+                          flexWrap: "wrap",
+                          gap: "12px",
+                          fontSize: "0.85rem",
+                          color: "#666",
+                          marginTop: "12px",
+                          paddingTop: "12px",
+                          borderTop: "1px solid #eee",
+                        }}
+                      >
+                        <span
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "4px",
+                          }}
+                        >
+                          📌 {obj.tip || "Ostalo"}
                         </span>
-                        <span>
-                          Odsjek:{" "}
+                        <span
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "4px",
+                          }}
+                        >
+                          {" "}
                           {ODSJECI.find((ods) => ods.id === obj.odsjek)
                             ?.naziv || "-"}
                         </span>
-                        <span className="card-date">
+                        <span
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "4px",
+                          }}
+                        >
+                          {" "}
                           {obj.datum
                             ? new Date(obj.datum).toLocaleDateString("hr-HR")
                             : ""}
                         </span>
-                        <span title="Broj spremanja">★ {obj.saves || 0}</span>
-                        <span title="Broj pregleda">👁 {obj.views || 0}</span>
+                        <span
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "4px",
+                            marginLeft: "auto",
+                          }}
+                        >
+                          ⭐ {obj.saves || 0}
+                        </span>
+                        <span
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "4px",
+                          }}
+                        >
+                          👁 {obj.views || 0}
+                        </span>
                       </div>
+
+                      {/* SPREMI GUMB */}
                       {user && user.uloga !== "admin" && (
                         <button
                           onClick={(e) => {
@@ -473,17 +834,15 @@ export default function Objava() {
                           type="button"
                           className="save-btn"
                           style={{
-                            marginTop: "1.1rem",
-                            display: "flex",
+                            marginTop: "1rem",
+                            display: "inline-flex",
                             alignItems: "center",
-                            gap: "8px",
+                            gap: "6px",
+                            width: "100%",
+                            justifyContent: "center",
                           }}
                         >
-                          <i
-                            className="fa fa-bookmark-o"
-                            style={{ fontSize: 20 }}
-                          />{" "}
-                          Spremi
+                          <span style={{ fontSize: "1.2rem" }}></span> Dodaj u favorite
                         </button>
                       )}
                     </div>
@@ -492,22 +851,36 @@ export default function Objava() {
               })}
             </div>
 
-            {/* LOAD MORE BUTTON */}
+            {/* LOAD MORE */}
             {hasMore && (
               <div style={{ textAlign: "center", margin: "2rem 0" }}>
                 <Button
                   variant="outlined"
-                  color="error"
                   onClick={handleLoadMore}
                   disabled={loading}
+                  sx={{
+                    borderColor: "#971d21",
+                    color: "#971d21",
+                    "&:hover": {
+                      borderColor: "#701013",
+                      backgroundColor: "rgba(151, 29, 33, 0.05)",
+                    },
+                  }}
                 >
-                  {loading ? "Učitavanje..." : "Učitaj još"}
+                  {loading ? "Učitavanje..." : "Učitaj više objava"}
                 </Button>
               </div>
             )}
 
-            {/* PAGINATION INFO */}
-            <div style={{ textAlign: "center", color: "#666", marginTop: "1rem" }}>
+            {/* PAGINATION */}
+            <div
+              style={{
+                textAlign: "center",
+                color: "#666",
+                marginTop: "1.5rem",
+                fontSize: "0.9rem",
+              }}
+            >
               Stranica {currentPage} od {totalPages}
             </div>
           </>
