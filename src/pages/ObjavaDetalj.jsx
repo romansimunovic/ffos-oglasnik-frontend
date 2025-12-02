@@ -1,24 +1,24 @@
-// src/pages/ObjavaDetalj.jsx
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { Button } from "@mui/material";
 import { ODSJECI } from "../constants/odsjeci";
 import Linkify from "linkify-react";
 import api from "../api/axiosInstance";
+import { useToast } from "../components/Toast";
 
 export default function ObjavaDetalj() {
   const { id } = useParams();
   const [objava, setObjava] = useState(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const toast = useToast();
 
   useEffect(() => {
     let mounted = true;
     (async () => {
       try {
         const res = await api.get(`/objave/${id}`);
-        if (mounted) {
-          setObjava(res.data);
-        }
+        if (mounted) setObjava(res.data);
       } catch (err) {
         console.error("fetch objava detail:", err);
       } finally {
@@ -30,8 +30,13 @@ export default function ObjavaDetalj() {
     };
   }, [id]);
 
+  const copyLink = () => {
+    navigator.clipboard.writeText(window.location.href);
+    toast("Link kopiran!", "success");
+  };
+
   if (loading || !objava)
-    return <p className="center-msg">Nema dostupnih objava.</p>;
+    return <p className="center-msg">Učitavanje objave...</p>;
 
   const autor =
     objava.autor && typeof objava.autor === "object" ? objava.autor : null;
@@ -45,8 +50,7 @@ export default function ObjavaDetalj() {
       return `${avatarPath}?t=${Date.now()}`;
     const base = api.defaults.baseURL || "";
     const backendOrigin = base.replace(/\/api\/?$/i, "");
-    const origin = backendOrigin || "";
-    return `${origin}${avatarPath}?t=${Date.now()}`;
+    return `${backendOrigin}${avatarPath}?t=${Date.now()}`;
   };
 
   const avatarSrc = buildAvatarSrc(autorAvatar);
@@ -93,7 +97,19 @@ export default function ObjavaDetalj() {
                 ? new Date(objava.datum).toLocaleDateString("hr-HR")
                 : ""}
             </span>
+            <span title="Broj spremanja">★ {objava.saves || 0}</span>
+            <span title="Broj pregleda">👁 {objava.views || 0}</span>
           </div>
+
+          <Button
+            variant="outlined"
+            color="primary"
+            onClick={copyLink}
+            style={{ marginTop: "1rem" }}
+            startIcon={<span></span>}
+          >
+            Podijeli objavu
+          </Button>
         </div>
       </div>
     </section>

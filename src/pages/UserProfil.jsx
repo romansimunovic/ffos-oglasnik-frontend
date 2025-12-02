@@ -5,7 +5,7 @@ import api from "../api/axiosInstance";
 import { ODSJECI } from "../constants/odsjeci";
 
 export default function UserProfil() {
-  const { id } = useParams(); // id korisnika iz URL-a
+  const { id } = useParams();
   const navigate = useNavigate();
   const [korisnik, setKorisnik] = useState(null);
   const [objave, setObjave] = useState([]);
@@ -19,14 +19,12 @@ export default function UserProfil() {
     }
     const base = api.defaults.baseURL || "";
     const backendOrigin = base.replace(/\/api\/?$/i, "");
-    const origin = backendOrigin || "";
-    return `${origin}${avatarPath}?t=${Date.now()}`;
+    return `${backendOrigin}${avatarPath}?t=${Date.now()}`;
   };
 
-  // 1) dohvat korisnika
   useEffect(() => {
     let mounted = true;
-    (async () => {
+    const fetchUser = async () => {
       try {
         const res = await api.get(`/korisnik/${id}`);
         if (mounted) setKorisnik(res.data);
@@ -35,16 +33,16 @@ export default function UserProfil() {
       } finally {
         if (mounted) setLoadingUser(false);
       }
-    })();
+    };
+    fetchUser();
     return () => {
       mounted = false;
     };
   }, [id]);
 
-  // 2) dohvat objava tog korisnika
   useEffect(() => {
     let mounted = true;
-    (async () => {
+    const fetchPosts = async () => {
       try {
         const res = await api.get(`/objave/autor/${id}`);
         if (mounted) setObjave(res.data || []);
@@ -53,7 +51,8 @@ export default function UserProfil() {
       } finally {
         if (mounted) setLoadingPosts(false);
       }
-    })();
+    };
+    fetchPosts();
     return () => {
       mounted = false;
     };
@@ -82,7 +81,7 @@ export default function UserProfil() {
   return (
     <section className="page-bg">
       <div className="container">
-        {/* Gornji dio – profil korisnika */}
+        {/* Profil korisnika */}
         <div className="card profile-card">
           <div className="avatar-wrap">
             <img
@@ -97,38 +96,55 @@ export default function UserProfil() {
           </p>
         </div>
 
-        {/* Donji dio – objave korisnika */}
+        {/* Objave korisnika */}
         <section className="card saved-card" style={{ marginTop: "1.5rem" }}>
           <h3>Objave korisnika</h3>
           {loadingPosts ? (
-            <p>Učitavanje objava...</p>
+            <p className="center-msg">Učitavanje objava...</p>
           ) : objave.length === 0 ? (
-            <p>Ovaj korisnik još nema objava.</p>
+            <p className="center-msg">Ovaj korisnik još nema objava.</p>
           ) : (
             <div className="card-grid">
-              {objave.map((o) => (
+              {objave.map((obj) => (
                 <div
-                  key={o._id}
+                  key={obj._id}
                   className="card-link"
-                  onClick={() => navigate(`/objava/${o._id}`)}
+                  onClick={() => navigate(`/objava/${obj._id}`)}
                   style={{ cursor: "pointer" }}
+                  role="link"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") navigate(`/objava/${obj._id}`);
+                  }}
                 >
                   <div className="card">
-                    <h4>{o.naslov || "Bez naslova"}</h4>
+                    <h4 style={{ marginTop: 0 }}>
+                      {obj.naslov || "Bez naslova"}
+                    </h4>
                     <p className="card-desc">
-                      {(o.sadrzaj || "Nema opisa.").slice(0, 140)}…
+                      {obj.sadrzaj
+                        ? obj.sadrzaj.length > 140
+                          ? obj.sadrzaj.slice(0, 140) + "..."
+                          : obj.sadrzaj
+                        : "Nema opisa."}
                     </p>
                     <div className="meta-info">
                       <span>
+                        Tip: <i>{obj.tip}</i>
+                      </span>
+                      <span>
                         Odsjek:{" "}
-                        {ODSJECI.find((x) => x.id === (o.odsjek?._id || o.odsjek))
-                          ?.naziv || "-"}
+                        {ODSJECI.find(
+                          (x) => x.id === (obj.odsjek?._id || obj.odsjek)
+                        )?.naziv || "-"}
                       </span>
                       <span className="card-date">
-                        {o.datum
-                          ? new Date(o.datum).toLocaleDateString("hr-HR")
+                        {obj.datum
+                          ? new Date(obj.datum).toLocaleDateString("hr-HR")
                           : ""}
                       </span>
+                      <span title="Broj spremanja">★ {obj.saves || 0}</span>
+                      <span title="Broj pregleda">👁 {obj.views || 0}</span>
                     </div>
                   </div>
                 </div>

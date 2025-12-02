@@ -1,68 +1,81 @@
-// src/App.jsx
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
-import Navbar from "./components/Navbar.jsx";
-import AccessibilityFab from "./components/AccessibilityFab.jsx";
-import Footer from "./components/Footer.jsx";
+// Providers
+import { ToastProvider } from "./components/Toast";
+import { AccessibilityProvider } from "./context/AccessibilityContext";
 
-import Home from "./pages/Home.jsx";
-import Objava from "./pages/Objava.jsx";
-import ObjavaDetalj from "./pages/ObjavaDetalj.jsx";
-import Kontakt from "./pages/Kontakt.jsx";
-import Registracija from "./pages/Registracija.jsx";
-import Profil from "./pages/Profil.jsx";
-import UserProfil from "./pages/UserProfil.jsx";
-import AdminPanel from "./pages/AdminPanel.jsx";
-import NotFoundOrFallback from "./pages/NotFoundOrFallback.jsx";
+// Components
+import Navbar from "./components/Navbar";
+import AccessibilityFab from "./components/AccessibilityFab";
+import Footer from "./components/Footer";
+import ProtectedRoute from "./components/ProtectedRoute";
 
-import ProtectedRoute from "./components/ProtectedRoute.jsx";
-import { AccessibilityProvider } from "./context/AccessibilityContext.jsx";
+// Pages
+import Home from "./pages/Home";
+import Objava from "./pages/Objava";
+import ObjavaDetalj from "./pages/ObjavaDetalj";
+import Kontakt from "./pages/Kontakt";
+import Registracija from "./pages/Registracija";
+import Login from "./pages/Login";
+import Profil from "./pages/Profil";
+import UserProfil from "./pages/UserProfil";
+import AdminPanel from "./pages/AdminPanel";
+import NotFoundOrFallback from "./pages/NotFoundOrFallback";
 
 export default function App() {
   return (
     <AccessibilityProvider>
-      <Router>
-        <div className="flex flex-col min-h-screen bg-gray-50">
-          <Navbar />
-          <AccessibilityFab />
+      <ToastProvider>
+        <Router>
+          <div className="flex flex-col min-h-screen bg-gray-50">
+            <Navbar />
+            <AccessibilityFab />
 
-          <main className="flex-grow pt-8 md:pt-12">
-            <Routes>
-              <Route path="/" element={<Home />} />
+            <main className="flex-grow pt-8 md:pt-12">
+              <Routes>
+                {/* Javne stranice */}
+                <Route path="/" element={<Home />} />
+                <Route path="/objave" element={<Objava />} />
+                <Route path="/objava/:id" element={<ObjavaDetalj />} />
+                <Route path="/kontakt" element={<Kontakt />} />
+                
+                {/* Auth stranice */}
+                <Route path="/login" element={<Login />} />
+                <Route path="/registracija" element={<Registracija />} />
 
-              {/* Objave */}
-              <Route path="/objave" element={<Objava />} />
-              <Route path="/objava/:id" element={<ObjavaDetalj />} />
+                {/* Zaštićene stranice */}
+                <Route
+                  path="/profil"
+                  element={
+                    <ProtectedRoute>
+                      <Profil />
+                    </ProtectedRoute>
+                  }
+                />
+                
+                {/* Javni profili */}
+                <Route path="/profil/:id" element={<UserProfil />} />
 
-              {/* Kontakt / registracija */}
-              <Route path="/kontakt" element={<Kontakt />} />
-              <Route path="/registracija" element={<Registracija />} />
+                {/* Admin panel */}
+                <Route
+                  path="/admin"
+                  element={
+                    <ProtectedRoute adminOnly>
+                      <AdminPanel />
+                    </ProtectedRoute>
+                  }
+                />
 
-              {/* Moj profil (trenutno prijavljeni korisnik) */}
-              <Route path="/profil" element={<Profil />} />
+                {/* 404 Fallback */}
+                <Route path="*" element={<NotFoundOrFallback />} />
+              </Routes>
+            </main>
 
-              {/* Javni profil drugog korisnika */}
-              <Route path="/profil/:id" element={<UserProfil />} />
-
-              {/* Admin panel (zaštićena ruta) */}
-              <Route
-                path="/admin"
-                element={
-                  <ProtectedRoute role="admin">
-                    <AdminPanel />
-                  </ProtectedRoute>
-                }
-              />
-
-              {/* 404 / fallback */}
-              <Route path="*" element={<NotFoundOrFallback />} />
-            </Routes>
-          </main>
-
-          <Footer />
-        </div>
-      </Router>
+            <Footer />
+          </div>
+        </Router>
+      </ToastProvider>
     </AccessibilityProvider>
   );
 }

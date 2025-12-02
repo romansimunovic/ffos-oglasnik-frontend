@@ -1,14 +1,19 @@
 import { Navigate } from "react-router-dom";
 
-export default function ProtectedRoute({ children, role }) {
+export default function ProtectedRoute({ children, adminOnly = false }) {
   const token = localStorage.getItem("token");
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const user = JSON.parse(localStorage.getItem("user") || "null");
 
-  if (!token) return <Navigate to="/login" replace />;
+  // Ako nema tokena → Login
+  if (!token || !user) {
+    return <Navigate to="/login" replace />;
+  }
 
-  if (role && user.uloga !== role) {
+  // Ako je adminOnly, a korisnik nije admin → 404
+  if (adminOnly && user.uloga !== "admin") {
     return <Navigate to="/" replace />;
   }
 
+  // Sve OK → prikaži children
   return children;
 }

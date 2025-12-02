@@ -1,11 +1,13 @@
-// src/pages/AdminPanel.jsx
 import { useEffect, useState } from "react";
+import { Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Button } from "@mui/material";
 import api from "../api/axiosInstance";
+import { useToast } from "../components/Toast";
 
 export default function AdminPanel() {
   const [objave, setObjave] = useState([]);
   const [loadingId, setLoadingId] = useState(null);
-  const [msg, setMsg] = useState("");
+  const [deleteId, setDeleteId] = useState(null);
+  const toast = useToast();
 
   useEffect(() => {
     const fetchObjave = async () => {
@@ -14,49 +16,49 @@ export default function AdminPanel() {
         setObjave(data || []);
       } catch (err) {
         console.error("fetch admin objave:", err);
-        setMsg("Greška pri dohvaćanju objava.");
+        toast("Greška pri dohvaćanju objava.", "error");
       }
     };
     fetchObjave();
-  }, []);
+  }, [toast]);
 
   const handleStatusChange = async (id, noviStatus) => {
     setLoadingId(id);
     try {
       await api.patch(`/objave/${id}/status`, { status: noviStatus });
       setObjave((prev) =>
-        prev.map((o) =>
-          o._id === id ? { ...o, status: noviStatus } : o
-        )
+        prev.map((o) => (o._id === id ? { ...o, status: noviStatus } : o))
       );
-      setMsg(
-        noviStatus === "odobreno"
-          ? "Objava odobrena!"
-          : "Objava odbijena!"
+      toast(
+        noviStatus === "odobreno" ? "Objava odobrena!" : "Objava odbijena!",
+        "success"
       );
-      setTimeout(() => setMsg(""), 1500);
     } catch (err) {
       console.error("update status error:", err);
-      setMsg("Greška pri promjeni statusa.");
+      toast("Greška pri promjeni statusa.", "error");
     }
     setLoadingId(null);
   };
 
-  const handleDelete = async (id) => {
-    setLoadingId(id);
+  const confirmDelete = (id) => {
+    setDeleteId(id);
+  };
+
+  const handleDelete = async () => {
+    if (!deleteId) return;
+    setLoadingId(deleteId);
     try {
-      await api.delete(`/objave/${id}`);
-      setObjave((prev) => prev.filter((o) => o._id !== id));
-      setMsg("Objava obrisana!");
-      setTimeout(() => setMsg(""), 1500);
+      await api.delete(`/objave/${deleteId}`);
+      setObjave((prev) => prev.filter((o) => o._id !== deleteId));
+      toast("Objava obrisana!", "success");
     } catch (err) {
       console.error("delete objava error:", err);
-      setMsg("Greška pri brisanju objave.");
+      toast("Greška pri brisanju objave.", "error");
     }
     setLoadingId(null);
+    setDeleteId(null);
   };
 
-  // grupiranje po statusu
   const grupirane = {
     "na čekanju": [],
     odobreno: [],
@@ -76,7 +78,6 @@ export default function AdminPanel() {
     <section className="page-bg">
       <div className="container">
         <h1>Admin panel</h1>
-        {msg && <p className="center-msg">{msg}</p>}
 
         <div className="card-grid" style={{ gridTemplateColumns: "1fr 1fr 1fr" }}>
           {statusi.map((st) => (
@@ -98,45 +99,27 @@ export default function AdminPanel() {
                     <p>{o.sadrzaj}</p>
 
                     <div className="meta-info">
-                      <span>
-                        Autor:{" "}
-                        {o.autorIme ||
-                          o.autor?.ime ||
-                          o.autor ||
-                          "Nepoznato"}
-                      </span>
+                      <span>Autor: {o.autorIme || o.autor?.ime || o.autor || "Nepoznato"}</span>
                       <span>Tip: {o.tip}</span>
-                      <span>
-                        Odsjek:{" "}
-                        {o.odsjek?.naziv || o.odsjek || "-"}
-                      </span>
+                      <span>Odsjek: {o.odsjek?.naziv || o.odsjek || "-"}</span>
                       <span className="card-date">
-                        {o.datum
-                          ? new Date(o.datum).toLocaleDateString("hr-HR")
-                          : ""}
+                        {o.datum ? new Date(o.datum).toLocaleDateString("hr-HR") : ""}
                       </span>
                     </div>
 
-                    <div
-                      className="card-btn-group"
-                      style={{ marginTop: "0.9rem" }}
-                    >
+                    <div className="card-btn-group" style={{ marginTop: "0.9rem" }}>
                       {st.key === "na čekanju" && (
                         <>
                           <button
                             disabled={loadingId === o._id}
-                            onClick={() =>
-                              handleStatusChange(o._id, "odobreno")
-                            }
+                            onClick={() => handleStatusChange(o._id, "odobreno")}
                             className="approve-btn"
                           >
                             {loadingId === o._id ? "..." : "Odobri"}
                           </button>
                           <button
                             disabled={loadingId === o._id}
-                            onClick={() =>
-                              handleStatusChange(o._id, "odbijeno")
-                            }
+                            onClick={() => handleStatusChange(o._id, "odbijeno")}
                             className="reject-btn"
                           >
                             {loadingId === o._id ? "..." : "Odbij"}
@@ -146,7 +129,7 @@ export default function AdminPanel() {
 
                       <button
                         disabled={loadingId === o._id}
-                        onClick={() => handleDelete(o._id)}
+                        onClick={() => confirmDelete(o._id)}
                         className="delete-btn"
                       >
                         {loadingId === o._id ? "..." : "Obriši"}
@@ -158,6 +141,22 @@ export default function AdminPanel() {
             </div>
           ))}
         </div>
+
+        {/* Potvrda brisanja */}
+        <Dialog open={!!deleteId} onClose={() => setDeleteId(null)}>
+          <DialogTitle>Potvrdi brisanje</DialogTitle>
+          <DialogContent>
+            <DialogContentText>
+              Sigurno želite obrisati ovu objavu? Ova radnja je nepovratna.
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setDeleteId(null)}>Odustani</Button>
+            <Button onClick={handleDelete} color="error" variant="contained">
+              Obriši
+            </Button>
+          </DialogActions>
+        </Dialog>
       </div>
     </section>
   );

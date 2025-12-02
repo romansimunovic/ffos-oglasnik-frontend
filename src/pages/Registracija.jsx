@@ -1,6 +1,7 @@
 import { useState } from "react";
 import api from "../api/axiosInstance";
 import { useNavigate, Link } from "react-router-dom";
+import { useToast } from "../components/Toast";
 
 const DOMAIN = "@ffos.hr";
 
@@ -17,6 +18,7 @@ function passwordStrength(pwd) {
 
 export default function Registracija() {
   const navigate = useNavigate();
+  const toast = useToast();
   const [form, setForm] = useState({
     ime: "",
     prezime: "",
@@ -24,44 +26,48 @@ export default function Registracija() {
     lozinka: "",
     potvrdaLozinke: "",
   });
-  const [msg, setMsg] = useState("");
-  const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
-    setMsg("");
-    setSuccess(false);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setMsg("");
-    setSuccess(false);
+
     if (!form.ime || !form.email || !form.lozinka) {
-      setMsg("Popuni obavezna polja.");
-      return;
+      return toast("Popuni obavezna polja.", "error");
     }
+
+    // Email validacija
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(form.email)) {
+      return toast("Unesite valjanu email adresu.", "error");
+    }
+
     if (!form.email.endsWith(DOMAIN)) {
-      setMsg(`Registracija moguća samo s ${DOMAIN} emailom.`);
-      return;
+      return toast(`Registracija moguća samo s ${DOMAIN} emailom.`, "error");
     }
+
     if (form.lozinka !== form.potvrdaLozinke) {
-      setMsg("Lozinke se ne podudaraju.");
-      return;
+      return toast("Lozinke se ne podudaraju.", "error");
     }
+
     const regExp = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
     if (!regExp.test(form.lozinka)) {
-      setMsg("Lozinka mora imati najmanje 8 znakova, jedno malo i jedno veliko slovo te broj.");
-      return;
+      return toast(
+        "Lozinka mora imati najmanje 8 znakova, jedno malo i jedno veliko slovo te broj.",
+        "error"
+      );
     }
+
     setLoading(true);
     try {
       const res = await api.post("/auth/register", {
         ime: `${form.ime} ${form.prezime}`.trim(),
         email: form.email,
         lozinka: form.lozinka,
-        uloga: "user"
+        uloga: "user",
       });
       const { token, user } = res.data;
       if (token) {
@@ -69,11 +75,10 @@ export default function Registracija() {
         localStorage.setItem("user", JSON.stringify(user));
         api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
       }
-      setSuccess(true);
-      setMsg("Uspješna registracija! Preusmjeravanje...");
+      toast("Uspješna registracija! Preusmjeravanje...", "success");
       setTimeout(() => navigate("/profil"), 1100);
     } catch (err) {
-      setMsg(err.response?.data?.message || "Greška pri registraciji.");
+      toast(err.response?.data?.message || "Greška pri registraciji.", "error");
     }
     setLoading(false);
   };
@@ -90,13 +95,24 @@ export default function Registracija() {
             maxWidth: 370,
             width: "100%",
             margin: "auto",
-            boxShadow: "0 4px 18px rgba(40,30,50,0.16)"
+            boxShadow: "0 4px 18px rgba(40,30,50,0.16)",
           }}
         >
-          <h2 className="form-label" style={{ fontSize: "1.6rem", marginBottom: "1.5rem", color: "var(--ffos-red)", textAlign: "center" }}>
+          <h2
+            className="form-label"
+            style={{
+              fontSize: "1.6rem",
+              marginBottom: "1.5rem",
+              color: "var(--ffos-red)",
+              textAlign: "center",
+            }}
+          >
             Registracija
           </h2>
-          <label className="form-label" htmlFor="ime">Ime</label>
+
+          <label className="form-label" htmlFor="ime">
+            Ime
+          </label>
           <input
             id="ime"
             name="ime"
@@ -107,7 +123,10 @@ export default function Registracija() {
             placeholder="Unesi ime..."
             required
           />
-          <label className="form-label" htmlFor="prezime">Prezime</label>
+
+          <label className="form-label" htmlFor="prezime">
+            Prezime
+          </label>
           <input
             id="prezime"
             name="prezime"
@@ -116,7 +135,10 @@ export default function Registracija() {
             className="form-input"
             placeholder="Unesi prezime..."
           />
-          <label className="form-label" htmlFor="email">E-mail</label>
+
+          <label className="form-label" htmlFor="email">
+            E-mail
+          </label>
           <input
             id="email"
             type="email"
@@ -127,12 +149,22 @@ export default function Registracija() {
             placeholder="npr. ime.prezime@ffos.hr"
             required
           />
-          <p className="text-xs" style={{ color: "var(--ffos-red)", marginBottom: "0.8rem" }}>
+          <p
+            className="text-xs"
+            style={{ color: "var(--ffos-red)", marginBottom: "0.8rem" }}
+          >
             Morate koristiti {DOMAIN} email.
           </p>
-          <label className="form-label flex items-center justify-between" htmlFor="lozinka" style={{ display: "flex", justifyContent: "space-between" }}>
+
+          <label
+            className="form-label flex items-center justify-between"
+            htmlFor="lozinka"
+            style={{ display: "flex", justifyContent: "space-between" }}
+          >
             <span>Lozinka</span>
-            <span className="text-xs" style={{ color: "var(--ffos-red)" }}>Snaga: <strong>{strength.label}</strong></span>
+            <span className="text-xs" style={{ color: "var(--ffos-red)" }}>
+              Snaga: <strong>{strength.label}</strong>
+            </span>
           </label>
           <input
             id="lozinka"
@@ -143,19 +175,30 @@ export default function Registracija() {
             className="form-input"
             required
           />
-          {/* Strength bar */}
-          <div className="h-2 w-full rounded mb-3" style={{ background: "#454654" }}>
+
+          <div
+            className="h-2 w-full rounded mb-3"
+            style={{ background: "#454654" }}
+          >
             <div
               style={{
                 width: `${(strength.score / 4) * 100}%`,
                 height: "100%",
                 borderRadius: "5px",
-                background: strength.score < 2 ? "#e21a1a" : strength.score < 4 ? "#f6af24" : "#23cb63",
-                transition: "all 0.13s"
+                background:
+                  strength.score < 2
+                    ? "#e21a1a"
+                    : strength.score < 4
+                    ? "#f6af24"
+                    : "#23cb63",
+                transition: "all 0.13s",
               }}
             ></div>
           </div>
-          <label className="form-label" htmlFor="potvrdaLozinke">Ponovi lozinku</label>
+
+          <label className="form-label" htmlFor="potvrdaLozinke">
+            Ponovi lozinku
+          </label>
           <input
             id="potvrdaLozinke"
             type="password"
@@ -165,21 +208,18 @@ export default function Registracija() {
             className="form-input"
             required
           />
-          {msg && (
-            <p className={`form-msg ${success ? "form-success" : "form-error"}`} style={{ marginBottom: "1.1rem" }}>
-              {msg}
-            </p>
-          )}
-          <button
-            type="submit"
-            className="form-submit"
-            disabled={loading}
-          >
+
+          <button type="submit" className="form-submit" disabled={loading}>
             {loading ? "Kreiranje..." : "Kreiraj profil"}
           </button>
+
           <p className="text-sm mt-4 text-center">
             Već imaš profil?{" "}
-            <Link to="/login" className="form-link" style={{ fontWeight: 700, color: "var(--ffos-red)" }}>
+            <Link
+              to="/login"
+              className="form-link"
+              style={{ fontWeight: 700, color: "var(--ffos-red)" }}
+            >
               Prijavi se!
             </Link>
           </p>

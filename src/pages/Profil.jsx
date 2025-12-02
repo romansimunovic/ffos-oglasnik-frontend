@@ -1,7 +1,8 @@
-// src/pages/Profil.jsx
 import { useEffect, useState, useRef } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Button } from "@mui/material";
 import api from "../api/axiosInstance";
+import { useToast } from "../components/Toast";
 
 export default function Profil() {
   const [spremljene, setSpremljene] = useState([]);
@@ -10,7 +11,10 @@ export default function Profil() {
     JSON.parse(localStorage.getItem("user") || "null")
   );
   const [previewUrl, setPreviewUrl] = useState(null);
+  const [logoutConfirm, setLogoutConfirm] = useState(false);
   const fileInputRef = useRef(null);
+  const navigate = useNavigate();
+  const toast = useToast();
 
   const user = localUser;
 
@@ -48,13 +52,11 @@ export default function Profil() {
 
   const buildAvatarSrc = (avatarPath) => {
     if (!avatarPath) return "/default-avatar.png";
-    if (avatarPath.startsWith("http://") || avatarPath.startsWith("https://")) {
+    if (avatarPath.startsWith("http://") || avatarPath.startsWith("https://"))
       return `${avatarPath}?t=${Date.now()}`;
-    }
     const base = api.defaults.baseURL || "";
     const backendOrigin = base.replace(/\/api\/?$/i, "");
-    const origin = backendOrigin || "";
-    return `${origin}${avatarPath}?t=${Date.now()}`;
+    return `${backendOrigin}${avatarPath}?t=${Date.now()}`;
   };
 
   const handleAvatarChange = async (e) => {
@@ -83,18 +85,25 @@ export default function Profil() {
         localStorage.setItem("user", JSON.stringify(updatedUser));
         setLocalUser(updatedUser);
         setPreviewUrl(null);
-      } else {
-        console.warn("Backend nije vratio avatar putanju.");
+        toast("Avatar ažuriran!", "success");
       }
     } catch (err) {
       console.error("Upload avatar error:", err);
-      alert("Greška pri uploadu profilne.");
+      toast("Greška pri uploadu profilne.", "error");
       setPreviewUrl(null);
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
       if (objectUrl) URL.revokeObjectURL(objectUrl);
     }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    delete api.defaults.headers.common["Authorization"];
+    toast("Uspješno ste odjavljeni.", "success");
+    setTimeout(() => navigate("/login"), 800);
   };
 
   if (!user) {
@@ -108,8 +117,7 @@ export default function Profil() {
   }
 
   const avatarSrc =
-    previewUrl ||
-    (user.avatar ? buildAvatarSrc(user.avatar) : "/default-avatar.png");
+    previewUrl || (user.avatar ? buildAvatarSrc(user.avatar) : "/default-avatar.png");
 
   return (
     <section className="page-bg">
@@ -158,11 +166,7 @@ export default function Profil() {
             ) : (
               <div className="card-grid">
                 {spremljene.map((o) => (
-                  <Link
-                    key={o._id}
-                    to={`/objava/${o._id}`}
-                    className="card-link"
-                  >
+                  <Link key={o._id} to={`/objava/${o._id}`} className="card-link">
                     <div className="card saved-post">
                       <h4>{o.naslov || "Bez naslova"}</h4>
                       <p>
@@ -171,9 +175,7 @@ export default function Profil() {
                           : o.sadrzaj || "Nema opisa."}
                       </p>
                       <p className="card-date">
-                        {o.datum
-                          ? new Date(o.datum).toLocaleDateString("hr-HR")
-                          : ""}
+                        {o.datum ? new Date(o.datum).toLocaleDateString("hr-HR") : ""}
                       </p>
                     </div>
                   </Link>
@@ -182,6 +184,22 @@ export default function Profil() {
             )}
           </section>
         )}
+
+        {/* Logout potvrda */}
+        <Dialog open={logoutConfirm} onClose={() => setLogoutConfirm(false)}>
+          <DialogTitle>Potvrdi odjavu</DialogTitle>
+          <DialogContent>
+            <DialogContentText>
+              Sigurno se želite odjaviti?
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setLogoutConfirm(false)}>Odustani</Button>
+            <Button onClick={handleLogout} color="error" variant="contained">
+              Odjavi se
+            </Button>
+          </DialogActions>
+        </Dialog>
       </div>
     </section>
   );

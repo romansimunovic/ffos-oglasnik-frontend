@@ -1,29 +1,45 @@
-// src/pages/Objava.jsx
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Select, MenuItem, FormControl, InputLabel, TextField, Button } from "@mui/material";
-import FilterListIcon from "@mui/icons-material/FilterList";
+import {
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  TextField,
+  Button,
+} from "@mui/material";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import Linkify from "linkify-react";
 import api from "../api/axiosInstance";
 import { ODSJECI } from "../constants/odsjeci";
+import { useDebounce } from "../hooks/useDebounce";
+import { SkeletonCard } from "../components/SkeletonCard";
+import { useToast } from "../components/Toast";
 
 export default function Objava() {
-  const [sveObjave, setSveObjave] = useState([]);
   const [objave, setObjave] = useState([]);
   const [filterTip, setFilterTip] = useState("Sve");
   const [odsjek, setOdsjek] = useState("");
   const [sortBy, setSortBy] = useState("newest");
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
 
-  // state za novu objavu
+  const debouncedSearch = useDebounce(search, 300);
+
+  // Nova objava form state
   const [novaNaslov, setNovaNaslov] = useState("");
   const [novaSadrzaj, setNovaSadrzaj] = useState("");
   const [novaTip, setNovaTip] = useState("radionice");
   const [novaOdsjek, setNovaOdsjek] = useState("");
 
   const navigate = useNavigate();
+  const toast = useToast();
   const user = JSON.parse(localStorage.getItem("user") || "null");
 
   const tipovi = [
@@ -38,6 +54,7 @@ export default function Objava() {
   const sortOptions = [
     { value: "newest", label: "Najnovije" },
     { value: "oldest", label: "Najstarije" },
+    { value: "views", label: "Najpopularnije" },
   ];
 
   const departmentOptions = [
@@ -47,119 +64,106 @@ export default function Objava() {
 
   const linkifyOptions = {
     nl2br: true,
-    formatHref: {
-      tel: (href) => href,
-      mailto: (href) => href,
-    },
-    attributes: {
-      rel: "noopener noreferrer",
-      target: "_blank",
-    },
+    attributes: { rel: "noopener noreferrer", target: "_blank" },
   };
 
   const buildAvatarSrc = (avatarPath) => {
     if (!avatarPath) return "/default-avatar.png";
-    if (avatarPath.startsWith("http://") || avatarPath.startsWith("https://")) {
+    if (avatarPath.startsWith("http://") || avatarPath.startsWith("https://"))
       return `${avatarPath}?t=${Date.now()}`;
-    }
     const base = api.defaults.baseURL || "";
     const backendOrigin = base.replace(/\/api\/?$/i, "");
-    const origin = backendOrigin || "";
-    return `${origin}${avatarPath}?t=${Date.now()}`;
+    return `${backendOrigin}${avatarPath}?t=${Date.now()}`;
   };
 
-  // Dohvat objava
-  const fetchObjave = async () => {
-    setLoading(true);
+  // Fetch objave sa pagination
+  const fetchObjave = async (page = 1, append = false) => {
+    if (!append) setLoading(true);
+
     try {
-      const res = await api.get("/objave");
-      setSveObjave(res.data || []);
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: "9",
+        ...(filterTip !== "Sve" && { tip: filterTip }),
+        ...(odsjek && { odsjek }),
+        sortBy,
+        ...(debouncedSearch && { search: debouncedSearch }),
+      });
+
+      const res = await api.get(`/objave/paginated?${params}`);
+      
+      if (append) {
+        // Append za "Učitaj još"
+        setObjave((prev) => [...prev, ...(res.data.objave || [])]);
+      } else {
+        // Replace za novi filter/search
+        setObjave(res.data.objave || []);
+      }
+
+      setCurrentPage(res.data.currentPage || 1);
+      setTotalPages(res.data.totalPages || 1);
+      setHasMore(res.data.hasMore || false);
     } catch (err) {
-      console.error("fetch objave:", err);
-      setSveObjave([]);
+      console.error("Fetch objave error:", err);
+      if (!append) setObjave([]);
+      toast("Greška pri dohvaćanju objava.", "error");
     } finally {
       setLoading(false);
     }
   };
 
+  // Initial load
   useEffect(() => {
-    fetchObjave();
-  }, []);
+    fetchObjave(1, false);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Filtriranje + sortiranje
+  // Reset na prvu stranicu kad se promijeni filter
   useEffect(() => {
-    let filtrirano = [...sveObjave];
+    setCurrentPage(1);
+    fetchObjave(1, false);
+  }, [filterTip, odsjek, sortBy, debouncedSearch]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    if (filterTip !== "Sve") {
-      filtrirano = filtrirano.filter((o) => o.tip === filterTip);
-    }
-
-    if (odsjek) {
-      filtrirano = filtrirano.filter(
-        (o) => o.odsjek === odsjek || o.odsjek?._id === odsjek
-      );
-    }
-
-    filtrirano.sort((a, b) => {
-      const aDate = new Date(a.datum || a.createdAt || 0).getTime();
-      const bDate = new Date(b.datum || b.createdAt || 0).getTime();
-      return sortBy === "newest" ? bDate - aDate : aDate - bDate;
-    });
-
-    setObjave(filtrirano);
-  }, [filterTip, odsjek, sortBy, sveObjave]);
+  // Load more
+  const handleLoadMore = () => {
+    const nextPage = currentPage + 1;
+    fetchObjave(nextPage, true);
+  };
 
   const spremiObjavu = async (e, id) => {
     e?.preventDefault?.();
     e?.stopPropagation?.();
-
     const token = localStorage.getItem("token");
-    if (!token) {
-      alert("Niste prijavljeni.");
-      return;
-    }
+    if (!token) return toast("Niste prijavljeni.", "error");
 
     try {
       const res = await api.post(
         `/korisnik/spremiObjavu/${id}`,
         {},
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
-      alert(res.data?.message || "Objava je spremljena.");
+      toast(res.data?.message || "Objava spremljena.", "success");
       window.dispatchEvent(new Event("refreshSpremljene"));
     } catch (err) {
-      console.error(err);
-      alert(
-        err?.response?.data?.message ||
-          err.message ||
-          "Greška pri spremanju objave."
+      toast(
+        err?.response?.data?.message || "Greška pri spremanju objave.",
+        "error"
       );
     }
   };
 
-  const openObjava = (id) => {
-    navigate(`/objava/${id}`);
-  };
-
+  const openObjava = (id) => navigate(`/objava/${id}`);
   const openProfil = (e, id) => {
     e.stopPropagation();
     navigate(`/profil/${id}`);
   };
 
-  // slanje nove objave
   const handleCreateObjava = async (e) => {
     e.preventDefault();
     const token = localStorage.getItem("token");
-    if (!token) {
-      alert("Za kreiranje objave morate biti prijavljeni.");
-      return;
-    }
-
+    if (!token)
+      return toast("Za kreiranje objave morate biti prijavljeni.", "error");
     if (!novaNaslov.trim() || !novaSadrzaj.trim() || !novaOdsjek) {
-      alert("Naslov, sadržaj i odsjek su obavezni.");
-      return;
+      return toast("Naslov, sadržaj i odsjek su obavezni.", "error");
     }
 
     try {
@@ -171,23 +175,19 @@ export default function Objava() {
           tip: novaTip,
           odsjek: novaOdsjek,
         },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
-      alert("Objava poslana na odobrenje.");
+      toast("Objava poslana na odobrenje.", "success");
       setNovaNaslov("");
       setNovaSadrzaj("");
       setNovaTip("radionice");
       setNovaOdsjek("");
       setShowForm(false);
-      fetchObjave(); // osvježi listu
+      fetchObjave(1, false);
     } catch (err) {
-      console.error("create objava error:", err);
-      alert(
-        err?.response?.data?.message ||
-          err.message ||
-          "Greška pri slanju objave."
+      toast(
+        err?.response?.data?.message || "Greška pri slanju objave.",
+        "error"
       );
     }
   };
@@ -201,10 +201,10 @@ export default function Objava() {
             alignItems: "center",
             justifyContent: "space-between",
             gap: 16,
+            marginBottom: "1.5rem",
           }}
         >
           <h1>Objave</h1>
-
           {user && user.uloga !== "admin" && (
             <Button
               variant="contained"
@@ -217,14 +217,26 @@ export default function Objava() {
         </div>
 
         {/* FILTERI */}
-        <div className="better-filters">
-          <div className="filters-left">
-            <FilterListIcon style={{ marginRight: 8 }} />
-            <span>Filteri</span>
-          </div>
-
-          <div className="filters-right">
-            {/* Tip */}
+        <div
+          className="better-filters"
+          style={{
+            alignItems: "flex-end",
+            gap: 20,
+            flexWrap: "wrap",
+            marginBottom: "2rem",
+          }}
+        >
+          <TextField
+            size="small"
+            variant="outlined"
+            label="Pretraži objave"
+            value={search}
+            style={{ minWidth: 180, maxWidth: 240 }}
+            onChange={(e) => setSearch(e.target.value)}
+            autoComplete="off"
+            placeholder="Upiši pojam..."
+          />
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
             <FormControl size="small" className="filter-control">
               <InputLabel id="tip-label" shrink>
                 Tip
@@ -244,8 +256,10 @@ export default function Objava() {
               </Select>
             </FormControl>
 
-            {/* Odsjek */}
-            <FormControl size="small" className="filter-control odsjek-control">
+            <FormControl
+              size="small"
+              className="filter-control odsjek-control"
+            >
               <InputLabel id="odsjek-label" shrink>
                 Odsjek
               </InputLabel>
@@ -264,7 +278,6 @@ export default function Objava() {
               </Select>
             </FormControl>
 
-            {/* Sortiraj */}
             <FormControl size="small" className="filter-control">
               <InputLabel id="sort-label" shrink>
                 Sortiraj
@@ -286,16 +299,18 @@ export default function Objava() {
           </div>
         </div>
 
+        {/* FORMA ZA NOVU OBJAVU */}
         {showForm && user && user.uloga !== "admin" && (
           <div className="card" style={{ marginBottom: "1.5rem" }}>
             <h2 style={{ marginTop: 0 }}>Nova objava</h2>
-            <form onSubmit={handleCreateObjava} className="objava-form">
+            <form onSubmit={handleCreateObjava}>
               <TextField
                 label="Naslov"
                 fullWidth
                 margin="normal"
                 value={novaNaslov}
                 onChange={(e) => setNovaNaslov(e.target.value)}
+                required
               />
               <TextField
                 label="Sadržaj"
@@ -305,6 +320,7 @@ export default function Objava() {
                 minRows={4}
                 value={novaSadrzaj}
                 onChange={(e) => setNovaSadrzaj(e.target.value)}
+                required
               />
               <div
                 style={{
@@ -331,7 +347,6 @@ export default function Objava() {
                       ))}
                   </Select>
                 </FormControl>
-
                 <FormControl size="small" style={{ minWidth: 180 }}>
                   <InputLabel id="nova-odsjek-label">Odsjek</InputLabel>
                   <Select
@@ -348,7 +363,6 @@ export default function Objava() {
                   </Select>
                 </FormControl>
               </div>
-
               <Button
                 type="submit"
                 variant="contained"
@@ -361,112 +375,142 @@ export default function Objava() {
           </div>
         )}
 
+        {/* LOADING SKELETON */}
         {loading ? (
-          <p className="center-msg">Učitavanje objava...</p>
-        ) : objave.length === 0 ? (
-          <p className="center-msg">Nema dostupnih objava.</p>
-        ) : (
           <div className="card-grid">
-            {objave.map((obj) => {
-              const autor =
-                obj.autor && typeof obj.autor === "object" ? obj.autor : null;
-              const autorIme = autor?.ime || obj.autor || "Nepoznato";
-              const autorId =
-                autor?._id || obj.autorId || obj.autor?._id || null;
-              const autorAvatar = autor?.avatar || obj.autorAvatar || null;
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <SkeletonCard key={i} />
+            ))}
+          </div>
+        ) : objave.length === 0 ? (
+          <p className="center-msg">
+            {debouncedSearch
+              ? `Nema rezultata za "${debouncedSearch}"`
+              : "Nema dostupnih objava."}
+          </p>
+        ) : (
+          <>
+            {/* OBJAVE GRID */}
+            <div className="card-grid">
+              {objave.map((obj) => {
+                const autor =
+                  obj.autor && typeof obj.autor === "object"
+                    ? obj.autor
+                    : null;
+                const autorIme = autor?.ime || obj.autor || "Nepoznato";
+                const autorId = autor?._id || obj.autorId || null;
+                const autorAvatar = autor?.avatar || obj.autorAvatar || null;
+                const avatarSrc = buildAvatarSrc(autorAvatar);
 
-              const avatarSrc = buildAvatarSrc(autorAvatar);
-
-              return (
-                <div
-                  key={obj._id}
-                  className="card-link"
-                  style={{ cursor: "pointer" }}
-                  onClick={() => openObjava(obj._id)}
-                  aria-role="link"
-                  tabIndex={0}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") openObjava(obj._id);
-                  }}
-                >
-                  <div className="card">
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 12,
-                        marginBottom: 8,
-                      }}
-                    >
-                      <img
-                        src={avatarSrc}
-                        alt={`Avatar ${autorIme}`}
-                        className="tiny-avatar"
-                        onClick={(e) => autorId && openProfil(e, autorId)}
-                        style={{ cursor: autorId ? "pointer" : "default" }}
-                      />
-                      <div style={{ flex: 1 }}>
-                        <h2 style={{ margin: 0 }}>
-                          {obj.naslov || "Bez naslova"}
-                        </h2>
-                        <div style={{ fontSize: 13, color: "#666" }}>
-                          {autorIme}
-                        </div>
-                      </div>
-                    </div>
-
-                    <p
-                      className="card-desc"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <Linkify options={linkifyOptions}>
-                        {obj.sadrzaj || "Nema opisa."}
-                      </Linkify>
-                    </p>
-
-                    <div className="meta-info">
-                      <span>
-                        Tip: <i>{obj.tip}</i>
-                      </span>
-                      <span>
-                        Odsjek:{" "}
-                        {ODSJECI.find((ods) => ods.id === obj.odsjek)?.naziv ||
-                          "-"}
-                      </span>
-                      <span className="card-date">
-                        {obj.datum
-                          ? new Date(obj.datum).toLocaleDateString("hr-HR")
-                          : ""}
-                      </span>
-                    </div>
-
-                    {user && user.uloga !== "admin" && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          spremiObjavu(e, obj._id);
-                        }}
-                        type="button"
-                        className="save-btn"
+                return (
+                  <div
+                    key={obj._id}
+                    className="card-link"
+                    style={{ cursor: "pointer" }}
+                    onClick={() => openObjava(obj._id)}
+                    role="link"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") openObjava(obj._id);
+                    }}
+                  >
+                    <div className="card">
+                      <div
                         style={{
-                          marginTop: "1.1rem",
                           display: "flex",
                           alignItems: "center",
-                          gap: "8px",
+                          gap: 12,
+                          marginBottom: 8,
                         }}
                       >
-                        <i
-                          className="fa fa-bookmark-o"
-                          style={{ fontSize: 20 }}
-                        />{" "}
-                        Spremi
-                      </button>
-                    )}
+                        <img
+                          src={avatarSrc}
+                          alt={`Avatar ${autorIme}`}
+                          className="tiny-avatar"
+                          onClick={(e) => autorId && openProfil(e, autorId)}
+                          style={{ cursor: autorId ? "pointer" : "default" }}
+                        />
+                        <div style={{ flex: 1 }}>
+                          <h2 style={{ margin: 0 }}>
+                            {obj.naslov || "Bez naslova"}
+                          </h2>
+                          <div style={{ fontSize: 13, color: "#666" }}>
+                            {autorIme}
+                          </div>
+                        </div>
+                      </div>
+                      <p
+                        className="card-desc"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <Linkify options={linkifyOptions}>
+                          {obj.sadrzaj || "Nema opisa."}
+                        </Linkify>
+                      </p>
+                      <div className="meta-info">
+                        <span>
+                          Tip: <i>{obj.tip}</i>
+                        </span>
+                        <span>
+                          Odsjek:{" "}
+                          {ODSJECI.find((ods) => ods.id === obj.odsjek)
+                            ?.naziv || "-"}
+                        </span>
+                        <span className="card-date">
+                          {obj.datum
+                            ? new Date(obj.datum).toLocaleDateString("hr-HR")
+                            : ""}
+                        </span>
+                        <span title="Broj spremanja">★ {obj.saves || 0}</span>
+                        <span title="Broj pregleda">👁 {obj.views || 0}</span>
+                      </div>
+                      {user && user.uloga !== "admin" && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            spremiObjavu(e, obj._id);
+                          }}
+                          type="button"
+                          className="save-btn"
+                          style={{
+                            marginTop: "1.1rem",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "8px",
+                          }}
+                        >
+                          <i
+                            className="fa fa-bookmark-o"
+                            style={{ fontSize: 20 }}
+                          />{" "}
+                          Spremi
+                        </button>
+                      )}
+                    </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+
+            {/* LOAD MORE BUTTON */}
+            {hasMore && (
+              <div style={{ textAlign: "center", margin: "2rem 0" }}>
+                <Button
+                  variant="outlined"
+                  color="error"
+                  onClick={handleLoadMore}
+                  disabled={loading}
+                >
+                  {loading ? "Učitavanje..." : "Učitaj još"}
+                </Button>
+              </div>
+            )}
+
+            {/* PAGINATION INFO */}
+            <div style={{ textAlign: "center", color: "#666", marginTop: "1rem" }}>
+              Stranica {currentPage} od {totalPages}
+            </div>
+          </>
         )}
       </div>
     </section>
