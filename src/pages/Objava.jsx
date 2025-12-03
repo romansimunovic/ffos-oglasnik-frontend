@@ -643,10 +643,10 @@ export default function Objava() {
                     >
                       {isNew && (
                         <Chip
-                          label="Novo!"
+                          label="Najnovije"
                           size="small"
                           sx={{
-                            backgroundColor: "#10b981",
+                            backgroundColor: "#20956eff",
                             color: "#fff",
                             fontWeight: "bold",
                             height: 28,

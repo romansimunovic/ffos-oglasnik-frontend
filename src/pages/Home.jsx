@@ -1,21 +1,29 @@
+// src/pages/Home.jsx
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Button, Chip, Card, CardContent, Typography, Grid } from "@mui/material";
-import PushPinIcon from "@mui/icons-material/PushPin";
-import NewReleasesIcon from "@mui/icons-material/NewReleases";
+import { useNavigate } from "react-router-dom";
+import {
+  Button,
+  Card,
+  CardContent,
+  Typography,
+  Grid,
+  Box,
+  Container,
+} from "@mui/material";
 import TrendingUpIcon from "@mui/icons-material/TrendingUp";
-import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import CategoryIcon from "@mui/icons-material/Category";
 import PeopleIcon from "@mui/icons-material/People";
+import ArrowRightIcon from "@mui/icons-material/ArrowRight";
 import api from "../api/axiosInstance";
 import { ODSJECI } from "../constants/odsjeci";
+import { useAuth } from "../context/AuthContext";
 
 export default function Home() {
   const [objave, setObjave] = useState([]);
   const [stats, setStats] = useState({ total: 0, thisWeek: 0, categories: {} });
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-  const user = JSON.parse(localStorage.getItem("user") || "null");
+  const { user } = useAuth();
 
   useEffect(() => {
     fetchData();
@@ -30,14 +38,14 @@ export default function Home() {
       // Filtriraj odobrene
       const odobrene = allObjave.filter((o) => o.status === "odobreno");
 
-      // Top 6 (pinned prvo, pa najnovije)
+      // Sve objave sortirane (pinned prvo, pa najnovije)
       const sorted = odobrene.sort((a, b) => {
         if (a.pinned && !b.pinned) return -1;
         if (!a.pinned && b.pinned) return 1;
         return new Date(b.datum) - new Date(a.datum);
       });
 
-      setObjave(sorted.slice(0, 6));
+      setObjave(sorted);
 
       // Statistike
       const weekAgo = new Date();
@@ -70,289 +78,273 @@ export default function Home() {
     return `${backendOrigin}${avatarPath}?t=${Date.now()}`;
   };
 
-  // Mini kalendar - top 3 nadolazeća događaja
-  const upcomingEvents = objave
-    .filter((o) => new Date(o.datum) >= new Date())
-    .slice(0, 3);
-
   return (
     <section className="page-bg">
-      <div className="container">
-        {/* HERO SEKCIJA */}
-        <div
-          style={{
-            textAlign: "center",
-            marginBottom: "3rem",
-            padding: "2rem 0",
-          }}
-        >
-          <h1 style={{ fontSize: "3rem", marginBottom: "1rem" }}>
-            FFOS Oglasnik
-          </h1>
-          <p
-            className="home-subtitle"
-            style={{
-              fontSize: "1.2rem",
-              color: "#666",
-              maxWidth: "800px",
-              margin: "0 auto 2rem",
+      {/* HERO SEKCIJA - SA SLIKOM */}
+      <Box
+        sx={{
+          background:
+            "linear-gradient(135deg, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.3) 100%), url('https://www.ffos.unios.hr/wp-content/uploads/2025/02/IMG_7438-scaled.jpg') center/cover",
+          backgroundAttachment: "fixed",
+          color: "#fff",
+          py: { xs: 8, md: 12 },
+          textAlign: "center",
+          mb: 6,
+          borderBottom: "6px solid #b41f24",
+        }}
+      >
+        <Container maxWidth="md">
+          <Typography
+            variant="overline"
+            sx={{
+              fontSize: "1rem",
+              fontWeight: "bold",
+              letterSpacing: 2,
+              color: "#10b981",
+              mb: 2,
             }}
           >
-            Digitalni prostor Filozofskog fakulteta u Osijeku za dijeljenje
-            studentskih projekata, radionica i akademskih prilika.
-          </p>
-          <div
-            className="home-underline"
-            style={{
-              width: "80px",
-              height: "4px",
-              background: "var(--ffos-red)",
-              margin: "0 auto 2rem",
-            }}
-          ></div>
+            ✨ Dobrodošli na
+          </Typography>
 
-          <div style={{ display: "flex", gap: 12, justifyContent: "center" }}>
+          <Typography
+            variant="h1"
+            sx={{
+              fontSize: { xs: "2.5rem", md: "4rem" },
+              fontWeight: 900,
+              mb: 2,
+              textShadow: "2px 2px 8px rgba(0,0,0,0.5)",
+              letterSpacing: -1,
+            }}
+          >
+            FFOS Oglasnik
+          </Typography>
+
+          <Typography
+            variant="h5"
+            sx={{
+              fontSize: { xs: "1rem", md: "1.3rem" },
+              fontWeight: 300,
+              maxWidth: "600px",
+              mx: "auto",
+              mb: 4,
+              lineHeight: 1.6,
+            }}
+          >
+            Digitalni prostor Filozofskog fakulteta gdje se dijele studentski
+            projekti, radionice, konferencije i akademske prilike.
+          </Typography>
+
+          <Box sx={{ display: "flex", gap: 2, justifyContent: "center" }}>
             <Button
               variant="contained"
               size="large"
               onClick={() => navigate("/objave")}
+              endIcon={<ArrowRightIcon />}
               sx={{
-                backgroundColor: "#b41f24",
-                "&:hover": { backgroundColor: "#8a1519" },
+                backgroundColor: "#10b981",
+                color: "#fff",
+                fontWeight: "bold",
+                px: 4,
+                py: 1.5,
+                fontSize: "1rem",
+                "&:hover": { backgroundColor: "#059669" },
               }}
             >
-              Pregledaj objave
+              Vidi sve objave
             </Button>
-            {user && user.uloga !== "admin" && (
-              <Button
-                variant="outlined"
-                size="large"
-                onClick={() => navigate("/objave")}
-                sx={{
-                  borderColor: "#b41f24",
-                  color: "#b41f24",
-                  "&:hover": {
-                    borderColor: "#8a1519",
-                    backgroundColor: "rgba(180, 31, 36, 0.05)",
-                  },
-                }}
-              >
-                Objavi novu prijavu
-              </Button>
-            )}
-          </div>
-        </div>
+          </Box>
+        </Container>
+      </Box>
 
-        {/* STATISTIKE */}
-        <Grid container spacing={3} sx={{ mb: 5 }}>
-          <Grid item xs={12} sm={4}>
-            <Card
-              sx={{
-                textAlign: "center",
-                p: 3,
-                background:
-                  "linear-gradient(135deg, rgba(180, 31, 36, 0.1), rgba(180, 31, 36, 0.05))",
-              }}
-            >
-              <CategoryIcon sx={{ fontSize: 48, color: "#b41f24", mb: 1 }} />
-              <Typography variant="h3" sx={{ fontWeight: "bold" }}>
-                {stats.total}
-              </Typography>
-              <Typography variant="body1" color="text.secondary">
-                Ukupno objava
-              </Typography>
-            </Card>
-          </Grid>
-          <Grid item xs={12} sm={4}>
-            <Card
-              sx={{
-                textAlign: "center",
-                p: 3,
-                background:
-                  "linear-gradient(135deg, rgba(33, 128, 141, 0.1), rgba(33, 128, 141, 0.05))",
-              }}
-            >
-              <TrendingUpIcon sx={{ fontSize: 48, color: "#21808d", mb: 1 }} />
-              <Typography variant="h3" sx={{ fontWeight: "bold" }}>
-                {stats.thisWeek}
-              </Typography>
-              <Typography variant="body1" color="text.secondary">
-                Novih ovaj tjedan
-              </Typography>
-            </Card>
-          </Grid>
-          <Grid item xs={12} sm={4}>
-            <Card
-              sx={{
-                textAlign: "center",
-                p: 3,
-                background:
-                  "linear-gradient(135deg, rgba(246, 175, 36, 0.1), rgba(246, 175, 36, 0.05))",
-              }}
-            >
-              <PeopleIcon sx={{ fontSize: 48, color: "#f6af24", mb: 1 }} />
-              <Typography variant="h3" sx={{ fontWeight: "bold" }}>
-                {Object.keys(stats.categories).length}
-              </Typography>
-              <Typography variant="body1" color="text.secondary">
-                Kategorija
-              </Typography>
-            </Card>
-          </Grid>
-        </Grid>
+      <div className="container">
+        {/* STATISTIKE - 3 KARTICE - POTPUNO CENTRIRANE */}
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          mb: 6,
+          width: "100%",
+          mx: "auto",
+          px: 2,
+        }}
+      >
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: {
+              xs: "1fr",
+              sm: "repeat(3, 1fr)",
+            },
+            gap: 3,
+            maxWidth: "1000px",
+            width: "100%",
+          }}
+        >
+          {/* KARTICA 1 */}
+          <Card
+            sx={{
+              textAlign: "center",
+              p: 3,
+              background:
+                "linear-gradient(135deg, rgba(180, 31, 36, 0.1), rgba(180, 31, 36, 0.05))",
+              borderTop: "4px solid #b41f24",
+              transition: "transform 0.3s, box-shadow 0.3s",
+              "&:hover": {
+                transform: "translateY(-6px)",
+                boxShadow: "0 12px 24px rgba(180, 31, 36, 0.15)",
+              },
+            }}
+          >
+            <CategoryIcon sx={{ fontSize: 48, color: "#b41f24", mb: 2 }} />
+            <Typography variant="h3" sx={{ fontWeight: 900, color: "#b41f24" }}>
+              {stats.total}
+            </Typography>
+            <Typography variant="body1" color="text.secondary" sx={{ mt: 1 }}>
+              Ukupno objava
+            </Typography>
+          </Card>
 
-        {/* MINI KALENDAR - Nadolazeći događaji */}
-        {upcomingEvents.length > 0 && (
-          <div style={{ marginBottom: "3rem" }}>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                marginBottom: "1.5rem",
-              }}
-            >
-              <h2 style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <CalendarTodayIcon sx={{ color: "#b41f24" }} />
-                Nadolazeći događaji
-              </h2>
-              <Button
-                variant="text"
-                onClick={() => navigate("/kalendar")}
-                sx={{ color: "#b41f24" }}
-              >
-                Vidi kalendar →
-              </Button>
-            </div>
+          {/* KARTICA 2 */}
+          <Card
+            sx={{
+              textAlign: "center",
+              p: 3,
+              background:
+                "linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.05))",
+              borderTop: "4px solid #10b981",
+              transition: "transform 0.3s, box-shadow 0.3s",
+              "&:hover": {
+                transform: "translateY(-6px)",
+                boxShadow: "0 12px 24px rgba(16, 185, 129, 0.15)",
+              },
+            }}
+          >
+            <TrendingUpIcon sx={{ fontSize: 48, color: "#10b981", mb: 2 }} />
+            <Typography variant="h3" sx={{ fontWeight: 900, color: "#10b981" }}>
+              {stats.thisWeek}
+            </Typography>
+            <Typography variant="body1" color="text.secondary" sx={{ mt: 1 }}>
+              Novih ovaj tjedan
+            </Typography>
+          </Card>
 
-            <Grid container spacing={2}>
-              {upcomingEvents.map((obj) => (
-                <Grid item xs={12} sm={4} key={obj._id}>
-                  <Card
-                    sx={{
-                      cursor: "pointer",
-                      transition: "transform 0.2s, box-shadow 0.2s",
-                      "&:hover": {
-                        transform: "translateY(-4px)",
-                        boxShadow: "0 8px 16px rgba(0,0,0,0.1)",
-                      },
-                    }}
-                    onClick={() => navigate(`/objava/${obj._id}`)}
-                  >
-                    <CardContent>
-                      <div style={{ display: "flex", gap: 6, marginBottom: 8 }}>
-                        {obj.pinned && (
-                          <Chip
-                            icon={<PushPinIcon />}
-                            label="Istaknuto"
-                            size="small"
-                            color="primary"
-                          />
-                        )}
-                        {obj.urgentno && (
-                          <Chip
-                            icon={<NewReleasesIcon />}
-                            label="Hitno"
-                            size="small"
-                            color="error"
-                          />
-                        )}
-                      </div>
-                      <Typography
-                        variant="h6"
-                        sx={{ fontWeight: "bold", mb: 1 }}
-                      >
-                        {obj.naslov}
-                      </Typography>
-                      <Typography
-                        variant="body2"
-                        color="text.secondary"
-                        sx={{ mb: 1 }}
-                      >
-                        {obj.sadrzaj?.substring(0, 80)}
-                        {obj.sadrzaj?.length > 80 ? "..." : ""}
-                      </Typography>
-                      <Typography variant="caption" color="primary">
-                        📅{" "}
-                        {obj.datum
-                          ? new Date(obj.datum).toLocaleDateString("hr-HR")
-                          : ""}
-                      </Typography>
-                    </CardContent>
-                  </Card>
-                </Grid>
-              ))}
-            </Grid>
-          </div>
-        )}
+          {/* KARTICA 3 */}
+          <Card
+            sx={{
+              textAlign: "center",
+              p: 3,
+              background:
+                "linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(59, 130, 246, 0.05))",
+              borderTop: "4px solid #3b82f6",
+              transition: "transform 0.3s, box-shadow 0.3s",
+              "&:hover": {
+                transform: "translateY(-6px)",
+                boxShadow: "0 12px 24px rgba(59, 130, 246, 0.15)",
+              },
+            }}
+          >
+            <PeopleIcon sx={{ fontSize: 48, color: "#3b82f6", mb: 2 }} />
+            <Typography variant="h3" sx={{ fontWeight: 900, color: "#3b82f6" }}>
+              {Object.keys(stats.categories).length}
+            </Typography>
+            <Typography variant="body1" color="text.secondary" sx={{ mt: 1 }}>
+              Kategorija
+            </Typography>
+          </Card>
+        </Box>
+      </Box>
 
-        {/* NAJNOVIJE OBJAVE */}
-        <div style={{ marginBottom: "3rem" }}>
+
+        {/* SVE OBJAVE - GRID */}
+        <div style={{ marginBottom: "4rem" }}>
           <div
             style={{
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
-              marginBottom: "1.5rem",
+              marginBottom: "2rem",
             }}
           >
-            <h2>Najnovije objave</h2>
-            <Button
-              variant="text"
-              onClick={() => navigate("/objave")}
-              sx={{ color: "#b41f24" }}
-            >
-              Vidi sve →
-            </Button>
+            <h2 style={{ fontSize: "1.8rem", fontWeight: "bold" }}>
+              Sve objave
+            </h2>
           </div>
 
           {loading ? (
-            <p className="center-msg">Učitavanje...</p>
+            <p className="center-msg">Učitavanje objava...</p>
           ) : objave.length === 0 ? (
-            <p className="center-msg">Nema dostupnih objava.</p>
+            <div
+              style={{
+                textAlign: "center",
+                padding: "3rem",
+                background: "rgba(180, 31, 36, 0.05)",
+                borderRadius: "12px",
+                border: "2px dashed #b41f24",
+              }}
+            >
+              <Typography variant="h6" color="text.secondary">
+                🔍 Nema dostupnih objava.
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                Vratite se kasnije ili kreirajte prvu objavu!
+              </Typography>
+            </div>
           ) : (
             <div className="card-grid">
               {objave.map((obj) => {
                 const autor =
                   obj.autor && typeof obj.autor === "object" ? obj.autor : null;
                 const autorIme = autor?.ime || obj.autor || "Nepoznato";
+                const autorId = autor?._id || obj.autorId || null;
                 const autorAvatar = autor?.avatar || obj.autorAvatar || null;
                 const avatarSrc = buildAvatarSrc(autorAvatar);
+
+                const isNew =
+                  obj.datum &&
+                  new Date() - new Date(obj.datum) < 3 * 24 * 60 * 60 * 1000;
 
                 return (
                   <div
                     key={obj._id}
                     className="card-link"
-                    style={{ cursor: "pointer", position: "relative" }}
+                    style={{
+                      cursor: "pointer",
+                      position: "relative",
+                      transition: "transform 0.2s",
+                    }}
                     onClick={() => navigate(`/objava/${obj._id}`)}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = "translateY(-4px)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = "translateY(0)";
+                    }}
                   >
-                    {/* BADGES */}
-                    <div
-                      style={{
-                        position: "absolute",
-                        top: 12,
-                        right: 12,
-                        display: "flex",
-                        gap: 6,
-                      }}
-                    >
-                      {obj.pinned && (
-                        <Chip
-                          icon={<PushPinIcon />}
-                          label="Istaknuto"
-                          size="small"
-                          color="primary"
-                        />
-                      )}
-                      {obj.urgentno && (
-                        <Chip
-                          icon={<NewReleasesIcon />}
-                          label="Hitno"
-                          size="small"
-                          color="error"
-                        />
-                      )}
-                    </div>
+                    {/* NEW BADGE */}
+                    {isNew && (
+                      <div
+                        style={{
+                          position: "absolute",
+                          top: 12,
+                          left: 12,
+                          zIndex: 10,
+                        }}
+                      >
+                        <span
+                          style={{
+                            backgroundColor: "#10b981",
+                            color: "#fff",
+                            padding: "4px 12px",
+                            borderRadius: "20px",
+                            fontSize: "0.75rem",
+                            fontWeight: "bold",
+                          }}
+                        >
+                          Najnovije
+                        </span>
+                      </div>
+                    )}
 
                     <div className="card">
                       <div
@@ -360,44 +352,70 @@ export default function Home() {
                           display: "flex",
                           alignItems: "center",
                           gap: 12,
-                          marginBottom: 8,
+                          marginBottom: 12,
                         }}
                       >
                         <img
                           src={avatarSrc}
                           alt={`Avatar ${autorIme}`}
-                          className="tiny-avatar"
                           style={{
-                            width: 40,
-                            height: 40,
+                            width: 48,
+                            height: 48,
                             borderRadius: "50%",
                             objectFit: "cover",
+                            border: "2px solid #b41f24",
                           }}
                         />
                         <div style={{ flex: 1 }}>
-                          <h2 style={{ margin: 0, fontSize: "1.2rem" }}>
+                          <h3
+                            style={{
+                              margin: 0,
+                              fontSize: "1.1rem",
+                              color: "#b41f24",
+                              fontWeight: 700,
+                            }}
+                          >
                             {obj.naslov || "Bez naslova"}
-                          </h2>
-                          <div style={{ fontSize: 13, color: "#666" }}>
+                          </h3>
+                          <div style={{ fontSize: "0.85rem", color: "#666" }}>
                             {autorIme}
                           </div>
                         </div>
                       </div>
-                      <p className="card-desc">
+
+                      <p
+                        style={{
+                          margin: "12px 0",
+                          fontSize: "0.9rem",
+                          color: "#555",
+                          lineHeight: 1.5,
+                        }}
+                      >
                         {obj.sadrzaj?.length > 120
                           ? `${obj.sadrzaj.slice(0, 120)}...`
                           : obj.sadrzaj || "Nema opisa."}
                       </p>
-                      <div className="meta-info">
+
+                      <div
+                        style={{
+                          display: "flex",
+                          flexWrap: "wrap",
+                          gap: "12px",
+                          fontSize: "0.85rem",
+                          color: "#666",
+                          marginTop: "12px",
+                          paddingTop: "12px",
+                          borderTop: "1px solid #eee",
+                        }}
+                      >
+                        <span>📌 {obj.tip || "Ostalo"}</span>
                         <span>
-                          Tip: <i>{obj.tip}</i>
-                        </span>
-                        <span>
-                          Odsjek:{" "}
+                          🏫{" "}
                           {ODSJECI.find((ods) => ods.id === obj.odsjek)
                             ?.naziv || "-"}
                         </span>
-                        <span className="card-date">
+                        <span style={{ marginLeft: "auto" }}>
+                          📅{" "}
                           {obj.datum
                             ? new Date(obj.datum).toLocaleDateString("hr-HR")
                             : ""}
@@ -409,57 +427,53 @@ export default function Home() {
               })}
             </div>
           )}
-        </div>
 
-        {/* KATEGORIJE - BRZI PRISTUP */}
-        <div style={{ marginBottom: "3rem" }}>
-          <h2 style={{ marginBottom: "1.5rem" }}>Pretraži po kategoriji</h2>
-          <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-            {[
-              { label: "Radionice", value: "radionice", color: "#21808d" },
-              { label: "Kvizovi", value: "kvizovi", color: "#f6af24" },
-              { label: "Projekti", value: "projekti", color: "#8a1519" },
-              { label: "Natječaji", value: "natječaji", color: "#23cb63" },
-              { label: "Ostalo", value: "ostalo", color: "#666" },
-            ].map((cat) => (
-              <Chip
-                key={cat.value}
-                label={`${cat.label} (${stats.categories[cat.value] || 0})`}
-                onClick={() =>
-                  navigate(`/objave?tip=${cat.value}`)
-                }
-                sx={{
-                  backgroundColor: cat.color,
-                  color: "#fff",
-                  fontWeight: "bold",
-                  cursor: "pointer",
-                  "&:hover": {
-                    opacity: 0.8,
-                  },
-                }}
-              />
-            ))}
+          <div style={{ textAlign: "center", marginTop: "3rem" }}>
+            <Button
+              variant="contained"
+              size="large"
+              onClick={() => navigate("/objave")}
+              sx={{
+                backgroundColor: "#b41f24",
+                color: "#fff",
+                fontWeight: "bold",
+                px: 4,
+                "&:hover": { backgroundColor: "#8a1519" },
+              }}
+            >
+              Vidi sve objave s filtrima →
+            </Button>
           </div>
         </div>
 
         {/* CTA - Za neprijavljene korisnike */}
         {!user && (
-          <div
-            style={{
-              textAlign: "center",
-              padding: "3rem 2rem",
+          <Box
+            sx={{
               background:
-                "linear-gradient(135deg, rgba(180, 31, 36, 0.1), rgba(180, 31, 36, 0.05))",
-              borderRadius: "12px",
-              marginBottom: "3rem",
+                "linear-gradient(135deg, rgba(180, 31, 36, 0.15) 0%, rgba(180, 31, 36, 0.08) 100%)",
+              backdropFilter: "blur(10px)",
+              borderRadius: "16px",
+              p: { xs: 3, md: 6 },
+              textAlign: "center",
+              border: "2px solid rgba(180, 31, 36, 0.2)",
+              mb: 4,
             }}
           >
-            <h2 style={{ marginBottom: "1rem" }}>Prijavite se i počnite</h2>
-            <p style={{ color: "#666", marginBottom: "2rem" }}>
-              Registrirajte se s FFOS emailom i počnite dijeliti svoje projekte
-              i prilike s akademskom zajednicom.
-            </p>
-            <div style={{ display: "flex", gap: 12, justifyContent: "center" }}>
+            <Typography
+              variant="h4"
+              sx={{ fontWeight: 900, mb: 2, color: "#b41f24" }}
+            >
+              ✨ Prijavite se i započnite
+            </Typography>
+            <Typography
+              variant="body1"
+              sx={{ color: "#666", mb: 3, fontSize: "1.05rem" }}
+            >
+              Registrirajte se s FFOS email adresom i počnite dijeliti projekte,
+              radionice i prilike s akademskom zajednicom.
+            </Typography>
+            <Box sx={{ display: "flex", gap: 2, justifyContent: "center" }}>
               <Button
                 variant="contained"
                 size="large"
@@ -467,6 +481,8 @@ export default function Home() {
                 sx={{
                   backgroundColor: "#b41f24",
                   "&:hover": { backgroundColor: "#8a1519" },
+                  fontWeight: "bold",
+                  px: 4,
                 }}
               >
                 Registriraj se
@@ -478,6 +494,8 @@ export default function Home() {
                 sx={{
                   borderColor: "#b41f24",
                   color: "#b41f24",
+                  fontWeight: "bold",
+                  px: 4,
                   "&:hover": {
                     borderColor: "#8a1519",
                     backgroundColor: "rgba(180, 31, 36, 0.05)",
@@ -486,8 +504,8 @@ export default function Home() {
               >
                 Prijavi se
               </Button>
-            </div>
-          </div>
+            </Box>
+          </Box>
         )}
       </div>
     </section>

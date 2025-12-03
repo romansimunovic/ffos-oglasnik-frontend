@@ -871,7 +871,7 @@ body.dark .filter-btn:hover {
 }
 
 /* ============================================
-   BETTER FILTERS
+   BETTER FILTERS - DARK MODE FIX
    ============================================ */
 .better-filters {
   display: flex;
@@ -885,16 +885,43 @@ body.dark .filter-btn:hover {
   box-shadow: 0 2px 8px rgba(40, 40, 40, 0.05);
 }
 
-body.dark .better-filters {
-  background: var(--ffos-dark-card);
-  border: 1px solid #2a2c3b;
+.better-filters {
+  display: flex;
+  justify-content: left;
+  align-items: flex-end;
+  gap: var(--space-10);
+  background: var(--color-surface);
+  padding: var(--space-10) var(--space-24) var(--space-12) var(--space-24);
+  border-radius: var(--radius-sm);
+  margin-bottom: var(--space-24);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--color-card-border);
+  transition: box-shadow var(--duration-normal) var(--ease-standard);
 }
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+  .better-filters {
+    background: var(--color-background) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3) !important;
+  }
+}
+
+/* Data attribute dark mode */
+[data-color-scheme="dark"] .better-filters {
+  background: var(--color-background) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3) !important;
+}
+
 
 .filter-col {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   min-width: 50px;
+  gap: 4px;
 }
 
 .filter-label {
@@ -903,75 +930,148 @@ body.dark .better-filters {
   margin-bottom: 2px;
   margin-left: 3px;
   font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 body.dark .filter-label {
-  color: #e4e2fa;
+  color: #b9c0c7 !important;
 }
 
 .form-select {
   margin-top: 0 !important;
   margin-bottom: 0 !important;
+  width: 100% !important;
+  padding: 0.65em 1em !important;
+  border-radius: 8px !important;
+  border: 1.5px solid var(--ffos-gray) !important;
+  background: var(--ffos-light-card) !important;
+  color: var(--ffos-light-txt) !important;
+  font-size: 1rem !important;
+  font-family: inherit !important;
+  outline: none !important;
+  box-sizing: border-box !important;
+  cursor: pointer !important;
+}
+
+body.dark .form-select {
+  background: var(--ffos-dark-bg-secondary) !important;
+  color: var(--ffos-dark-txt) !important;
+  border: 1.5px solid #43445d !important;
+}
+
+body.dark .form-select:focus {
+  border: 2px solid var(--ffos-red) !important;
+  box-shadow: 0 0 0 3px rgba(151, 29, 33, 0.2) !important;
 }
 
 /* ============================================
-   MUI OVERRIDES
+   MUI OVERRIDES - DARK MODE AGRESIVNI FIX
    ============================================ */
+
+/* Light mode - normalno */
 .MuiSelect-select {
-  color: var(--ffos-light-txt);
+  color: var(--ffos-light-txt) !important;
+}
+
+.MuiOutlinedInput-notchedOutline {
+  border-color: #b3b3b3 !important;
+}
+
+.MuiSelect-icon {
+  color: var(--ffos-light-txt) !important;
+}
+
+/* Dark mode - SVE SA !important */
+body.dark .MuiFormControl-root {
+  width: 100% !important;
+}
+
+body.dark .MuiInputBase-root {
+  background: var(--ffos-dark-bg-secondary) !important;
+  color: var(--ffos-dark-txt) !important;
+}
+
+body.dark .MuiOutlinedInput-root {
+  background: var(--ffos-dark-bg-secondary) !important;
+  color: var(--ffos-dark-txt) !important;
+}
+
+body.dark .MuiOutlinedInput-input {
+  color: var(--ffos-dark-txt) !important;
+  padding: 0.65em 1em !important;
+}
+
+body.dark .MuiOutlinedInput-notchedOutline {
+  border-color: #43445d !important;
+}
+
+body.dark .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
+  border-color: #555 !important;
+}
+
+body.dark .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+  border-color: var(--ffos-red) !important;
+  border-width: 2px !important;
 }
 
 body.dark .MuiSelect-select {
   color: var(--ffos-dark-txt) !important;
-}
-
-.MuiOutlinedInput-notchedOutline {
-  border-color: #b3b3b3;
-}
-
-body.dark .MuiOutlinedInput-notchedOutline {
-  border-color: #555 !important;
-}
-
-.MuiSelect-icon {
-  color: var(--ffos-light-txt);
+  background: var(--ffos-dark-bg-secondary) !important;
 }
 
 body.dark .MuiSelect-icon {
   color: var(--ffos-dark-txt) !important;
 }
 
-body.dark .MuiFormControl-root,
-body.dark .MuiInputBase-root,
-body.dark .MuiOutlinedInput-notchedOutline,
-body.dark .MuiSelect-select,
+/* Dropdown menu - VANJSKI */
 body.dark .MuiPaper-root {
-  background: var(--ffos-dark-card) !important;
-  color: var(--ffos-dark-txt) !important;
-  border-color: #43445d !important;
-}
-
-body.dark .MuiFormLabel-root,
-body.dark .MuiInputLabel-root,
-body.dark .MuiTypography-root {
+  background: var(--ffos-dark-bg-secondary) !important;
   color: var(--ffos-dark-txt) !important;
 }
 
 body.dark .MuiMenu-paper {
   background: var(--ffos-dark-bg-secondary) !important;
   color: var(--ffos-dark-txt) !important;
+  border: 1px solid #3a4556 !important;
 }
 
-body.dark .MuiMenuItem-root.Mui-selected,
+body.dark .MuiList-root {
+  background: var(--ffos-dark-bg-secondary) !important;
+}
+
+/* Menu items */
+body.dark .MuiMenuItem-root {
+  color: var(--ffos-dark-txt) !important;
+  background: var(--ffos-dark-bg-secondary) !important;
+}
+
 body.dark .MuiMenuItem-root:hover {
-  background: #282a45 !important;
-  color: var(--ffos-red) !important;
+  background: #26283b !important;
 }
 
+body.dark .MuiMenuItem-root.Mui-selected {
+  background: var(--ffos-red) !important;
+  color: #fff !important;
+}
+
+body.dark .MuiMenuItem-root.Mui-selected:hover {
+  background: #8f191f !important;
+  color: #fff !important;
+}
+
+/* Labels i Typography */
+body.dark .MuiFormLabel-root,
+body.dark .MuiInputLabel-root,
+body.dark .MuiTypography-root {
+  color: var(--ffos-dark-txt) !important;
+}
+
+/* Buttons */
 body.dark .MuiButton-root {
   background: var(--ffos-dark-card) !important;
   color: var(--ffos-red) !important;
-  border: 1px solid #444;
+  border: 1px solid #444 !important;
 }
 
 body.dark .MuiButton-root:hover {
@@ -979,6 +1079,7 @@ body.dark .MuiButton-root:hover {
   color: var(--ffos-red) !important;
 }
 
+/* Chips */
 body.dark .MuiChip-root {
   background-color: #2a2c3b !important;
   color: var(--ffos-dark-txt) !important;
@@ -993,6 +1094,7 @@ body.dark .MuiChip-colorError {
   background-color: #e74c3c !important;
   color: #fff !important;
 }
+
 
 /* ============================================
    PROFILE
@@ -1888,3 +1990,11 @@ body.dark .access-panel-close:hover {
     font-size: 0.8rem;
   }
 }
+
+body.dark .form-select {
+  background: var(--ffos-dark-bg-secondary) !important;
+  color: var(--ffos-dark-txt) !important;
+  border: 1.5px solid #43445d !important;
+}
+
+
