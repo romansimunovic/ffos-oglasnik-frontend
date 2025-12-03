@@ -1,6 +1,13 @@
 import { useEffect, useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Button } from "@mui/material";
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+  Button,
+} from "@mui/material";
 import api from "../api/axiosInstance";
 import { useToast } from "../components/Toast";
 
@@ -106,6 +113,34 @@ export default function Profil() {
     setTimeout(() => navigate("/login"), 800);
   };
 
+  const handleRemoveSaved = async (objavaId, e) => {
+    // spriječi da klik na gumb otvori link /objava/:id
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+
+    const token = localStorage.getItem("token");
+    if (!token) {
+      toast("Niste prijavljeni.", "error");
+      return;
+    }
+
+    try {
+      await api.delete(`/korisnik/spremljene/${objavaId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      // makni iz lokalnog state-a
+      setSpremljene((prev) => prev.filter((o) => o._id !== objavaId));
+
+      toast("Objava je uklonjena iz spremljenih.", "success");
+    } catch (err) {
+      console.error("Greška pri uklanjanju spremljene objave:", err);
+      toast("Greška pri uklanjanju objave.", "error");
+    }
+  };
+
   if (!user) {
     return (
       <section className="page-bg">
@@ -117,7 +152,8 @@ export default function Profil() {
   }
 
   const avatarSrc =
-    previewUrl || (user.avatar ? buildAvatarSrc(user.avatar) : "/default-avatar.png");
+    previewUrl ||
+    (user.avatar ? buildAvatarSrc(user.avatar) : "/default-avatar.png");
 
   return (
     <section className="page-bg">
@@ -166,7 +202,11 @@ export default function Profil() {
             ) : (
               <div className="card-grid">
                 {spremljene.map((o) => (
-                  <Link key={o._id} to={`/objava/${o._id}`} className="card-link">
+                  <Link
+                    key={o._id}
+                    to={`/objava/${o._id}`}
+                    className="card-link"
+                  >
                     <div className="card saved-post">
                       <h4>{o.naslov || "Bez naslova"}</h4>
                       <p>
@@ -175,8 +215,19 @@ export default function Profil() {
                           : o.sadrzaj || "Nema opisa."}
                       </p>
                       <p className="card-date">
-                        {o.datum ? new Date(o.datum).toLocaleDateString("hr-HR") : ""}
+                        {o.datum
+                          ? new Date(o.datum).toLocaleDateString("hr-HR")
+                          : ""}
                       </p>
+
+                      <button
+                        type="button"
+                        className="unsave-btn"
+                        style={{ marginTop: "0.5rem" }}
+                        onClick={(e) => handleRemoveSaved(o._id, e)}
+                      >
+                        Ukloni
+                      </button>
                     </div>
                   </Link>
                 ))}
@@ -189,9 +240,7 @@ export default function Profil() {
         <Dialog open={logoutConfirm} onClose={() => setLogoutConfirm(false)}>
           <DialogTitle>Potvrdi odjavu</DialogTitle>
           <DialogContent>
-            <DialogContentText>
-              Sigurno se želite odjaviti?
-            </DialogContentText>
+            <DialogContentText>Sigurno se želite odjaviti?</DialogContentText>
           </DialogContent>
           <DialogActions>
             <Button onClick={() => setLogoutConfirm(false)}>Odustani</Button>
