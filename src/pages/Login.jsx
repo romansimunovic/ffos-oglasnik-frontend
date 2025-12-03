@@ -1,13 +1,16 @@
+// src/pages/Login.jsx
 import { useState } from "react";
 import api from "../api/axiosInstance";
 import { useNavigate, Link } from "react-router-dom";
 import { useToast } from "../components/Toast";
+import { useAuth } from "../context/AuthContext"; // ✅ NOVO
 
 const DOMAIN = "@ffos.hr";
 
 export default function Login() {
   const navigate = useNavigate();
   const toast = useToast();
+  const { login } = useAuth(); // ✅ NOVO - koristi context login
   const [form, setForm] = useState({ email: "", lozinka: "" });
   const [loading, setLoading] = useState(false);
 
@@ -38,20 +41,28 @@ export default function Login() {
         email: form.email,
         lozinka: form.lozinka,
       });
+
       const { token, user } = res.data;
-      if (token) {
-        localStorage.setItem("token", token);
-        localStorage.setItem("user", JSON.stringify(user));
-        api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+
+      if (token && user) {
+        // ✅ Koristi context login umjesto manualnog spremanja
+        login(user, token);
+
+        toast("Prijava uspješna! Preusmjeravanje...", "success");
+
+        // Navigiraj na odgovarajuću stranicu
+        setTimeout(() => {
+          navigate(user.uloga === "admin" ? "/admin" : "/profil");
+        }, 1000);
+      } else {
+        throw new Error("Nema tokena ili korisnika u odgovoru.");
       }
-      toast("Prijava uspješna! Preusmjeravanje...", "success");
-      setTimeout(() => {
-        navigate(user.uloga === "admin" ? "/admin" : "/profil");
-      }, 1000);
     } catch (err) {
+      console.error("Login error:", err);
       toast(err.response?.data?.message || "Greška pri prijavi.", "error");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (

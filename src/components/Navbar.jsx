@@ -26,11 +26,10 @@ import LogoutIcon from "@mui/icons-material/Logout";
 import FFOSLogo from "../assets/FFOS-logo.png";
 import api from "../api/axiosInstance";
 import { useToast } from "./Toast";
+import { useAuth } from "../context/AuthContext"; // ✅ NOVO
 
 export default function Navbar() {
-  const [user, setUser] = useState(() =>
-    JSON.parse(localStorage.getItem("user") || "null")
-  );
+  const { user, logout: authLogout } = useAuth(); // ✅ KORISTI CONTEXT
   const [anchorEl, setAnchorEl] = useState(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [zahtjeviCount, setZahtjeviCount] = useState(0);
@@ -46,7 +45,7 @@ export default function Navbar() {
     if (user?.uloga === "admin") {
       fetchZahtjeviCount();
     }
-  }, [user, location.pathname]); // Refetch kad se promijeni stranica
+  }, [user, location.pathname]);
 
   const fetchZahtjeviCount = async () => {
     try {
@@ -59,10 +58,7 @@ export default function Navbar() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    delete api.defaults.headers.common["Authorization"];
-    setUser(null);
+    authLogout(); // ✅ KORISTI CONTEXT LOGOUT
     handleMenuClose();
     toast("Uspješno ste odjavljeni.", "success");
     navigate("/");
@@ -100,7 +96,6 @@ export default function Navbar() {
 
   const avatarSrc = user?.avatar ? buildAvatarSrc(user.avatar) : null;
 
-  // Navigation links
   const navLinks = [
     { name: "Početna", href: "/" },
     { name: "Objave", href: "/objave" },
@@ -108,10 +103,8 @@ export default function Navbar() {
     { name: "Kontakt", href: "/kontakt" },
   ];
 
-  // Desktop Navigation
   const DesktopNav = (
     <>
-      {/* Logo */}
       <Link to="/" style={{ display: "flex", alignItems: "center" }}>
         <img
           src={FFOSLogo}
@@ -127,7 +120,6 @@ export default function Navbar() {
         />
       </Link>
 
-      {/* Navigation Links */}
       <Box sx={{ display: "flex", gap: 2, ml: 4 }}>
         {navLinks.map((link) => (
           <Button
@@ -152,13 +144,8 @@ export default function Navbar() {
 
       <Box sx={{ flexGrow: 1 }} />
 
-      {/* Right Side - Admin/User */}
       {user?.uloga === "admin" && (
-        <Badge
-          badgeContent={zahtjeviCount}
-          color="error"
-          sx={{ mr: 2 }}
-        >
+        <Badge badgeContent={zahtjeviCount} color="error" sx={{ mr: 2 }}>
           <Button
             component={Link}
             to="/admin"
@@ -177,7 +164,6 @@ export default function Navbar() {
         </Badge>
       )}
 
-      {/* User Menu */}
       {user ? (
         <>
           <IconButton onClick={handleMenuOpen} sx={{ ml: 2 }}>
@@ -226,7 +212,6 @@ export default function Navbar() {
     </>
   );
 
-  // Mobile Drawer
   const MobileDrawer = (
     <Drawer
       anchor="right"
@@ -326,7 +311,6 @@ export default function Navbar() {
         <Toolbar sx={{ justifyContent: "space-between", px: { xs: 2, md: 4 } }}>
           {isMobile ? (
             <>
-              {/* Mobile Logo */}
               <Link to="/">
                 <img
                   src={FFOSLogo}
@@ -337,7 +321,6 @@ export default function Navbar() {
 
               <Box sx={{ flexGrow: 1 }} />
 
-              {/* Mobile Menu Icon */}
               <IconButton
                 onClick={handleDrawerToggle}
                 sx={{ color: "#fff" }}
@@ -352,10 +335,8 @@ export default function Navbar() {
         </Toolbar>
       </AppBar>
 
-      {/* Spacer za fixed navbar */}
       <Toolbar />
 
-      {/* Mobile Drawer */}
       {isMobile && MobileDrawer}
     </>
   );
