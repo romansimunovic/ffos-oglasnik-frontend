@@ -64,7 +64,7 @@ export default function Objava() {
   ];
 
   const periodOptions = [
-    { value: "", label: "Svi datumi" },
+    { value: "all", label: "Svi datumi" },
     { value: "week", label: "Ovaj tjedan" },
     { value: "month", label: "Ovaj mjesec" },
     { value: "past", label: "Prošli događaji" },
@@ -187,72 +187,71 @@ export default function Objava() {
   };
 
   const handleCreateObjava = async (e) => {
-  e.preventDefault();
-  
-  // 1. Validacija
-  if (!novaNaslov.trim() || !novaSadrzaj.trim() || !novaOdsjek) {
-    return toast("Naslov, sadržaj i odsjek su obavezni.", "error");
-  }
+    e.preventDefault();
 
-  // 2. Provjeri je li user prijavljen
-  const token = localStorage.getItem("token");
-  if (!token) {
-    toast("Morate biti prijavljeni.", "error");
-    navigate("/login");
-    return;
-  }
-
-  // 3. Spremi loading state
-  const submitBtn = e.target.querySelector("button[type='submit']");
-  const originalText = submitBtn?.textContent;
-  if (submitBtn) submitBtn.textContent = "Slanje...";
-  if (submitBtn) submitBtn.disabled = true;
-
-  try {
-    console.log("📤 Slanje objave:", {
-      naslov: novaNaslov,
-      sadrzaj: novaSadrzaj,
-      tip: novaTip,
-      odsjek: novaOdsjek,
-    });
-
-    const response = await api.post("/objave", {
-      naslov: novaNaslov.trim(),
-      sadrzaj: novaSadrzaj.trim(),
-      tip: novaTip,
-      odsjek: novaOdsjek,
-    });
-
-    console.log("✅ Objava kreirana:", response.data);
-
-    // 4. Uspješno - resetiraj formu
-    toast("✅ Objava poslana na odobrenje!", "success");
-    setNovaNaslov("");
-    setNovaSadrzaj("");
-    setNovaTip("radionice");
-    setNovaOdsjek("");
-    setShowForm(false);
-
-    // 5. Osvježi objave
-    await fetchObjave(1, false);
-  } catch (err) {
-    console.error("❌ Greška pri slanju:", err);
-    
-    const errorMsg =
-      err?.response?.data?.message ||
-      err?.response?.data?.error ||
-      err?.message ||
-      "Greška pri slanju objave.";
-    
-    toast(errorMsg, "error");
-  } finally {
-    if (submitBtn) {
-      submitBtn.textContent = originalText;
-      submitBtn.disabled = false;
+    // 1. Validacija
+    if (!novaNaslov.trim() || !novaSadrzaj.trim() || !novaOdsjek) {
+      return toast("Naslov, sadržaj i odsjek su obavezni.", "error");
     }
-  }
-};
 
+    // 2. Provjeri je li user prijavljen
+    const token = localStorage.getItem("token");
+    if (!token) {
+      toast("Morate biti prijavljeni.", "error");
+      navigate("/login");
+      return;
+    }
+
+    // 3. Spremi loading state
+    const submitBtn = e.target.querySelector("button[type='submit']");
+    const originalText = submitBtn?.textContent;
+    if (submitBtn) submitBtn.textContent = "Slanje...";
+    if (submitBtn) submitBtn.disabled = true;
+
+    try {
+      console.log("📤 Slanje objave:", {
+        naslov: novaNaslov,
+        sadrzaj: novaSadrzaj,
+        tip: novaTip,
+        odsjek: novaOdsjek,
+      });
+
+      const response = await api.post("/objave", {
+        naslov: novaNaslov.trim(),
+        sadrzaj: novaSadrzaj.trim(),
+        tip: novaTip,
+        odsjek: novaOdsjek,
+      });
+
+      console.log("✅ Objava kreirana:", response.data);
+
+      // 4. Uspješno - resetiraj formu
+      toast("✅ Objava poslana na odobrenje!", "success");
+      setNovaNaslov("");
+      setNovaSadrzaj("");
+      setNovaTip("radionice");
+      setNovaOdsjek("");
+      setShowForm(false);
+
+      // 5. Osvježi objave
+      await fetchObjave(1, false);
+    } catch (err) {
+      console.error("❌ Greška pri slanju:", err);
+
+      const errorMsg =
+        err?.response?.data?.message ||
+        err?.response?.data?.error ||
+        err?.message ||
+        "Greška pri slanju objave.";
+
+      toast(errorMsg, "error");
+    } finally {
+      if (submitBtn) {
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
+      }
+    }
+  };
 
   return (
     <section className="page-bg">
@@ -280,67 +279,6 @@ export default function Objava() {
               {showForm ? "Zatvori" : "+ Nova objava"}
             </Button>
           )}
-        </div>
-
-        {/* BRZI FILTERI */}
-        <div
-          style={{
-            display: "flex",
-            gap: 10,
-            flexWrap: "wrap",
-            marginBottom: "2rem",
-          }}
-        >
-          <Button
-            variant="outlined"
-            size="small"
-            onClick={() => handleQuickFilter("myDepartment")}
-            disabled={!userOdsjek}
-            sx={{
-              borderColor: "#971d21",
-              color: "#971d21",
-              "&:hover": { backgroundColor: "rgba(151, 29, 33, 0.05)" },
-            }}
-          >
-            📍 Moj odsjek
-          </Button>
-          <Button
-            variant="outlined"
-            size="small"
-            onClick={() => handleQuickFilter("radionice")}
-            sx={{
-              borderColor: "#971d21",
-              color: "#971d21",
-              "&:hover": { backgroundColor: "rgba(151, 29, 33, 0.05)" },
-            }}
-          >
-            🎓 Radionice
-          </Button>
-          <Button
-            variant="outlined"
-            size="small"
-            onClick={() => handleQuickFilter("natječaji")}
-            sx={{
-              borderColor: "#971d21",
-              color: "#971d21",
-              "&:hover": { backgroundColor: "rgba(151, 29, 33, 0.05)" },
-            }}
-          >
-            🏆 Natječaji
-          </Button>
-          <Button
-            variant="outlined"
-            size="small"
-            startIcon={<ClearIcon />}
-            onClick={handleClearFilters}
-            sx={{
-              borderColor: "#666",
-              color: "#666",
-              "&:hover": { backgroundColor: "rgba(0, 0, 0, 0.05)" },
-            }}
-          >
-            Očisti
-          </Button>
         </div>
 
         {/* FORMA ZA NOVU OBJAVU */}
@@ -474,7 +412,7 @@ export default function Objava() {
               display: "grid",
               gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
               gap: 20,
-              marginBottom: "2rem",
+              marginBottom: "1rem",
               padding: "1.5rem",
               backgroundColor: "var(--ffos-light-card)",
               borderRadius: "10px",
@@ -534,6 +472,14 @@ export default function Objava() {
                   value={odsjek}
                   onChange={(e) => setOdsjek(e.target.value)}
                   IconComponent={ArrowDropDownIcon}
+                  displayEmpty
+                  renderValue={(selected) => {
+                    if (!selected) return "Svi odsjeci";
+                    const opt = departmentOptions.find(
+                      (o) => o.value === selected
+                    );
+                    return opt ? opt.label : "Svi odsjeci";
+                  }}
                   sx={{
                     backgroundColor: "transparent",
                   }}
@@ -567,6 +513,12 @@ export default function Objava() {
                   value={periodFilter}
                   onChange={(e) => setPeriodFilter(e.target.value)}
                   IconComponent={ArrowDropDownIcon}
+                  displayEmpty
+                  renderValue={(selected) => {
+                    if (!selected) return "Svi datumi";
+                    const opt = periodOptions.find((o) => o.value === selected);
+                    return opt ? opt.label : "Svi datumi";
+                  }}
                   sx={{
                     backgroundColor: "transparent",
                   }}
@@ -613,6 +565,29 @@ export default function Objava() {
               </FormControl>
             </div>
           </div>
+
+          {/* GUMB ZA UKLANJANJE FILTERA */}
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "flex-end",
+              marginBottom: "2rem",
+            }}
+          >
+            <Button
+              variant="outlined"
+              size="small"
+              startIcon={<ClearIcon />}
+              onClick={handleClearFilters}
+              sx={{
+                borderColor: "#666",
+                color: "#666",
+                "&:hover": { backgroundColor: "rgba(0, 0, 0, 0.05)" },
+              }}
+            >
+              Ukloni filtere
+            </Button>
+          </div>
         </div>
 
         {/* LOADING */}
@@ -634,9 +609,7 @@ export default function Objava() {
             <div className="card-grid">
               {objave.map((obj) => {
                 const autor =
-                  obj.autor && typeof obj.autor === "object"
-                    ? obj.autor
-                    : null;
+                  obj.autor && typeof obj.autor === "object" ? obj.autor : null;
                 const autorIme = autor?.ime || obj.autor || "Nepoznato";
                 const autorId = autor?._id || obj.autorId || null;
                 const autorAvatar = autor?.avatar || obj.autorAvatar || null;
@@ -721,9 +694,7 @@ export default function Objava() {
                           src={avatarSrc}
                           alt={`Avatar ${autorIme}`}
                           className="tiny-avatar"
-                          onClick={(e) =>
-                            autorId && openProfil(e, autorId)
-                          }
+                          onClick={(e) => autorId && openProfil(e, autorId)}
                           style={{ cursor: autorId ? "pointer" : "default" }}
                         />
                         <div style={{ flex: 1 }}>
@@ -842,7 +813,8 @@ export default function Objava() {
                             justifyContent: "center",
                           }}
                         >
-                          <span style={{ fontSize: "1.2rem" }}></span> Dodaj u favorite
+                          <span style={{ fontSize: "1.2rem" }}></span> Dodaj u
+                          favorite
                         </button>
                       )}
                     </div>
