@@ -1,17 +1,30 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { Button } from "@mui/material";
+import {
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+} from "@mui/material";
 import { ODSJECI } from "../constants/odsjeci";
 import Linkify from "linkify-react";
 import api from "../api/axiosInstance";
 import { useToast } from "../components/Toast";
+import FacebookIcon from "@mui/icons-material/Facebook";
+import WhatsAppIcon from "@mui/icons-material/WhatsApp";
+import TwitterIcon from "@mui/icons-material/Twitter";
+import InstagramIcon from "@mui/icons-material/Instagram";
 
 export default function ObjavaDetalj() {
   const { id } = useParams();
   const [objava, setObjava] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [shareOpen, setShareOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
   const navigate = useNavigate();
   const toast = useToast();
+  const currentUrl = typeof window !== "undefined" ? window.location.href : "";
 
   useEffect(() => {
     let mounted = true;
@@ -30,13 +43,34 @@ export default function ObjavaDetalj() {
     };
   }, [id]);
 
-  const copyLink = () => {
-    navigator.clipboard.writeText(window.location.href);
-    toast("Link kopiran!", "success");
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(currentUrl);
+      toast("Link kopiran!", "success");
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error("Clipboard error:", err);
+      toast("Ne mogu kopirati link.", "error");
+    }
   };
 
   if (loading || !objava)
     return <p className="center-msg">Učitavanje objave...</p>;
+  const shareText = objava?.naslov || "Pogledaj ovu objavu";
+
+  const facebookUrl =
+    "https://www.facebook.com/sharer/sharer.php?u=" +
+    encodeURIComponent(currentUrl);
+
+  const twitterUrl =
+    "https://twitter.com/intent/tweet?url=" +
+    encodeURIComponent(currentUrl) +
+    "&text=" +
+    encodeURIComponent(shareText);
+
+  const whatsappUrl =
+    "https://wa.me/?text=" + encodeURIComponent(shareText + " " + currentUrl);
 
   const autor =
     objava.autor && typeof objava.autor === "object" ? objava.autor : null;
@@ -104,13 +138,63 @@ export default function ObjavaDetalj() {
           <Button
             variant="outlined"
             color="primary"
-            onClick={copyLink}
+            onClick={() => setShareOpen(true)}
             style={{ marginTop: "1rem" }}
-            startIcon={<span></span>}
           >
             Podijeli objavu
           </Button>
         </div>
+        {/* ⬇️ OVDJE IDE DIJALOG */}
+        <Dialog open={shareOpen} onClose={() => setShareOpen(false)}>
+          <DialogTitle>Podijeli objavu</DialogTitle>
+          <DialogContent dividers>
+            <p>Odaberi način dijeljenja:</p>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "0.5rem",
+                marginTop: "0.5rem",
+                minWidth: "260px",
+              }}
+            >
+              <Button
+                variant="contained"
+                onClick={() => window.open(facebookUrl, "_blank", "noopener")}
+                startIcon={<FacebookIcon />}
+              >
+                Facebook
+              </Button>
+
+              <Button
+                variant="contained"
+                onClick={() => window.open(whatsappUrl, "_blank", "noopener")}
+                startIcon={<WhatsAppIcon />}
+              >
+                WhatsApp
+              </Button>
+
+              <Button
+                variant="contained"
+                onClick={() => window.open(twitterUrl, "_blank", "noopener")}
+                startIcon={<TwitterIcon />}
+              >
+                Twitter
+              </Button>
+
+              <Button
+                variant="outlined"
+                onClick={copyLink}
+                startIcon={<InstagramIcon />}
+              >
+                {copied ? "Link kopiran" : "Kopiraj link"}
+              </Button>
+            </div>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setShareOpen(false)}>Zatvori</Button>
+          </DialogActions>
+        </Dialog>
       </div>
     </section>
   );
