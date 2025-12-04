@@ -15,6 +15,7 @@ import {
   ListItem,
   ListItemButton,
   ListItemText,
+  Divider,
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import LogoutIcon from "@mui/icons-material/Logout";
