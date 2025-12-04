@@ -1,12 +1,14 @@
+cat > vercel.json << 'EOF'
 {
-  "buildCommand": "npm run build",      // Kako build-ati projekt
-  "devCommand": "npm run dev",          // Lokalni dev server
-  "installCommand": "npm install",      // Instalacija paketa
-  "framework": "vite",                  // Koristi Vite (ili "next" ako je Next.js)
-  "rewrites": [                         // VAŽNO - SPA routing!
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "framework": "vite",
+  "rewrites": [
     {
-      "source": "/(.*)",                // SVEEE rute
-      "destination": "/index.html"      // Pošalji na index.html
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }
+EOF
