@@ -78,63 +78,74 @@ export default function Navbar() {
   ];
 
   const DesktopNav = (
-    <Box className="navbar-inner" sx={{ width: "100%" }}>
-      <Link to="/">
-        <img
-          src={FFOSLogo}
-          alt="FFOS"
-          style={{ height: 48, cursor: "pointer" }}
-        />
-      </Link>
+  <Box className="navbar-inner">
+    <Box className="navbar-logo-group" onClick={() => navigate("/")}>
+      <img src={FFOSLogo} alt="FFOS" className="navbar-logo" />
+      <span className="navbar-title">FFOS Oglasnik</span>
+    </Box>
 
-      <Box sx={{ display: "flex", gap: 2, ml: 4 }}>
-        {navLinks.map((link) => (
-          <Button
-            key={link.name}
-            component={Link}
-            to={link.href}
-            className="navbar-btn"
-            sx={{
-              fontWeight: location.pathname === link.href ? "bold" : "normal",
-              borderBottom:
-                location.pathname === link.href ? "2px solid var(--ffos-light-card)" : "none",
-              borderRadius: 0,
-            }}
-          >
-            {link.name}
-          </Button>
-        ))}
-      </Box>
+    <Box className="navbar-links">
+      {navLinks.map((link) => (
+        <Button
+          key={link.name}
+          component={Link}
+          to={link.href}
+          className={
+            location.pathname === link.href
+              ? "navbar-link navbar-link-active"
+              : "navbar-link"
+          }
+        >
+          {link.name}
+        </Button>
+      ))}
+    </Box>
 
-      <Box sx={{ flexGrow: 1 }} />
-
+    <Box className="navbar-right">
       {user?.uloga === "admin" && (
-        <Badge badgeContent={zahtjeviCount} className="zahtjev-badge">
-          <Button component={Link} to="/admin" className="navbar-btn">
-            Admin panel
-          </Button>
-        </Badge>
+        <Button
+          component={Link}
+          to="/admin"
+          className="navbar-chip"
+        >
+          Admin panel
+          {zahtjeviCount > 0 && (
+            <span className="navbar-chip-badge">{zahtjeviCount}</span>
+          )}
+        </Button>
       )}
 
       {user ? (
         <>
-          <IconButton onClick={handleProfileClick} sx={{ ml: 2 }}>
+          <IconButton onClick={handleProfileClick} className="navbar-avatar-btn">
             {avatarSrc ? (
-              <Avatar src={avatarSrc} alt={user.ime} />
+              <Avatar src={avatarSrc} alt={user.ime} className="navbar-avatar" />
             ) : (
-              <Avatar className="navbar-btn">{user.ime?.charAt(0)}</Avatar>
+              <Avatar className="navbar-avatar">
+                {user.ime?.charAt(0)}
+              </Avatar>
             )}
           </IconButton>
-          <Button onClick={handleLogout} startIcon={<LogoutIcon />} className="navbar-btn" sx={{ ml: 1 }}>
+          <Button
+            onClick={handleLogout}
+            startIcon={<LogoutIcon />}
+            className="navbar-logout"
+          >
             Odjava
           </Button>
         </>
       ) : (
-        <Button component={Link} to="/login" className="navbar-btn" sx={{ ml: 2 }}>
+        <Button
+          component={Link}
+          to="/login"
+          className="navbar-logout"
+        >
           Prijava
         </Button>
       )}
     </Box>
+  </Box>
+
   );
 
   const MobileDrawer = (
