@@ -166,7 +166,7 @@ body.dark .form-submit:hover, body.dark .form-submit:focus { background: #fff; c
 .form-error { color: #e11d28; font-size: 0.97rem; margin-top: -0.35rem; margin-bottom: 0.85rem; }
 .form-success { color: #21a531; font-size: 0.98rem; margin-top: 0.35rem; }
 
-/* NAVBAR */
+
 /* NAVBAR */
 .navbar {
   background: var(--ffos-red);
@@ -175,12 +175,6 @@ body.dark .form-submit:hover, body.dark .form-submit:focus { background: #fff; c
   position: fixed;
   width: 100%;
   z-index: 100;
-}
-
-.dark-navbar {
-  background: var(--ffos-dark-bg-secondary);
-  color: var(--ffos-dark-txt);
-  border-bottom: 1px solid #3a3c4d;
 }
 
 .navbar-inner {
@@ -206,23 +200,12 @@ body.dark .form-submit:hover, body.dark .form-submit:focus { background: #fff; c
   background: var(--ffos-light-card);
   color: var(--ffos-red);
   border: 2px solid var(--ffos-red);
-  transition: 0.2s;
+  text-transform: none;
 }
 
 .navbar-btn:hover {
   background: #ffe5e9;
   color: #a11c20;
-}
-
-.dark-navbar .navbar-btn {
-  background: var(--ffos-dark-bg-secondary);
-  color: var(--ffos-dark-txt);
-  border: 2px solid #fff;
-}
-
-.dark-navbar .navbar-btn:hover {
-  background: #444;
-  color: #ffe5e9;
 }
 
 .zahtjev-badge {
@@ -239,6 +222,13 @@ body.dark .form-submit:hover, body.dark .form-submit:focus { background: #fff; c
   text-align: center;
   box-shadow: 0 0 4px 1.5px rgba(40, 40, 40, 0.06);
   pointer-events: none;
+}
+
+/* Mobile drawer */
+.navbar-drawer {
+  width: 250px;
+  background: var(--ffos-red);
+  color: var(--ffos-light-card);
 }
 
 /* UI VARIJABLE */

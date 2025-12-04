@@ -78,7 +78,7 @@ export default function Navbar() {
   ];
 
   const DesktopNav = (
-    <Box sx={{ display: "flex", alignItems: "center", width: "100%" }}>
+    <Box className="navbar-inner" sx={{ width: "100%" }}>
       <Link to="/">
         <img
           src={FFOSLogo}
@@ -93,13 +93,12 @@ export default function Navbar() {
             key={link.name}
             component={Link}
             to={link.href}
+            className="navbar-btn"
             sx={{
-              color: "#fff",
               fontWeight: location.pathname === link.href ? "bold" : "normal",
               borderBottom:
-                location.pathname === link.href ? "2px solid #fff" : "none",
+                location.pathname === link.href ? "2px solid var(--ffos-light-card)" : "none",
               borderRadius: 0,
-              "&:hover": { backgroundColor: "rgba(255,255,255,0.1)" },
             }}
           >
             {link.name}
@@ -110,18 +109,8 @@ export default function Navbar() {
       <Box sx={{ flexGrow: 1 }} />
 
       {user?.uloga === "admin" && (
-        <Badge badgeContent={zahtjeviCount} color="error" sx={{ mr: 2 }}>
-          <Button
-            component={Link}
-            to="/admin"
-            variant="contained"
-            sx={{
-              backgroundColor: "#fff",
-              color: "#b41f24",
-              fontWeight: "bold",
-              "&:hover": { backgroundColor: "#f0f0f0" },
-            }}
-          >
+        <Badge badgeContent={zahtjeviCount} className="zahtjev-badge">
+          <Button component={Link} to="/admin" className="navbar-btn">
             Admin panel
           </Button>
         </Badge>
@@ -133,37 +122,15 @@ export default function Navbar() {
             {avatarSrc ? (
               <Avatar src={avatarSrc} alt={user.ime} />
             ) : (
-              <Avatar sx={{ bgcolor: "#fff", color: "#b41f24" }}>
-                {user.ime?.charAt(0).toUpperCase()}
-              </Avatar>
+              <Avatar className="navbar-btn">{user.ime?.charAt(0)}</Avatar>
             )}
           </IconButton>
-          <Button
-            onClick={handleLogout}
-            startIcon={<LogoutIcon />}
-            sx={{
-              ml: 1,
-              color: "#fff",
-              textTransform: "none",
-              "&:hover": { backgroundColor: "rgba(255,255,255,0.1)" },
-            }}
-          >
+          <Button onClick={handleLogout} startIcon={<LogoutIcon />} className="navbar-btn" sx={{ ml: 1 }}>
             Odjava
           </Button>
         </>
       ) : (
-        <Button
-          component={Link}
-          to="/login"
-          variant="contained"
-          sx={{
-            backgroundColor: "#fff",
-            color: "#b41f24",
-            fontWeight: "bold",
-            ml: 2,
-            "&:hover": { backgroundColor: "#f0f0f0" },
-          }}
-        >
+        <Button component={Link} to="/login" className="navbar-btn" sx={{ ml: 2 }}>
           Prijava
         </Button>
       )}
@@ -172,39 +139,44 @@ export default function Navbar() {
 
   const MobileDrawer = (
     <Drawer anchor="right" open={mobileOpen} onClose={toggleDrawer}>
-      <List sx={{ width: 250, bgcolor: "#b41f24", color: "#fff" }}>
+      <List className="navbar-drawer">
         <ListItem>
-          <ListItemButton onClick={toggleDrawer}>
-            Zatvori
-          </ListItemButton>
+          <ListItemButton onClick={toggleDrawer}>Zatvori</ListItemButton>
         </ListItem>
+
         {navLinks.map((link) => (
           <ListItem key={link.name} disablePadding>
-            <ListItemButton
-              component={Link}
-              to={link.href}
-              onClick={toggleDrawer}
-            >
+            <ListItemButton component={Link} to={link.href} onClick={toggleDrawer}>
               <ListItemText primary={link.name} />
             </ListItemButton>
           </ListItem>
         ))}
-        {user && (
+
+        {user ? (
           <>
-            <Divider sx={{ bgcolor: "#fff" }} />
+            <Divider sx={{ bgcolor: "var(--ffos-light-card)" }} />
             <ListItem disablePadding>
-              <ListItemButton onClick={() => { toggleDrawer(); handleProfileClick(); }}>
+              <ListItemButton
+                onClick={() => {
+                  toggleDrawer();
+                  handleProfileClick();
+                }}
+              >
                 <ListItemText primary="Profil" />
               </ListItemButton>
             </ListItem>
             <ListItem disablePadding>
-              <ListItemButton onClick={() => { toggleDrawer(); handleLogout(); }}>
+              <ListItemButton
+                onClick={() => {
+                  toggleDrawer();
+                  handleLogout();
+                }}
+              >
                 <ListItemText primary="Odjava" />
               </ListItemButton>
             </ListItem>
           </>
-        )}
-        {!user && (
+        ) : (
           <ListItem disablePadding>
             <ListItemButton component={Link} to="/login" onClick={toggleDrawer}>
               <ListItemText primary="Prijava" />
@@ -217,121 +189,16 @@ export default function Navbar() {
 
   return (
     <AppBar position="static" className="navbar">
-  <Toolbar className="navbar-inner">
-    {isMobile ? (
-      <>
-        <IconButton color="inherit" onClick={toggleDrawer}>
-          <MenuIcon />
-        </IconButton>
-        <Drawer anchor="right" open={mobileOpen} onClose={toggleDrawer}>
-          <List className="navbar-drawer">
-            <ListItem>
-              <ListItemButton onClick={toggleDrawer}>Zatvori</ListItemButton>
-            </ListItem>
-            {navLinks.map((link) => (
-              <ListItem key={link.name} disablePadding>
-                <ListItemButton
-                  component={Link}
-                  to={link.href}
-                  onClick={toggleDrawer}
-                >
-                  <ListItemText primary={link.name} />
-                </ListItemButton>
-              </ListItem>
-            ))}
-            {user ? (
-              <>
-                <Divider sx={{ bgcolor: "#fff" }} />
-                <ListItem disablePadding>
-                  <ListItemButton
-                    onClick={() => {
-                      toggleDrawer();
-                      handleProfileClick();
-                    }}
-                  >
-                    <ListItemText primary="Profil" />
-                  </ListItemButton>
-                </ListItem>
-                <ListItem disablePadding>
-                  <ListItemButton
-                    onClick={() => {
-                      toggleDrawer();
-                      handleLogout();
-                    }}
-                  >
-                    <ListItemText primary="Odjava" />
-                  </ListItemButton>
-                </ListItem>
-              </>
-            ) : (
-              <ListItem disablePadding>
-                <ListItemButton
-                  component={Link}
-                  to="/login"
-                  onClick={toggleDrawer}
-                >
-                  <ListItemText primary="Prijava" />
-                </ListItemButton>
-              </ListItem>
-            )}
-          </List>
-        </Drawer>
-      </>
-    ) : (
-      <Box sx={{ display: "flex", alignItems: "center", width: "100%" }}>
-        <Link to="/">
-          <img
-            src={FFOSLogo}
-            alt="FFOS"
-            style={{ height: 48, cursor: "pointer" }}
-          />
-        </Link>
-
-        <Box sx={{ display: "flex", gap: 2, ml: 4 }}>
-          {navLinks.map((link) => (
-            <Button
-              key={link.name}
-              component={Link}
-              to={link.href}
-              className="navbar-btn"
-            >
-              {link.name}
-            </Button>
-          ))}
-        </Box>
-
-        <Box sx={{ flexGrow: 1 }} />
-
-        {user?.uloga === "admin" && (
-          <Badge badgeContent={zahtjeviCount} color="error" className="zahtjev-badge">
-            <Button component={Link} to="/admin" className="navbar-btn">
-              Admin panel
-            </Button>
-          </Badge>
-        )}
-
-        {user ? (
-          <>
-            <IconButton onClick={handleProfileClick} sx={{ ml: 2 }}>
-              {avatarSrc ? (
-                <Avatar src={avatarSrc} alt={user.ime} />
-              ) : (
-                <Avatar className="navbar-btn">{user.ime?.charAt(0)}</Avatar>
-              )}
-            </IconButton>
-            <Button onClick={handleLogout} startIcon={<LogoutIcon />} className="navbar-btn">
-              Odjava
-            </Button>
-          </>
-        ) : (
-          <Button component={Link} to="/login" className="navbar-btn">
-            Prijava
-          </Button>
-        )}
-      </Box>
-    )}
-  </Toolbar>
-</AppBar>
-
+      {isMobile ? (
+        <Toolbar>
+          <IconButton color="inherit" onClick={toggleDrawer}>
+            <MenuIcon />
+          </IconButton>
+          {MobileDrawer}
+        </Toolbar>
+      ) : (
+        <Toolbar>{DesktopNav}</Toolbar>
+      )}
+    </AppBar>
   );
 }
