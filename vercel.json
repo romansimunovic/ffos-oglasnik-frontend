@@ -1,4 +1,3 @@
-cat > vercel.json << 'EOF'
 {
   "buildCommand": "npm run build",
   "devCommand": "npm run dev",
@@ -12,4 +11,3 @@ cat > vercel.json << 'EOF'
     }
   ]
 }
-EOF

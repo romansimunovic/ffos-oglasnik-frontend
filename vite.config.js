@@ -1,8 +1,3 @@
-# Kopiraj gornji kod u vite.config.js
-# ili ako koristi Windows PowerShell:
-
-Remove-Item vite.config.js
-@'
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
@@ -24,4 +19,3 @@ export default defineConfig({
     minify: "terser"
   }
 });
-'@ | Set-Content vite.config.js
