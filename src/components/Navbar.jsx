@@ -216,19 +216,122 @@ export default function Navbar() {
   );
 
   return (
-    <AppBar position="static">
-      <Toolbar>
-        {isMobile ? (
+    <AppBar position="static" className="navbar">
+  <Toolbar className="navbar-inner">
+    {isMobile ? (
+      <>
+        <IconButton color="inherit" onClick={toggleDrawer}>
+          <MenuIcon />
+        </IconButton>
+        <Drawer anchor="right" open={mobileOpen} onClose={toggleDrawer}>
+          <List className="navbar-drawer">
+            <ListItem>
+              <ListItemButton onClick={toggleDrawer}>Zatvori</ListItemButton>
+            </ListItem>
+            {navLinks.map((link) => (
+              <ListItem key={link.name} disablePadding>
+                <ListItemButton
+                  component={Link}
+                  to={link.href}
+                  onClick={toggleDrawer}
+                >
+                  <ListItemText primary={link.name} />
+                </ListItemButton>
+              </ListItem>
+            ))}
+            {user ? (
+              <>
+                <Divider sx={{ bgcolor: "#fff" }} />
+                <ListItem disablePadding>
+                  <ListItemButton
+                    onClick={() => {
+                      toggleDrawer();
+                      handleProfileClick();
+                    }}
+                  >
+                    <ListItemText primary="Profil" />
+                  </ListItemButton>
+                </ListItem>
+                <ListItem disablePadding>
+                  <ListItemButton
+                    onClick={() => {
+                      toggleDrawer();
+                      handleLogout();
+                    }}
+                  >
+                    <ListItemText primary="Odjava" />
+                  </ListItemButton>
+                </ListItem>
+              </>
+            ) : (
+              <ListItem disablePadding>
+                <ListItemButton
+                  component={Link}
+                  to="/login"
+                  onClick={toggleDrawer}
+                >
+                  <ListItemText primary="Prijava" />
+                </ListItemButton>
+              </ListItem>
+            )}
+          </List>
+        </Drawer>
+      </>
+    ) : (
+      <Box sx={{ display: "flex", alignItems: "center", width: "100%" }}>
+        <Link to="/">
+          <img
+            src={FFOSLogo}
+            alt="FFOS"
+            style={{ height: 48, cursor: "pointer" }}
+          />
+        </Link>
+
+        <Box sx={{ display: "flex", gap: 2, ml: 4 }}>
+          {navLinks.map((link) => (
+            <Button
+              key={link.name}
+              component={Link}
+              to={link.href}
+              className="navbar-btn"
+            >
+              {link.name}
+            </Button>
+          ))}
+        </Box>
+
+        <Box sx={{ flexGrow: 1 }} />
+
+        {user?.uloga === "admin" && (
+          <Badge badgeContent={zahtjeviCount} color="error" className="zahtjev-badge">
+            <Button component={Link} to="/admin" className="navbar-btn">
+              Admin panel
+            </Button>
+          </Badge>
+        )}
+
+        {user ? (
           <>
-            <IconButton color="inherit" onClick={toggleDrawer}>
-              <MenuIcon />
+            <IconButton onClick={handleProfileClick} sx={{ ml: 2 }}>
+              {avatarSrc ? (
+                <Avatar src={avatarSrc} alt={user.ime} />
+              ) : (
+                <Avatar className="navbar-btn">{user.ime?.charAt(0)}</Avatar>
+              )}
             </IconButton>
-            {MobileDrawer}
+            <Button onClick={handleLogout} startIcon={<LogoutIcon />} className="navbar-btn">
+              Odjava
+            </Button>
           </>
         ) : (
-          DesktopNav
+          <Button component={Link} to="/login" className="navbar-btn">
+            Prijava
+          </Button>
         )}
-      </Toolbar>
-    </AppBar>
+      </Box>
+    )}
+  </Toolbar>
+</AppBar>
+
   );
 }

@@ -167,15 +167,85 @@ body.dark .form-submit:hover, body.dark .form-submit:focus { background: #fff; c
 .form-success { color: #21a531; font-size: 0.98rem; margin-top: 0.35rem; }
 
 /* NAVBAR */
-.navbar { background: var(--ffos-red); color: var(--ffos-light-card); box-shadow: 0 4px 14px rgba(30,30,30,0.13); position: fixed; width: 100%; z-index: 100; }
-.dark-navbar { background: var(--ffos-dark-bg-secondary); color: var(--ffos-dark-txt); border-bottom: 1px solid #3a3c4d; }
-.navbar-inner { display:flex; justify-content:space-between; align-items:center; max-width:1240px; margin:0 auto; padding:10px 32px; }
-.navbar-logo-group { display:flex; align-items:center; gap:10px; }
-.navbar-btn { font-weight:700; border-radius:8px; padding:8px 20px; font-size:1rem; background: var(--ffos-light-card); color: var(--ffos-red); border: 2px solid var(--ffos-red); }
-.navbar-btn:hover { background:#ffe5e9; color:#a11c20; }
-.dark-navbar .navbar-btn { background: var(--ffos-dark-bg-secondary); color: var(--ffos-dark-txt); border:2px solid #fff; }
-.dark-navbar .navbar-btn:hover { background:#444; color:#ffe5e9; }
-.zahtjev-badge { background:#e11d28; color:#fff; border-radius:20px; font-size:0.85rem; padding:2px 9px; position:absolute; top:-6px; right:-9px; font-weight:700; min-width:22px; text-align:center; box-shadow:0 0 4px 1.5px rgba(40,40,40,0.06); pointer-events:none; }
+/* NAVBAR */
+.navbar {
+  background: var(--ffos-red);
+  color: var(--ffos-light-card);
+  box-shadow: 0 4px 14px rgba(30, 30, 30, 0.13);
+  position: fixed;
+  width: 100%;
+  z-index: 100;
+}
+
+.dark-navbar {
+  background: var(--ffos-dark-bg-secondary);
+  color: var(--ffos-dark-txt);
+  border-bottom: 1px solid #3a3c4d;
+}
+
+.navbar-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 10px 32px;
+}
+
+.navbar-logo-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.navbar-btn {
+  font-weight: 700;
+  border-radius: 8px;
+  padding: 8px 20px;
+  font-size: 1rem;
+  background: var(--ffos-light-card);
+  color: var(--ffos-red);
+  border: 2px solid var(--ffos-red);
+  transition: 0.2s;
+}
+
+.navbar-btn:hover {
+  background: #ffe5e9;
+  color: #a11c20;
+}
+
+.dark-navbar .navbar-btn {
+  background: var(--ffos-dark-bg-secondary);
+  color: var(--ffos-dark-txt);
+  border: 2px solid #fff;
+}
+
+.dark-navbar .navbar-btn:hover {
+  background: #444;
+  color: #ffe5e9;
+}
+
+.zahtjev-badge {
+  background: #e11d28;
+  color: #fff;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  padding: 2px 9px;
+  position: absolute;
+  top: -6px;
+  right: -9px;
+  font-weight: 700;
+  min-width: 22px;
+  text-align: center;
+  box-shadow: 0 0 4px 1.5px rgba(40, 40, 40, 0.06);
+  pointer-events: none;
+}
+
+/* UI VARIJABLE */
+:root {
+  --ffos-red: #971d21;
+  --ffos-light-card: #fff;
+}
 
 /* MODAL & DROPDOWN */
 .modal-overlay { position: fixed; inset:0; display:flex; align-items:center; justify-content:center; background: rgba(30,31,58,0.2); z-index:900; }
