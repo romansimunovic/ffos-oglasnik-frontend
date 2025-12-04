@@ -167,69 +167,177 @@ body.dark .form-submit:hover, body.dark .form-submit:focus { background: #fff; c
 .form-success { color: #21a531; font-size: 0.98rem; margin-top: 0.35rem; }
 
 
-/* NAVBAR */
+/* NAVBAR – usklađen s footerom */
 .navbar {
   background: var(--ffos-red);
-  color: var(--ffos-light-card);
-  box-shadow: 0 4px 14px rgba(30, 30, 30, 0.13);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(30, 30, 30, 0.16);
   position: fixed;
+  top: 0;
+  left: 0;
   width: 100%;
   z-index: 100;
 }
 
 .navbar-inner {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
   max-width: 1240px;
   margin: 0 auto;
-  padding: 10px 32px;
+  padding: 0.6rem 2rem;
 }
 
+/* lijeva strana */
 .navbar-logo-group {
   display: flex;
   align-items: center;
   gap: 10px;
+  cursor: pointer;
 }
 
-.navbar-btn {
-  font-weight: 700;
-  border-radius: 8px;
-  padding: 8px 20px;
-  font-size: 1rem;
-  background: var(--ffos-light-card);
-  color: var(--ffos-red);
-  border: 2px solid var(--ffos-red);
-  text-transform: none;
+.navbar-logo {
+  height: 46px;
 }
 
-.navbar-btn:hover {
-  background: #ffe5e9;
-  color: #a11c20;
+.navbar-title {
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  font-size: 1.02rem;
 }
 
-.zahtjev-badge {
-  background: #e11d28;
-  color: #fff;
-  border-radius: 20px;
-  font-size: 0.85rem;
-  padding: 2px 9px;
+/* sredina – tekst linkovi */
+.navbar-links {
+  display: flex;
+  gap: 1.4rem;
+  margin: 0 2rem;
+}
+
+.navbar-link {
+  background: transparent !important;
+  color: #ffe5e9 !important;
+  text-transform: none !important;
+  font-weight: 600 !important;
+  font-size: 0.98rem !important;
+  padding: 4px 2px !important;
+  border-radius: 0 !important;
+  border: none !important;
+  position: relative;
+}
+
+.navbar-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -4px;
+  width: 0;
+  height: 2px;
+  background: #fff;
+  border-radius: 999px;
+  transition: width 0.2s ease;
+}
+
+.navbar-link:hover::after {
+  width: 100%;
+}
+
+.navbar-link-active {
+  color: #fff !important;
+  font-weight: 700 !important;
+}
+
+.navbar-link-active::after {
+  width: 100%;
+}
+
+/* desna strana */
+.navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+/* admin chip kao pillica */
+.navbar-chip {
+  position: relative;
+  background: #fff !important;
+  color: var(--ffos-red) !important;
+  padding: 4px 12px !important;
+  border-radius: 999px !important;
+  font-size: 0.86rem !important;
+  font-weight: 700 !important;
+  text-transform: none !important;
+}
+
+.navbar-chip-badge {
   position: absolute;
   top: -6px;
-  right: -9px;
+  right: -6px;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: #e11d28;
+  color: #fff;
+  font-size: 0.68rem;
   font-weight: 700;
-  min-width: 22px;
-  text-align: center;
-  box-shadow: 0 0 4px 1.5px rgba(40, 40, 40, 0.06);
-  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-/* Mobile drawer */
-.navbar-drawer {
-  width: 250px;
-  background: var(--ffos-red);
-  color: var(--ffos-light-card);
+/* avatar + logout */
+.navbar-avatar-btn {
+  padding: 0 !important;
 }
+
+.navbar-avatar {
+  width: 36px !important;
+  height: 36px !important;
+  background: #ffe5e9 !important;
+  color: var(--ffos-red) !important;
+  font-weight: 700 !important;
+  border: 2px solid rgba(255, 255, 255, 0.7);
+}
+
+.navbar-logout {
+  background: rgba(0, 0, 0, 0.04) !important;
+  color: #fff !important;
+  border-radius: 999px !important;
+  padding: 6px 16px !important;
+  font-weight: 700 !important;
+  text-transform: none !important;
+  border: 1px solid rgba(255, 255, 255, 0.35) !important;
+}
+
+.navbar-logout:hover {
+  background: rgba(0, 0, 0, 0.18) !important;
+}
+
+/* mobile drawer da prati crvenu temu */
+.navbar-drawer {
+  width: 260px;
+  background: var(--ffos-red);
+  color: #fff;
+}
+
+.navbar-drawer .MuiListItemButton-root {
+  color: #fff;
+}
+
+.navbar-drawer .MuiListItemButton-root:hover {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+/* malo responsiva */
+@media (max-width: 900px) {
+  .navbar-inner {
+    padding: 0.5rem 1rem;
+  }
+  .navbar-links {
+    display: none;
+  }
+}
+
 
 /* UI VARIJABLE */
 :root {
