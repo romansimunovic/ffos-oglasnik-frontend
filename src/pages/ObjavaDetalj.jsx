@@ -76,14 +76,14 @@ export default function ObjavaDetalj() {
   const autorAvatar = autor?.avatar || objava.autorAvatar || null;
 
   const buildAvatarSrc = (avatarPath) => {
-    if (!avatarPath) return "/default-avatar.png";
-    if (avatarPath.startsWith("http://") || avatarPath.startsWith("https://")) {
-      return `${avatarPath}?t=${Date.now()}`;
-    }
-    const base = api.defaults.baseURL || "";
-    const backendOrigin = base.replace(/\/api\/?$/i, "");
-    return `${backendOrigin}${avatarPath}?t=${Date.now()}`;
-  };
+  if (!avatarPath) return "/default-avatar.png"; // ovo će sad raditi
+  if (avatarPath.startsWith("http://") || avatarPath.startsWith("https://"))
+    return `${avatarPath}?t=${Date.now()}`;
+  const base = api.defaults.baseURL || "";
+  const backendOrigin = base.replace(/\/api\/?$/i, "");
+  return `${backendOrigin}${avatarPath}?t=${Date.now()}`;
+};
+
 
   const avatarSrc = buildAvatarSrc(autorAvatar);
 
