@@ -1,6 +1,5 @@
 // src/context/AuthContext.jsx
 import React, { createContext, useContext, useState, useEffect } from "react";
-import api from "../api/axiosInstance";
 
 const AuthContext = createContext();
 
@@ -37,7 +36,6 @@ export function AuthProvider({ children }) {
   const login = (userData, token) => {
     localStorage.setItem("token", token);
     localStorage.setItem("user", JSON.stringify(userData));
-    api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
     setUser(userData);
   };
 
@@ -45,7 +43,6 @@ export function AuthProvider({ children }) {
   const logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
-    delete api.defaults.headers.common["Authorization"];
     setUser(null);
   };
 
@@ -57,7 +54,9 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, updateUser }}>
+    <AuthContext.Provider
+      value={{ user, loading, login, logout, updateUser }}
+    >
       {children}
     </AuthContext.Provider>
   );
