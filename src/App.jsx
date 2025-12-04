@@ -19,6 +19,7 @@ import Kalendar from "./pages/Kalendar"; // ✅ NOVO
 import Kontakt from "./pages/Kontakt";
 import Registracija from "./pages/Registracija";
 import Login from "./pages/Login";
+import Welcome from "./pages/Welcome";
 import Profil from "./pages/Profil";
 import UserProfil from "./pages/UserProfil";
 import AdminPanel from "./pages/AdminPanel";
@@ -55,6 +56,16 @@ export default function App() {
                     </ProtectedRoute>
                   }
                 />
+
+                <Route
+  path="/welcome"
+  element={
+    <ProtectedRoute>
+      <Welcome />
+    </ProtectedRoute>
+  }
+/>
+
 
                 {/* Javni profili */}
                 <Route path="/profil/:id" element={<UserProfil />} />

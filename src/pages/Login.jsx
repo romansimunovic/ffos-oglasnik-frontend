@@ -47,8 +47,9 @@ export default function Login() {
         toast("Prijava uspješna! Preusmjeravanje...", "success");
 
         setTimeout(() => {
-          navigate(user.uloga === "admin" ? "/admin" : "/profil");
-        }, 1000);
+  navigate(user.uloga === "admin" ? "/admin" : "/welcome");
+}, 1000);
+
       } else {
         throw new Error("Nema tokena ili korisnika u odgovoru.");
       }

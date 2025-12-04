@@ -239,7 +239,12 @@ export default function AdminPanel() {
                     </div>
 
                     <h3 style={{ marginBottom: "0.7rem" }}>{o.naslov}</h3>
-                    <p>{o.sadrzaj}</p>
+<p style={{ fontSize: "0.9rem", color: "#555" }}>
+  {o.sadrzaj?.length > 160
+    ? `${o.sadrzaj.slice(0, 160)}...`
+    : o.sadrzaj || "Nema opisa."}
+</p>
+
 
                     <div className="meta-info">
                       <span>

@@ -181,77 +181,83 @@ export default function Home() {
             width: "100%",
           }}
         >
-          {/* KARTICA 1 */}
-          <Card
-            sx={{
-              textAlign: "center",
-              p: 3,
-              background:
-                "linear-gradient(135deg, rgba(180, 31, 36, 0.1), rgba(180, 31, 36, 0.05))",
-              borderTop: "4px solid #b41f24",
-              transition: "transform 0.3s, box-shadow 0.3s",
-              "&:hover": {
-                transform: "translateY(-6px)",
-                boxShadow: "0 12px 24px rgba(180, 31, 36, 0.15)",
-              },
-            }}
-          >
-            <CategoryIcon sx={{ fontSize: 48, color: "#b41f24", mb: 2 }} />
-            <Typography variant="h3" sx={{ fontWeight: 900, color: "#b41f24" }}>
-              {stats.total}
-            </Typography>
-            <Typography variant="body1" color="text.secondary" sx={{ mt: 1 }}>
-              Ukupno objava
-            </Typography>
-          </Card>
+          {/* KARTICA 1 - Ukupno objava */}
+<Card
+  onClick={() => navigate("/objave")}
+  sx={{
+    textAlign: "center",
+    p: 3,
+    background:
+      "linear-gradient(135deg, rgba(180, 31, 36, 0.1), rgba(180, 31, 36, 0.05))",
+    borderTop: "4px solid #b41f24",
+    transition: "transform 0.3s, box-shadow 0.3s",
+    cursor: "pointer",
+    "&:hover": {
+      transform: "translateY(-6px)",
+      boxShadow: "0 12px 24px rgba(180, 31, 36, 0.15)",
+    },
+  }}
+>
+  <CategoryIcon sx={{ fontSize: 48, color: "#b41f24", mb: 2 }} />
+  <Typography variant="h3" sx={{ fontWeight: 900, color: "#b41f24" }}>
+    {stats.total}
+  </Typography>
+  <Typography variant="body1" color="text.secondary" sx={{ mt: 1 }}>
+    Ukupno objava
+  </Typography>
+</Card>
 
-          {/* KARTICA 2 */}
-          <Card
-            sx={{
-              textAlign: "center",
-              p: 3,
-              background:
-                "linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.05))",
-              borderTop: "4px solid #10b981",
-              transition: "transform 0.3s, box-shadow 0.3s",
-              "&:hover": {
-                transform: "translateY(-6px)",
-                boxShadow: "0 12px 24px rgba(16, 185, 129, 0.15)",
-              },
-            }}
-          >
-            <TrendingUpIcon sx={{ fontSize: 48, color: "#10b981", mb: 2 }} />
-            <Typography variant="h3" sx={{ fontWeight: 900, color: "#10b981" }}>
-              {stats.thisWeek}
-            </Typography>
-            <Typography variant="body1" color="text.secondary" sx={{ mt: 1 }}>
-              Novih ovaj tjedan
-            </Typography>
-          </Card>
+{/* KARTICA 2 - Novih ovaj tjedan */}
+<Card
+  onClick={() => navigate("/objave?filter=thisWeek")}
+  sx={{
+    textAlign: "center",
+    p: 3,
+    background:
+      "linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.05))",
+    borderTop: "4px solid #10b981",
+    transition: "transform 0.3s, box-shadow 0.3s",
+    cursor: "pointer",
+    "&:hover": {
+      transform: "translateY(-6px)",
+      boxShadow: "0 12px 24px rgba(16, 185, 129, 0.15)",
+    },
+  }}
+>
+  <TrendingUpIcon sx={{ fontSize: 48, color: "#10b981", mb: 2 }} />
+  <Typography variant="h3" sx={{ fontWeight: 900, color: "#10b981" }}>
+    {stats.thisWeek}
+  </Typography>
+  <Typography variant="body1" color="text.secondary" sx={{ mt: 1 }}>
+    Novih ovaj tjedan
+  </Typography>
+</Card>
 
-          {/* KARTICA 3 */}
-          <Card
-            sx={{
-              textAlign: "center",
-              p: 3,
-              background:
-                "linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(59, 130, 246, 0.05))",
-              borderTop: "4px solid #3b82f6",
-              transition: "transform 0.3s, box-shadow 0.3s",
-              "&:hover": {
-                transform: "translateY(-6px)",
-                boxShadow: "0 12px 24px rgba(59, 130, 246, 0.15)",
-              },
-            }}
-          >
-            <PeopleIcon sx={{ fontSize: 48, color: "#3b82f6", mb: 2 }} />
-            <Typography variant="h3" sx={{ fontWeight: 900, color: "#3b82f6" }}>
-              {Object.keys(stats.categories).length}
-            </Typography>
-            <Typography variant="body1" color="text.secondary" sx={{ mt: 1 }}>
-              Kategorija
-            </Typography>
-          </Card>
+{/* KARTICA 3 - Kategorija */}
+<Card
+  onClick={() => navigate("/objave?view=byCategory")}
+  sx={{
+    textAlign: "center",
+    p: 3,
+    background:
+      "linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(59, 130, 246, 0.05))",
+    borderTop: "4px solid #3b82f6",
+    transition: "transform 0.3s, box-shadow 0.3s",
+    cursor: "pointer",
+    "&:hover": {
+      transform: "translateY(-6px)",
+      boxShadow: "0 12px 24px rgba(59, 130, 246, 0.15)",
+    },
+  }}
+>
+  <PeopleIcon sx={{ fontSize: 48, color: "#3b82f6", mb: 2 }} />
+  <Typography variant="h3" sx={{ fontWeight: 900, color: "#3b82f6" }}>
+    {Object.keys(stats.categories).length}
+  </Typography>
+  <Typography variant="body1" color="text.secondary" sx={{ mt: 1 }}>
+    Kategorija
+  </Typography>
+</Card>
         </Box>
       </Box>
 

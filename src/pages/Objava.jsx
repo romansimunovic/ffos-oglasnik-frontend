@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom"; [web:123][web:131]
 import {
   Select,
   MenuItem,
@@ -43,6 +43,7 @@ export default function Objava() {
   const [novaOdsjek, setNovaOdsjek] = useState("");
 
   const navigate = useNavigate();
+  const location = useLocation();
   const toast = useToast();
   const user = JSON.parse(localStorage.getItem("user") || "null");
 
@@ -88,6 +89,24 @@ export default function Objava() {
     const backendOrigin = base.replace(/\/api\/?$/i, "");
     return `${backendOrigin}${avatarPath}?t=${Date.now()}`;
   };
+
+  // Inicijalni filteri prema query parametrima (npr. s Home statistike)
+useEffect(() => {
+  const params = new URLSearchParams(location.search);
+  const filter = params.get("filter");
+  const view = params.get("view");
+
+  // Novih ovaj tjedan
+  if (filter === "thisWeek") {
+    setPeriodFilter("week");
+  }
+
+  // Primjer: pogled po kategorijama – ovdje za KISS samo sortaj po najnovijim,
+  // a ako želiš kasnije možeš dodati poseban layout.
+  if (view === "byCategory") {
+    setSortBy("newest");
+  }
+}, [location.search]);
 
   const fetchObjave = async (page = 1, append = false) => {
     if (!append) setLoading(true);
@@ -719,15 +738,18 @@ export default function Objava() {
                         </div>
                       </div>
 
-                      {/* SADRŽAJ */}
-                      <p
-                        className="card-desc"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <Linkify options={linkifyOptions}>
-                          {obj.sadrzaj || "Nema opisa."}
-                        </Linkify>
-                      </p>
+                      {/* SADRŽAJ – SKRAĆEN */}
+<p
+  className="card-desc"
+  onClick={(e) => e.stopPropagation()}
+>
+  <Linkify options={linkifyOptions}>
+    {(obj.sadrzaj || "Nema opisa.").length > 180
+      ? `${(obj.sadrzaj || "Nema opisa.").slice(0, 180)}...`
+      : obj.sadrzaj || "Nema opisa."}
+  </Linkify>
+</p>
+
 
                       {/* META INFO - POJEDNOSTAVLJENO */}
                       <div
