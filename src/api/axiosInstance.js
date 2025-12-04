@@ -1,7 +1,13 @@
 import axios from "axios";
 
+// 🔍 Koristi environment varijablu sa fallback-om
+const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+
+console.log("📡 API URL:", apiUrl);
+
 const api = axios.create({
-  baseURL: "http://localhost:5000/api", // Prilagodi ako trebas
+  baseURL: apiUrl,
+  withCredentials: true // VAŽNO za cookies i CORS
 });
 
 // ✅ INTERCEPTOR - Dodaj token u SVE zahtjeve
@@ -30,6 +36,11 @@ api.interceptors.response.use(
       localStorage.removeItem("token");
       localStorage.removeItem("user");
       window.location.href = "/login";
+    } else if (error.response?.status === 403) {
+      console.error("❌ 403 - Nemaš dozvolu za ovaj zahtjev!");
+    } else if (error.message === "Network Error") {
+      console.error("❌ Network Error - Backend nije dostupan!");
+      console.error("API URL:", apiUrl);
     }
     return Promise.reject(error);
   }
