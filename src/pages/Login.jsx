@@ -1,16 +1,15 @@
-// src/pages/Login.jsx
 import { useState } from "react";
-import api from "../api/axiosInstance";
 import { useNavigate, Link } from "react-router-dom";
+import api from "../api/axiosInstance";
 import { useToast } from "../components/Toast";
-import { useAuth } from "../context/AuthContext"; // ✅ NOVO
+import { useAuth } from "../context/AuthContext";
 
 const DOMAIN = "@ffos.hr";
 
 export default function Login() {
   const navigate = useNavigate();
   const toast = useToast();
-  const { login } = useAuth(); // ✅ NOVO - koristi context login
+  const { login } = useAuth();
   const [form, setForm] = useState({ email: "", lozinka: "" });
   const [loading, setLoading] = useState(false);
 
@@ -25,7 +24,6 @@ export default function Login() {
       return toast("Popuni sva polja.", "error");
     }
 
-    // Email validacija
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(form.email)) {
       return toast("Unesite valjanu email adresu.", "error");
@@ -45,12 +43,9 @@ export default function Login() {
       const { token, user } = res.data;
 
       if (token && user) {
-        // ✅ Koristi context login umjesto manualnog spremanja
         login(user, token);
-
         toast("Prijava uspješna! Preusmjeravanje...", "success");
 
-        // Navigiraj na odgovarajuću stranicu
         setTimeout(() => {
           navigate(user.uloga === "admin" ? "/admin" : "/profil");
         }, 1000);
@@ -58,8 +53,20 @@ export default function Login() {
         throw new Error("Nema tokena ili korisnika u odgovoru.");
       }
     } catch (err) {
+      const status = err.response?.status;
+      const message =
+        err.response?.data?.message || "Greška pri prijavi.";
+
+      if (status === 403) {
+        // korisnik nije verificiran
+        toast(message, "error");
+        // ovdje bi ga mogao i preusmjeriti na registraciju/verify ako želiš
+        // navigate("/registracija", { state: { email: form.email, fromLogin: true } });
+      } else {
+        toast(message, "error");
+      }
+
       console.error("Login error:", err);
-      toast(err.response?.data?.message || "Greška pri prijavi.", "error");
     } finally {
       setLoading(false);
     }
@@ -67,7 +74,10 @@ export default function Login() {
 
   return (
     <section className="page-bg">
-      <div className="flex items-center justify-center" style={{ minHeight: "70vh" }}>
+      <div
+        className="flex items-center justify-center"
+        style={{ minHeight: "70vh" }}
+      >
         <form
           onSubmit={handleSubmit}
           className="card"
