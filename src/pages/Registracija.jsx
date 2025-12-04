@@ -68,31 +68,34 @@ export default function Registracija() {
     }
 
     setLoading(true);
-    try {
-      const res = await api.post("/auth/register", {
-        ime: `${form.ime} ${form.prezime}`.trim(),
-        email: form.email,
-        lozinka: form.lozinka,
-        uloga: "user",
-      });
+try {
+  const res = await api.post("/auth/register", {
+    ime: `${form.ime} ${form.prezime}`.trim(),
+    email: form.email,
+    lozinka: form.lozinka,
+    uloga: "user",
+  });
 
-      toast(
-        res.data?.message ||
-          "Korisnik kreiran. Provjerite e-mail i unesite verifikacijski kod.",
-        "success"
-      );
+  toast(
+    res.data?.message ||
+      "Korisnik kreiran. Provjerite e-mail i unesite verifikacijski kod.",
+    "success"
+  );
 
-      // spremi email za verifikacijski korak
-      setPendingEmail(form.email);
-      setStep("verify");
+  const devCode = res.data?.devCode;
+  if (devCode) {
+    console.log("DEV CODE:", devCode);
+    setCode(devCode); // automatski upiši kod u input
+  }
 
-      // ako na backendu privremeno vraćaš devCode, možeš ga ovdje pokazati:
-      // console.log("DEV CODE:", res.data?.devCode);
-    } catch (err) {
-      toast(err.response?.data?.message || "Greška pri registraciji.", "error");
-    } finally {
-      setLoading(false);
-    }
+  setPendingEmail(form.email);
+  setStep("verify");
+} catch (err) {
+  toast(err.response?.data?.message || "Greška pri registraciji.", "error");
+} finally {
+  setLoading(false);
+}
+
   };
 
   const handleVerify = async (e) => {
