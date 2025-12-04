@@ -5,7 +5,6 @@ import {
   Toolbar,
   Button,
   IconButton,
-  Badge,
   Avatar,
   Box,
   useMediaQuery,
@@ -37,7 +36,9 @@ export default function Navbar() {
 
   // Broj zahtjeva za admina
   useEffect(() => {
-    if (user?.uloga === "admin") fetchZahtjeviCount();
+    if (user?.uloga === "admin") {
+      fetchZahtjeviCount();
+    }
   }, [user, location.pathname]);
 
   const fetchZahtjeviCount = async () => {
@@ -59,7 +60,7 @@ export default function Navbar() {
     navigate(user ? "/profil" : "/login");
   };
 
-  const toggleDrawer = () => setMobileOpen(!mobileOpen);
+  const toggleDrawer = () => setMobileOpen((prev) => !prev);
 
   const buildAvatarSrc = (avatarPath) => {
     if (!avatarPath) return null;
@@ -78,74 +79,84 @@ export default function Navbar() {
   ];
 
   const DesktopNav = (
-  <Box className="navbar-inner">
-    <Box className="navbar-logo-group" onClick={() => navigate("/")}>
-      <img src={FFOSLogo} alt="FFOS" className="navbar-logo" />
-      <span className="navbar-title">FFOS Oglasnik</span>
-    </Box>
+    <Box className="navbar-inner">
+      {/* Lijevo: logo + linkovi */}
+      <Box className="navbar-left">
+        <Box className="navbar-logo-group" onClick={() => navigate("/")}>
+          <img src={FFOSLogo} alt="FFOS" className="navbar-logo" />
+          <span className="navbar-title">FFOS Oglasnik</span>
+        </Box>
 
-    <Box className="navbar-links">
-      {navLinks.map((link) => (
-        <Button
-          key={link.name}
-          component={Link}
-          to={link.href}
-          className={
-            location.pathname === link.href
-              ? "navbar-link navbar-link-active"
-              : "navbar-link"
-          }
-        >
-          {link.name}
-        </Button>
-      ))}
-    </Box>
+        <Box className="navbar-links">
+          {navLinks.map((link) => (
+            <Button
+              key={link.name}
+              component={Link}
+              to={link.href}
+              className={
+                location.pathname === link.href
+                  ? "navbar-link navbar-link-active"
+                  : "navbar-link"
+              }
+            >
+              {link.name}
+            </Button>
+          ))}
+        </Box>
+      </Box>
 
-    <Box className="navbar-right">
-      {user?.uloga === "admin" && (
-        <Button
-          component={Link}
-          to="/admin"
-          className="navbar-chip"
-        >
-          Admin panel
-          {zahtjeviCount > 0 && (
-            <span className="navbar-chip-badge">{zahtjeviCount}</span>
-          )}
-        </Button>
-      )}
-
-      {user ? (
-        <>
-          <IconButton onClick={handleProfileClick} className="navbar-avatar-btn">
-            {avatarSrc ? (
-              <Avatar src={avatarSrc} alt={user.ime} className="navbar-avatar" />
-            ) : (
-              <Avatar className="navbar-avatar">
-                {user.ime?.charAt(0)}
-              </Avatar>
-            )}
-          </IconButton>
+      {/* Desno: admin chip + profil + odjava */}
+      <Box className="navbar-right">
+        {user?.uloga === "admin" && (
           <Button
-            onClick={handleLogout}
-            startIcon={<LogoutIcon />}
+            component={Link}
+            to="/admin"
+            className="navbar-chip"
+          >
+            Admin panel
+            {zahtjeviCount > 0 && (
+              <span className="navbar-chip-badge">{zahtjeviCount}</span>
+            )}
+          </Button>
+        )}
+
+        {user ? (
+          <>
+            <IconButton
+              onClick={handleProfileClick}
+              className="navbar-avatar-btn"
+            >
+              {avatarSrc ? (
+                <Avatar
+                  src={avatarSrc}
+                  alt={user.ime}
+                  className="navbar-avatar"
+                />
+              ) : (
+                <Avatar className="navbar-avatar">
+                  {user.ime?.charAt(0)}
+                </Avatar>
+              )}
+            </IconButton>
+            <Button
+              onClick={handleLogout}
+              startIcon={<LogoutIcon />}
+              className="navbar-logout"
+            >
+              Odjava
+            </Button>
+          </>
+        ) : (
+          <Button
+            component={Link}
+            to="/login"
             className="navbar-logout"
           >
-            Odjava
+            Prijava
           </Button>
-        </>
-      ) : (
-        <Button
-          component={Link}
-          to="/login"
-          className="navbar-logout"
-        >
-          Prijava
-        </Button>
-      )}
+        )}
+      </Box>
     </Box>
-  </Box>
-
   );
 
   const MobileDrawer = (
@@ -157,7 +168,11 @@ export default function Navbar() {
 
         {navLinks.map((link) => (
           <ListItem key={link.name} disablePadding>
-            <ListItemButton component={Link} to={link.href} onClick={toggleDrawer}>
+            <ListItemButton
+              component={Link}
+              to={link.href}
+              onClick={toggleDrawer}
+            >
               <ListItemText primary={link.name} />
             </ListItemButton>
           </ListItem>
@@ -189,7 +204,11 @@ export default function Navbar() {
           </>
         ) : (
           <ListItem disablePadding>
-            <ListItemButton component={Link} to="/login" onClick={toggleDrawer}>
+            <ListItemButton
+              component={Link}
+              to="/login"
+              onClick={toggleDrawer}
+            >
               <ListItemText primary="Prijava" />
             </ListItemButton>
           </ListItem>
@@ -199,7 +218,7 @@ export default function Navbar() {
   );
 
   return (
-    <AppBar position="static" className="navbar">
+    <AppBar position="fixed" className="navbar" elevation={0}>
       {isMobile ? (
         <Toolbar>
           <IconButton color="inherit" onClick={toggleDrawer}>
@@ -208,7 +227,7 @@ export default function Navbar() {
           {MobileDrawer}
         </Toolbar>
       ) : (
-        <Toolbar>{DesktopNav}</Toolbar>
+        <Toolbar disableGutters>{DesktopNav}</Toolbar>
       )}
     </AppBar>
   );

@@ -171,24 +171,37 @@ body.dark .form-submit:hover, body.dark .form-submit:focus { background: #fff; c
 .navbar {
   background: var(--ffos-red);
   color: #fff;
-  box-shadow: 0 4px 14px rgba(30, 30, 30, 0.16);
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   z-index: 100;
+  box-shadow: 0 4px 14px rgba(30, 30, 30, 0.16);
 }
 
 .navbar-inner {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0.55rem 2rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  max-width: 1240px;
-  margin: 0 auto;
-  padding: 0.6rem 2rem;
 }
 
-/* lijeva strana */
+/* layout lijevo-desno */
+.navbar-left {
+  display: flex;
+  align-items: center;
+  gap: 2.2rem;
+}
+
+.navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+/* logo + naslov */
 .navbar-logo-group {
   display: flex;
   align-items: center;
@@ -204,13 +217,13 @@ body.dark .form-submit:hover, body.dark .form-submit:focus { background: #fff; c
   font-weight: 800;
   letter-spacing: 0.04em;
   font-size: 1.02rem;
+  color: #fff;
 }
 
-/* sredina – tekst linkovi */
+/* linkovi – više ulijevo */
 .navbar-links {
   display: flex;
   gap: 1.4rem;
-  margin: 0 2rem;
 }
 
 .navbar-link {
@@ -219,7 +232,7 @@ body.dark .form-submit:hover, body.dark .form-submit:focus { background: #fff; c
   text-transform: none !important;
   font-weight: 600 !important;
   font-size: 0.98rem !important;
-  padding: 4px 2px !important;
+  padding: 4px 0 !important;
   border-radius: 0 !important;
   border: none !important;
   position: relative;
@@ -250,14 +263,7 @@ body.dark .form-submit:hover, body.dark .form-submit:focus { background: #fff; c
   width: 100%;
 }
 
-/* desna strana */
-.navbar-right {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-}
-
-/* admin chip kao pillica */
+/* admin chip i badge */
 .navbar-chip {
   position: relative;
   background: #fff !important;
@@ -285,7 +291,7 @@ body.dark .form-submit:hover, body.dark .form-submit:focus { background: #fff; c
   justify-content: center;
 }
 
-/* avatar + logout */
+/* profil + odjava skroz desno */
 .navbar-avatar-btn {
   padding: 0 !important;
 }
@@ -300,10 +306,10 @@ body.dark .form-submit:hover, body.dark .form-submit:focus { background: #fff; c
 }
 
 .navbar-logout {
-  background: rgba(0, 0, 0, 0.04) !important;
+  background: rgba(0, 0, 0, 0.06) !important;
   color: #fff !important;
   border-radius: 999px !important;
-  padding: 6px 16px !important;
+  padding: 6px 18px !important;
   font-weight: 700 !important;
   text-transform: none !important;
   border: 1px solid rgba(255, 255, 255, 0.35) !important;
@@ -313,22 +319,13 @@ body.dark .form-submit:hover, body.dark .form-submit:focus { background: #fff; c
   background: rgba(0, 0, 0, 0.18) !important;
 }
 
-/* mobile drawer da prati crvenu temu */
+/* mobile ostaje drawer, samo boja */
 .navbar-drawer {
   width: 260px;
   background: var(--ffos-red);
   color: #fff;
 }
 
-.navbar-drawer .MuiListItemButton-root {
-  color: #fff;
-}
-
-.navbar-drawer .MuiListItemButton-root:hover {
-  background: rgba(0, 0, 0, 0.08);
-}
-
-/* malo responsiva */
 @media (max-width: 900px) {
   .navbar-inner {
     padding: 0.5rem 1rem;
@@ -337,6 +334,7 @@ body.dark .form-submit:hover, body.dark .form-submit:focus { background: #fff; c
     display: none;
   }
 }
+
 
 
 /* UI VARIJABLE */
