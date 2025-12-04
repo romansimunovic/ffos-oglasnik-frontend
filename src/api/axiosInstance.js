@@ -7,7 +7,7 @@ const api = axios.create({
   baseURL: apiUrl,
 });
 
-// Request interceptor – svaki put uzmi token iz localStorage
+// svaki request uzme token iz localStorage
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
@@ -19,14 +19,13 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response interceptor – jednostavno rukovanje 401
+// response interceptor – NE briše token automatski
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
-      window.location.href = "/login";
+      console.warn("⚠️ 401 odgovor backend-a:", error.response.data);
+      // ovdje samo log, bez automatskog logouta
     }
     return Promise.reject(error);
   }

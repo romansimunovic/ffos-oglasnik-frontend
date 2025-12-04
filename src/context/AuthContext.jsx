@@ -15,7 +15,6 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Pri mountanju - učitaj usera iz localStorage
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     const storedToken = localStorage.getItem("token");
@@ -32,21 +31,18 @@ export function AuthProvider({ children }) {
     setLoading(false);
   }, []);
 
-  // Login - postavi usera i token
   const login = (userData, token) => {
     localStorage.setItem("token", token);
     localStorage.setItem("user", JSON.stringify(userData));
     setUser(userData);
   };
 
-  // Logout - očisti usera i token
   const logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     setUser(null);
   };
 
-  // Update usera (npr. nakon promjene avatara)
   const updateUser = (updatedData) => {
     const newUser = { ...user, ...updatedData };
     localStorage.setItem("user", JSON.stringify(newUser));
