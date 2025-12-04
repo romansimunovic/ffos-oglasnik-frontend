@@ -6,8 +6,6 @@ import {
   Button,
   IconButton,
   Badge,
-  Menu,
-  MenuItem,
   Avatar,
   Box,
   useMediaQuery,
@@ -17,20 +15,16 @@ import {
   ListItem,
   ListItemButton,
   ListItemText,
-  Divider,
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
-import CloseIcon from "@mui/icons-material/Close";
-import PersonIcon from "@mui/icons-material/Person";
 import LogoutIcon from "@mui/icons-material/Logout";
 import FFOSLogo from "../assets/FFOS-logo.png";
 import api from "../api/axiosInstance";
 import { useToast } from "./Toast";
-import { useAuth } from "../context/AuthContext"; // ✅ NOVO
+import { useAuth } from "../context/AuthContext";
 
 export default function Navbar() {
-  const { user, logout: authLogout } = useAuth(); // ✅ KORISTI CONTEXT
-  const [anchorEl, setAnchorEl] = useState(null);
+  const { user, logout: authLogout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [zahtjeviCount, setZahtjeviCount] = useState(0);
 
@@ -40,61 +34,40 @@ export default function Navbar() {
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const toast = useToast();
 
-  // Dohvati broj objava na čekanju za admina
+  // Broj zahtjeva za admina
   useEffect(() => {
-    if (user?.uloga === "admin") {
-      fetchZahtjeviCount();
-    }
+    if (user?.uloga === "admin") fetchZahtjeviCount();
   }, [user, location.pathname]);
 
   const fetchZahtjeviCount = async () => {
     try {
       const { data } = await api.get("/objave/admin/sve");
-      const pending = data.filter((o) => o.status === "na čekanju");
-      setZahtjeviCount(pending.length);
+      setZahtjeviCount(data.filter((o) => o.status === "na čekanju").length);
     } catch (err) {
-      console.error("fetch zahtjevi count:", err);
+      console.error(err);
     }
   };
 
   const handleLogout = () => {
-    authLogout(); // ✅ KORISTI CONTEXT LOGOUT
-    handleMenuClose();
+    authLogout();
     toast("Uspješno ste odjavljeni.", "success");
     navigate("/");
   };
 
   const handleProfileClick = () => {
-    if (user) {
-      navigate("/profil");
-    } else {
-      navigate("/login");
-    }
-    handleMenuClose();
+    navigate(user ? "/profil" : "/login");
   };
 
-  const handleMenuOpen = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-  };
-
-  const handleDrawerToggle = () => {
-    setMobileOpen(!mobileOpen);
-  };
+  const toggleDrawer = () => setMobileOpen(!mobileOpen);
 
   const buildAvatarSrc = (avatarPath) => {
     if (!avatarPath) return null;
-    if (avatarPath.startsWith("http://") || avatarPath.startsWith("https://"))
-      return `${avatarPath}?t=${Date.now()}`;
-    const base = api.defaults.baseURL || "";
-    const backendOrigin = base.replace(/\/api\/?$/i, "");
-    return `${backendOrigin}${avatarPath}?t=${Date.now()}`;
+    if (avatarPath.startsWith("http")) return `${avatarPath}?t=${Date.now()}`;
+    const base = api.defaults.baseURL?.replace(/\/api\/?$/i, "") || "";
+    return `${base}${avatarPath}?t=${Date.now()}`;
   };
 
-  const avatarSrc = user?.avatar ? buildAvatarSrc(user.avatar) : null;
+  const avatarSrc = buildAvatarSrc(user?.avatar);
 
   const navLinks = [
     { name: "Početna", href: "/" },
@@ -104,19 +77,12 @@ export default function Navbar() {
   ];
 
   const DesktopNav = (
-    <>
-      <Link to="/" style={{ display: "flex", alignItems: "center" }}>
+    <Box sx={{ display: "flex", alignItems: "center", width: "100%" }}>
+      <Link to="/">
         <img
           src={FFOSLogo}
-          alt="FFOS logo"
-          style={{
-            height: "48px",
-            width: "auto",
-            cursor: "pointer",
-            transition: "opacity 0.2s",
-          }}
-          onMouseEnter={(e) => (e.target.style.opacity = "0.8")}
-          onMouseLeave={(e) => (e.target.style.opacity = "1")}
+          alt="FFOS"
+          style={{ height: 48, cursor: "pointer" }}
         />
       </Link>
 
@@ -132,9 +98,7 @@ export default function Navbar() {
               borderBottom:
                 location.pathname === link.href ? "2px solid #fff" : "none",
               borderRadius: 0,
-              "&:hover": {
-                backgroundColor: "rgba(255,255,255,0.1)",
-              },
+              "&:hover": { backgroundColor: "rgba(255,255,255,0.1)" },
             }}
           >
             {link.name}
@@ -154,9 +118,7 @@ export default function Navbar() {
               backgroundColor: "#fff",
               color: "#b41f24",
               fontWeight: "bold",
-              "&:hover": {
-                backgroundColor: "#f0f0f0",
-              },
+              "&:hover": { backgroundColor: "#f0f0f0" },
             }}
           >
             Admin panel
@@ -166,7 +128,7 @@ export default function Navbar() {
 
       {user ? (
         <>
-          <IconButton onClick={handleMenuOpen} sx={{ ml: 2 }}>
+          <IconButton onClick={handleProfileClick} sx={{ ml: 2 }}>
             {avatarSrc ? (
               <Avatar src={avatarSrc} alt={user.ime} />
             ) : (
@@ -175,21 +137,18 @@ export default function Navbar() {
               </Avatar>
             )}
           </IconButton>
-          <Menu
-            anchorEl={anchorEl}
-            open={Boolean(anchorEl)}
-            onClose={handleMenuClose}
-            anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-            transformOrigin={{ vertical: "top", horizontal: "right" }}
+          <Button
+            onClick={handleLogout}
+            startIcon={<LogoutIcon />}
+            sx={{
+              ml: 1,
+              color: "#fff",
+              textTransform: "none",
+              "&:hover": { backgroundColor: "rgba(255,255,255,0.1)" },
+            }}
           >
-            <MenuItem onClick={handleProfileClick}>
-              <PersonIcon sx={{ mr: 1 }} /> Moj profil
-            </MenuItem>
-            <Divider />
-            <MenuItem onClick={handleLogout}>
-              <LogoutIcon sx={{ mr: 1 }} /> Odjava
-            </MenuItem>
-          </Menu>
+            Odjava
+          </Button>
         </>
       ) : (
         <Button
@@ -201,96 +160,52 @@ export default function Navbar() {
             color: "#b41f24",
             fontWeight: "bold",
             ml: 2,
-            "&:hover": {
-              backgroundColor: "#f0f0f0",
-            },
+            "&:hover": { backgroundColor: "#f0f0f0" },
           }}
         >
           Prijava
         </Button>
       )}
-    </>
+    </Box>
   );
 
   const MobileDrawer = (
-    <Drawer
-      anchor="right"
-      open={mobileOpen}
-      onClose={handleDrawerToggle}
-      sx={{
-        "& .MuiDrawer-paper": {
-          width: 250,
-          backgroundColor: "#b41f24",
-          color: "#fff",
-        },
-      }}
-    >
-      <Box sx={{ p: 2, display: "flex", justifyContent: "flex-end" }}>
-        <IconButton onClick={handleDrawerToggle} sx={{ color: "#fff" }}>
-          <CloseIcon />
-        </IconButton>
-      </Box>
-
-      <List>
+    <Drawer anchor="right" open={mobileOpen} onClose={toggleDrawer}>
+      <List sx={{ width: 250, bgcolor: "#b41f24", color: "#fff" }}>
+        <ListItem>
+          <ListItemButton onClick={toggleDrawer}>
+            Zatvori
+          </ListItemButton>
+        </ListItem>
         {navLinks.map((link) => (
           <ListItem key={link.name} disablePadding>
             <ListItemButton
               component={Link}
               to={link.href}
-              onClick={handleDrawerToggle}
-              sx={{
-                color: "#fff",
-                backgroundColor:
-                  location.pathname === link.href
-                    ? "rgba(255,255,255,0.1)"
-                    : "transparent",
-              }}
+              onClick={toggleDrawer}
             >
               <ListItemText primary={link.name} />
             </ListItemButton>
           </ListItem>
         ))}
-
-        <Divider sx={{ my: 2, borderColor: "rgba(255,255,255,0.2)" }} />
-
-        {user?.uloga === "admin" && (
-          <ListItem disablePadding>
-            <ListItemButton
-              component={Link}
-              to="/admin"
-              onClick={handleDrawerToggle}
-              sx={{ color: "#fff" }}
-            >
-              <Badge badgeContent={zahtjeviCount} color="error" sx={{ mr: 2 }}>
-                <ListItemText primary="Admin panel" />
-              </Badge>
-            </ListItemButton>
-          </ListItem>
-        )}
-
-        {user ? (
+        {user && (
           <>
+            <Divider sx={{ bgcolor: "#fff" }} />
             <ListItem disablePadding>
-              <ListItemButton onClick={handleProfileClick} sx={{ color: "#fff" }}>
-                <PersonIcon sx={{ mr: 1 }} />
-                <ListItemText primary="Moj profil" />
+              <ListItemButton onClick={() => { toggleDrawer(); handleProfileClick(); }}>
+                <ListItemText primary="Profil" />
               </ListItemButton>
             </ListItem>
             <ListItem disablePadding>
-              <ListItemButton onClick={handleLogout} sx={{ color: "#fff" }}>
-                <LogoutIcon sx={{ mr: 1 }} />
+              <ListItemButton onClick={() => { toggleDrawer(); handleLogout(); }}>
                 <ListItemText primary="Odjava" />
               </ListItemButton>
             </ListItem>
           </>
-        ) : (
+        )}
+        {!user && (
           <ListItem disablePadding>
-            <ListItemButton
-              component={Link}
-              to="/login"
-              onClick={handleDrawerToggle}
-              sx={{ color: "#fff" }}
-            >
+            <ListItemButton component={Link} to="/login" onClick={toggleDrawer}>
               <ListItemText primary="Prijava" />
             </ListItemButton>
           </ListItem>
@@ -300,44 +215,19 @@ export default function Navbar() {
   );
 
   return (
-    <>
-      <AppBar
-        position="fixed"
-        sx={{
-          backgroundColor: "#b41f24",
-          boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-        }}
-      >
-        <Toolbar sx={{ justifyContent: "space-between", px: { xs: 2, md: 4 } }}>
-          {isMobile ? (
-            <>
-              <Link to="/">
-                <img
-                  src={FFOSLogo}
-                  alt="FFOS logo"
-                  style={{ height: "40px", width: "auto" }}
-                />
-              </Link>
-
-              <Box sx={{ flexGrow: 1 }} />
-
-              <IconButton
-                onClick={handleDrawerToggle}
-                sx={{ color: "#fff" }}
-                aria-label="Otvori meni"
-              >
-                <MenuIcon />
-              </IconButton>
-            </>
-          ) : (
-            DesktopNav
-          )}
-        </Toolbar>
-      </AppBar>
-
-      <Toolbar />
-
-      {isMobile && MobileDrawer}
-    </>
+    <AppBar position="static">
+      <Toolbar>
+        {isMobile ? (
+          <>
+            <IconButton color="inherit" onClick={toggleDrawer}>
+              <MenuIcon />
+            </IconButton>
+            {MobileDrawer}
+          </>
+        ) : (
+          DesktopNav
+        )}
+      </Toolbar>
+    </AppBar>
   );
 }
