@@ -164,6 +164,22 @@ body.dark a:hover {
   box-shadow: 0 4px 12px rgba(40, 40, 40, 0.08);
 }
 
+/* ---- STATIC CARD (bez hover efekta) ---- */
+.card-static {
+  cursor: default; /* nema ručice */
+}
+
+.card-static::before {
+  display: none;   /* nema onog “svjetlucanja” */
+}
+
+.card-static:hover,
+.card-static:active {
+  transform: none;                             /* ne pomiče se */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);  /* miran shadow kao normalna card */
+  border-color: rgba(0, 0, 0, 0.04);           /* osnovni border */
+}
+
 body.dark .card {
   background: var(--ffos-dark-bg-secondary);
   color: var(--ffos-dark-txt);
