@@ -57,16 +57,14 @@ export default function Profil() {
     };
   }, [user]);
 
-const buildAvatarSrc = (avatarPath) => {
-  if (!avatarPath) return "/default-avatar.png";
-  if (avatarPath.startsWith("http://") || avatarPath.startsWith("https://"))
-    return `${avatarPath}?t=${Date.now()}`;
-  const base = api.defaults.baseURL || "";
-  const backendOrigin = base.replace(/\/api\/?$/i, "");
-  return `${backendOrigin}${avatarPath}?t=${Date.now()}`;
-};
-
-
+  const buildAvatarSrc = (avatarPath) => {
+    if (!avatarPath) return "/default-avatar.png";
+    if (avatarPath.startsWith("http://") || avatarPath.startsWith("https://"))
+      return `${avatarPath}?t=${Date.now()}`;
+    const base = api.defaults.baseURL || "";
+    const backendOrigin = base.replace(/\/api\/?$/i, "");
+    return `${backendOrigin}${avatarPath}?t=${Date.now()}`;
+  };
 
   const handleAvatarChange = async (e) => {
     const file = e.target.files?.[0];
@@ -160,7 +158,7 @@ const buildAvatarSrc = (avatarPath) => {
   return (
     <section className="page-bg">
       <div className="container">
-        <div className="card profile-card">
+        <div className="card card-static profile-card">
           <h2>Moj Profil</h2>
 
           <div className="avatar-wrap">
@@ -197,7 +195,7 @@ const buildAvatarSrc = (avatarPath) => {
         </div>
 
         {user.uloga !== "admin" && (
-          <section className="card saved-card">
+          <section className="card card-static saved-card">
             <h3>Spremljene objave</h3>
             {spremljene.length === 0 ? (
               <p>Još nemaš spremljenih objava.</p>

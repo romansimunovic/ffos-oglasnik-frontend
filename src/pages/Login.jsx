@@ -47,16 +47,14 @@ export default function Login() {
         toast("Prijava uspješna! Preusmjeravanje...", "success");
 
         setTimeout(() => {
-  navigate(user.uloga === "admin" ? "/admin" : "/welcome");
-}, 1000);
-
+          navigate(user.uloga === "admin" ? "/admin" : "/welcome");
+        }, 1000);
       } else {
         throw new Error("Nema tokena ili korisnika u odgovoru.");
       }
     } catch (err) {
       const status = err.response?.status;
-      const message =
-        err.response?.data?.message || "Greška pri prijavi.";
+      const message = err.response?.data?.message || "Greška pri prijavi.";
 
       if (status === 403) {
         // korisnik nije verificiran
@@ -81,7 +79,7 @@ export default function Login() {
       >
         <form
           onSubmit={handleSubmit}
-          className="card"
+          className="card card-static"
           style={{
             maxWidth: 370,
             width: "100%",

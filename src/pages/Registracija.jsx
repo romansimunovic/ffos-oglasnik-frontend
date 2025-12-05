@@ -68,34 +68,33 @@ export default function Registracija() {
     }
 
     setLoading(true);
-try {
-  const res = await api.post("/auth/register", {
-    ime: `${form.ime} ${form.prezime}`.trim(),
-    email: form.email,
-    lozinka: form.lozinka,
-    uloga: "user",
-  });
+    try {
+      const res = await api.post("/auth/register", {
+        ime: `${form.ime} ${form.prezime}`.trim(),
+        email: form.email,
+        lozinka: form.lozinka,
+        uloga: "user",
+      });
 
-  toast(
-    res.data?.message ||
-      "Korisnik kreiran. Provjerite e-mail i unesite verifikacijski kod.",
-    "success"
-  );
+      toast(
+        res.data?.message ||
+          "Korisnik kreiran. Provjerite e-mail i unesite verifikacijski kod.",
+        "success"
+      );
 
-  const devCode = res.data?.devCode;
-  if (devCode) {
-    console.log("DEV CODE:", devCode);
-    setCode(devCode); // automatski upiši kod u input
-  }
+      const devCode = res.data?.devCode;
+      if (devCode) {
+        console.log("DEV CODE:", devCode);
+        setCode(devCode); // automatski upiši kod u input
+      }
 
-  setPendingEmail(form.email);
-  setStep("verify");
-} catch (err) {
-  toast(err.response?.data?.message || "Greška pri registraciji.", "error");
-} finally {
-  setLoading(false);
-}
-
+      setPendingEmail(form.email);
+      setStep("verify");
+    } catch (err) {
+      toast(err.response?.data?.message || "Greška pri registraciji.", "error");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleVerify = async (e) => {
@@ -103,7 +102,10 @@ try {
 
     if (!code) return toast("Unesite verifikacijski kod.", "error");
     if (!pendingEmail)
-      return toast("Nedostaje email za verifikaciju. Pokušajte ponovo.", "error");
+      return toast(
+        "Nedostaje email za verifikaciju. Pokušajte ponovo.",
+        "error"
+      );
 
     setLoading(true);
     try {
@@ -144,7 +146,7 @@ try {
         {step === "form" ? (
           <form
             onSubmit={handleSubmit}
-            className="card"
+            className="card card-static"
             style={{
               maxWidth: 370,
               width: "100%",
@@ -281,7 +283,7 @@ try {
         ) : (
           <form
             onSubmit={handleVerify}
-            className="card"
+            className="card card-static"
             style={{
               maxWidth: 370,
               width: "100%",
@@ -302,8 +304,8 @@ try {
             </h2>
 
             <p className="text-sm mb-3">
-              Poslali smo verifikacijski kod na{" "}
-              <strong>{pendingEmail}</strong>. Unesite ga ispod.
+              Poslali smo verifikacijski kod na <strong>{pendingEmail}</strong>.
+              Unesite ga ispod.
             </p>
 
             <label className="form-label" htmlFor="code">
@@ -329,7 +331,13 @@ try {
                 type="button"
                 onClick={() => setStep("form")}
                 className="form-link"
-                style={{ fontWeight: 700, color: "var(--ffos-red)", border: "none", background: "transparent", cursor: "pointer" }}
+                style={{
+                  fontWeight: 700,
+                  color: "var(--ffos-red)",
+                  border: "none",
+                  background: "transparent",
+                  cursor: "pointer",
+                }}
               >
                 Vrati se na registraciju
               </button>
