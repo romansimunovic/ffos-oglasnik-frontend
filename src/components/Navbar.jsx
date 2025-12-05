@@ -5,7 +5,6 @@ import {
   Toolbar,
   Button,
   IconButton,
-  Badge,
   Avatar,
   Box,
   useMediaQuery,
@@ -77,81 +76,96 @@ export default function Navbar() {
     { name: "Kontakt", href: "/kontakt" },
   ];
 
- const DesktopNav = (
-  <Box className="navbar-inner">
-    {/* Lijevo: logo + linkovi */}
-    <Box className="navbar-left">
-      <Box className="navbar-logo-group" onClick={() => navigate("/")}>
-        <img src={FFOSLogo} alt="FFOS" className="navbar-logo" />
-        <span className="navbar-title">FFOS Oglasnik</span>
+  // DESKTOP NAV
+  const DesktopNav = (
+    <Box className="navbar-inner">
+      {/* Lijevi dio – logo skroz lijevo */}
+      <Box className="navbar-section navbar-section-left">
+        <Box className="navbar-logo-group" onClick={() => navigate("/")}>
+          <img src={FFOSLogo} alt="FFOS" className="navbar-logo" />
+          <span className="navbar-title">FFOS Oglasnik</span>
+        </Box>
       </Box>
 
-      <Box className="navbar-links">
-        {navLinks.map((link) => (
-          <Button
-            key={link.name}
-            component={Link}
-            to={link.href}
-            className={
-              location.pathname === link.href
-                ? "navbar-link navbar-link-active"
-                : "navbar-link"
-            }
-          >
-            {link.name}
-          </Button>
-        ))}
+      {/* Srednji dio – linkovi u sredini */}
+      <Box className="navbar-section navbar-section-center">
+        <Box className="navbar-links">
+          {navLinks.map((link) => (
+            <Button
+              key={link.name}
+              component={Link}
+              to={link.href}
+              className={
+                location.pathname === link.href
+                  ? "navbar-link navbar-link-active"
+                  : "navbar-link"
+              }
+            >
+              {link.name}
+            </Button>
+          ))}
+        </Box>
       </Box>
-    </Box>
 
-    {/* Desno: admin chip + profil + odjava */}
-    <Box className="navbar-right">
-      {user?.uloga === "admin" && (
-        <Button
-          component={Link}
-          to="/admin"
-          className="navbar-chip"
-        >
-          Admin panel
-          {zahtjeviCount > 0 && (
-            <span className="navbar-chip-badge">{zahtjeviCount}</span>
-          )}
-        </Button>
-      )}
-
-      {user ? (
-        <>
-          <IconButton onClick={handleProfileClick} className="navbar-avatar-btn">
-            {avatarSrc ? (
-              <Avatar src={avatarSrc} alt={user.ime} className="navbar-avatar" />
-            ) : (
-              <Avatar className="navbar-avatar">
-                {user.ime?.charAt(0)}
-              </Avatar>
+      {/* Desni dio – admin, prijava/odjava i avatar skroz desno */}
+      <Box className="navbar-section navbar-section-right">
+        {user?.uloga === "admin" && (
+          <Button component={Link} to="/admin" className="navbar-chip">
+            Admin panel
+            {zahtjeviCount > 0 && (
+              <span className="navbar-chip-badge">{zahtjeviCount}</span>
             )}
-          </IconButton>
-          <Button
-            onClick={handleLogout}
-            startIcon={<LogoutIcon />}
-            className="navbar-logout"
-          >
-            Odjava
           </Button>
-        </>
-      ) : (
-        <Button
-          component={Link}
-          to="/login"
-          className="navbar-logout"
-        >
-          Prijava
-        </Button>
-      )}
-    </Box>
-  </Box>
+        )}
 
+        {user ? (
+          <>
+            {/* Prvo gumb Odjava */}
+            <Button
+              onClick={handleLogout}
+              startIcon={<LogoutIcon />}
+              className="navbar-logout"
+            >
+              Odjava
+            </Button>
+
+            {/* Pa desno od njega avatar */}
+            <IconButton
+              onClick={handleProfileClick}
+              className="navbar-avatar-btn"
+            >
+              {avatarSrc ? (
+                <Avatar
+                  src={avatarSrc}
+                  alt={user.ime}
+                  className="navbar-avatar"
+                />
+              ) : (
+                <Avatar className="navbar-avatar">
+                  {user.ime?.charAt(0) || "U"}
+                </Avatar>
+              )}
+            </IconButton>
+          </>
+        ) : (
+          <>
+            {/* Za neprijavljenog: Prijava + generički avatar desno */}
+            <Button component={Link} to="/login" className="navbar-logout">
+              Prijava
+            </Button>
+            <IconButton
+              onClick={handleProfileClick}
+              className="navbar-avatar-btn"
+            >
+              <Avatar className="navbar-avatar">?</Avatar>
+            </IconButton>
+          </>
+        )}
+      </Box>
+    </Box>
   );
 
+  // MOBILNI DRAWER ostaje isto
   const MobileDrawer = (
     <Drawer anchor="right" open={mobileOpen} onClose={toggleDrawer}>
       <List className="navbar-drawer">
@@ -161,7 +175,11 @@ export default function Navbar() {
 
         {navLinks.map((link) => (
           <ListItem key={link.name} disablePadding>
-            <ListItemButton component={Link} to={link.href} onClick={toggleDrawer}>
+            <ListItemButton
+              component={Link}
+              to={link.href}
+              onClick={toggleDrawer}
+            >
               <ListItemText primary={link.name} />
             </ListItemButton>
           </ListItem>
