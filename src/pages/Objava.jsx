@@ -8,7 +8,10 @@ import {
   TextField,
   Button,
   Chip,
+  useTheme,
+  useMediaQuery,
 } from "@mui/material";
+import FilterAltOutlinedIcon from "@mui/icons-material/FilterAltOutlined";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import ClearIcon from "@mui/icons-material/Clear";
 import PushPinIcon from "@mui/icons-material/PushPin";
@@ -41,6 +44,10 @@ export default function Objava() {
   const [novaSadrzaj, setNovaSadrzaj] = useState("");
   const [novaTip, setNovaTip] = useState("radionice");
   const [novaOdsjek, setNovaOdsjek] = useState("");
+
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -81,34 +88,32 @@ export default function Objava() {
     attributes: { rel: "noopener noreferrer", target: "_blank" },
   };
 
-const buildAvatarSrc = (avatarPath) => {
-  if (!avatarPath) return "/default-avatar.png";
-  if (avatarPath.startsWith("http://") || avatarPath.startsWith("https://"))
-    return `${avatarPath}?t=${Date.now()}`;
-  const base = api.defaults.baseURL || "";
-  const backendOrigin = base.replace(/\/api\/?$/i, "");
-  return `${backendOrigin}${avatarPath}?t=${Date.now()}`;
-};
-
-
+  const buildAvatarSrc = (avatarPath) => {
+    if (!avatarPath) return "/default-avatar.png";
+    if (avatarPath.startsWith("http://") || avatarPath.startsWith("https://"))
+      return `${avatarPath}?t=${Date.now()}`;
+    const base = api.defaults.baseURL || "";
+    const backendOrigin = base.replace(/\/api\/?$/i, "");
+    return `${backendOrigin}${avatarPath}?t=${Date.now()}`;
+  };
 
   // Inicijalni filteri prema query parametrima (npr. s Home statistike)
-useEffect(() => {
-  const params = new URLSearchParams(location.search);
-  const filter = params.get("filter");
-  const view = params.get("view");
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const filter = params.get("filter");
+    const view = params.get("view");
 
-  // Novih ovaj tjedan
-  if (filter === "thisWeek") {
-    setPeriodFilter("week");
-  }
+    // Novih ovaj tjedan
+    if (filter === "thisWeek") {
+      setPeriodFilter("week");
+    }
 
-  // Primjer: pogled po kategorijama – ovdje za KISS samo sortaj po najnovijim,
-  // a ako želiš kasnije možeš dodati poseban layout.
-  if (view === "byCategory") {
-    setSortBy("newest");
-  }
-}, [location.search]);
+    // Primjer: pogled po kategorijama – ovdje za KISS samo sortaj po najnovijim,
+    // a ako želiš kasnije možeš dodati poseban layout.
+    if (view === "byCategory") {
+      setSortBy("newest");
+    }
+  }, [location.search]);
 
   const fetchObjave = async (page = 1, append = false) => {
     if (!append) setLoading(true);
@@ -389,7 +394,7 @@ useEffect(() => {
           {/* SEARCH BAR */}
           <div
             style={{
-              marginBottom: "2rem",
+              marginBottom: isMobile ? "1rem" : "2rem",
               display: "flex",
               gap: 12,
               alignItems: "center",
@@ -427,188 +432,228 @@ useEffect(() => {
             />
           </div>
 
-          {/* FILTERI - VERTIKALNI LAYOUT */}
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-              gap: 20,
-              marginBottom: "1rem",
-              padding: "1.5rem",
-              backgroundColor: "var(--ffos-light-card)",
-              borderRadius: "10px",
-              border: "1px solid var(--border-color)",
-            }}
-          >
-            {/* VRSTA OBJAVE */}
-            <div>
-              <label
-                style={{
-                  display: "block",
-                  fontSize: "0.85rem",
-                  fontWeight: "bold",
-                  marginBottom: "8px",
-                  color: "#666",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.5px",
-                }}
-              >
-                Vrsta objave
-              </label>
-              <FormControl fullWidth size="small">
-                <Select
-                  value={filterTip}
-                  onChange={(e) => setFilterTip(e.target.value)}
-                  IconComponent={ArrowDropDownIcon}
-                  sx={{
-                    backgroundColor: "transparent",
-                  }}
-                >
-                  {tipovi.map((t) => (
-                    <MenuItem key={t.value} value={t.value}>
-                      {t.label}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </div>
-
-            {/* ODSJEK */}
-            <div>
-              <label
-                style={{
-                  display: "block",
-                  fontSize: "0.85rem",
-                  fontWeight: "bold",
-                  marginBottom: "8px",
-                  color: "#666",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.5px",
-                }}
-              >
-                Odsjek
-              </label>
-              <FormControl fullWidth size="small">
-                <Select
-                  value={odsjek}
-                  onChange={(e) => setOdsjek(e.target.value)}
-                  IconComponent={ArrowDropDownIcon}
-                  displayEmpty
-                  renderValue={(selected) => {
-                    if (!selected) return "Svi odsjeci";
-                    const opt = departmentOptions.find(
-                      (o) => o.value === selected
-                    );
-                    return opt ? opt.label : "Svi odsjeci";
-                  }}
-                  sx={{
-                    backgroundColor: "transparent",
-                  }}
-                >
-                  {departmentOptions.map((opt) => (
-                    <MenuItem key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </div>
-
-            {/* PERIOD */}
-            <div>
-              <label
-                style={{
-                  display: "block",
-                  fontSize: "0.85rem",
-                  fontWeight: "bold",
-                  marginBottom: "8px",
-                  color: "#666",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.5px",
-                }}
-              >
-                Vremenski period
-              </label>
-              <FormControl fullWidth size="small">
-                <Select
-                  value={periodFilter}
-                  onChange={(e) => setPeriodFilter(e.target.value)}
-                  IconComponent={ArrowDropDownIcon}
-                  displayEmpty
-                  renderValue={(selected) => {
-                    if (!selected) return "Svi datumi";
-                    const opt = periodOptions.find((o) => o.value === selected);
-                    return opt ? opt.label : "Svi datumi";
-                  }}
-                  sx={{
-                    backgroundColor: "transparent",
-                  }}
-                >
-                  {periodOptions.map((opt) => (
-                    <MenuItem key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </div>
-
-            {/* SORTIRANJE */}
-            <div>
-              <label
-                style={{
-                  display: "block",
-                  fontSize: "0.85rem",
-                  fontWeight: "bold",
-                  marginBottom: "8px",
-                  color: "#666",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.5px",
-                }}
-              >
-                Sortiranje
-              </label>
-              <FormControl fullWidth size="small">
-                <Select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  IconComponent={ArrowDropDownIcon}
-                  sx={{
-                    backgroundColor: "transparent",
-                  }}
-                >
-                  {sortOptions.map((opt) => (
-                    <MenuItem key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </div>
-          </div>
-
-          {/* GUMB ZA UKLANJANJE FILTERA */}
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "flex-end",
-              marginBottom: "2rem",
-            }}
-          >
-            <Button
-              variant="outlined"
-              size="small"
-              startIcon={<ClearIcon />}
-              onClick={handleClearFilters}
-              sx={{
-                borderColor: "#666",
-                color: "#666",
-                "&:hover": { backgroundColor: "rgba(0, 0, 0, 0.05)" },
+          {/* GUMB ZA OTVARANJE FILTERA NA MOBILNOM */}
+          {isMobile && (
+            <div
+              style={{
+                marginBottom: "1rem",
+                display: "flex",
+                justifyContent: "center",
               }}
             >
-              Ukloni filtere
-            </Button>
-          </div>
+              <Button
+                variant="outlined"
+                size="small"
+                onClick={() => setShowMobileFilters((prev) => !prev)}
+                startIcon={<FilterAltOutlinedIcon />}
+                sx={{
+                  borderColor: "#971d21",
+                  color: "#971d21",
+                  width: "100%", // razvuci
+                  maxWidth: 400, // ista max širina kao search
+                  borderRadius: "8px", // kao input
+                  py: 1.1,
+                  fontWeight: 600,
+                  "&:hover": {
+                    borderColor: "#701013",
+                    backgroundColor: "rgba(151, 29, 33, 0.05)",
+                  },
+                }}
+              >
+                {showMobileFilters ? "Sakrij filtere" : "Prikaži filtere"}
+              </Button>
+            </div>
+          )}
+
+          {/* PANEL S FILTERIMA – NA DESKTOPU UVIJEK, NA MOBILNOM SAMO KAD JE OTVOREN */}
+          {(!isMobile || showMobileFilters) && (
+            <>
+              {/* FILTERI - VERTIKALNI LAYOUT */}
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+                  gap: 20,
+                  marginBottom: "1rem",
+                  padding: "1.5rem",
+                  backgroundColor: "var(--ffos-light-card)",
+                  borderRadius: "10px",
+                  border: "1px solid var(--border-color)",
+                }}
+              >
+                {/* VRSTA OBJAVE */}
+                <div>
+                  <label
+                    style={{
+                      display: "block",
+                      fontSize: "0.85rem",
+                      fontWeight: "bold",
+                      marginBottom: "8px",
+                      color: "#666",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.5px",
+                    }}
+                  >
+                    Vrsta objave
+                  </label>
+                  <FormControl fullWidth size="small">
+                    <Select
+                      value={filterTip}
+                      onChange={(e) => setFilterTip(e.target.value)}
+                      IconComponent={ArrowDropDownIcon}
+                      sx={{
+                        backgroundColor: "transparent",
+                      }}
+                    >
+                      {tipovi.map((t) => (
+                        <MenuItem key={t.value} value={t.value}>
+                          {t.label}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </div>
+
+                {/* ODSJEK */}
+                <div>
+                  <label
+                    style={{
+                      display: "block",
+                      fontSize: "0.85rem",
+                      fontWeight: "bold",
+                      marginBottom: "8px",
+                      color: "#666",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.5px",
+                    }}
+                  >
+                    Odsjek
+                  </label>
+                  <FormControl fullWidth size="small">
+                    <Select
+                      value={odsjek}
+                      onChange={(e) => setOdsjek(e.target.value)}
+                      IconComponent={ArrowDropDownIcon}
+                      displayEmpty
+                      renderValue={(selected) => {
+                        if (!selected) return "Svi odsjeci";
+                        const opt = departmentOptions.find(
+                          (o) => o.value === selected
+                        );
+                        return opt ? opt.label : "Svi odsjeci";
+                      }}
+                      sx={{
+                        backgroundColor: "transparent",
+                      }}
+                    >
+                      {departmentOptions.map((opt) => (
+                        <MenuItem key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </div>
+
+                {/* VREMENSKI PERIOD */}
+                <div>
+                  <label
+                    style={{
+                      display: "block",
+                      fontSize: "0.85rem",
+                      fontWeight: "bold",
+                      marginBottom: "8px",
+                      color: "#666",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.5px",
+                    }}
+                  >
+                    Vremenski period
+                  </label>
+                  <FormControl fullWidth size="small">
+                    <Select
+                      value={periodFilter}
+                      onChange={(e) => setPeriodFilter(e.target.value)}
+                      IconComponent={ArrowDropDownIcon}
+                      displayEmpty
+                      renderValue={(selected) => {
+                        if (!selected) return "Svi datumi";
+                        const opt = periodOptions.find(
+                          (o) => o.value === selected
+                        );
+                        return opt ? opt.label : "Svi datumi";
+                      }}
+                      sx={{
+                        backgroundColor: "transparent",
+                      }}
+                    >
+                      {periodOptions.map((opt) => (
+                        <MenuItem key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </div>
+
+                {/* SORTIRANJE */}
+                <div>
+                  <label
+                    style={{
+                      display: "block",
+                      fontSize: "0.85rem",
+                      fontWeight: "bold",
+                      marginBottom: "8px",
+                      color: "#666",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.5px",
+                    }}
+                  >
+                    Sortiranje
+                  </label>
+                  <FormControl fullWidth size="small">
+                    <Select
+                      value={sortBy}
+                      onChange={(e) => setSortBy(e.target.value)}
+                      IconComponent={ArrowDropDownIcon}
+                      sx={{
+                        backgroundColor: "transparent",
+                      }}
+                    >
+                      {sortOptions.map((opt) => (
+                        <MenuItem key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </div>
+              </div>
+
+              {/* GUMB ZA UKLANJANJE FILTERA */}
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "flex-end",
+                  marginBottom: "2rem",
+                }}
+              >
+                <Button
+                  variant="outlined"
+                  size="small"
+                  startIcon={<ClearIcon />}
+                  onClick={handleClearFilters}
+                  sx={{
+                    borderColor: "#666",
+                    color: "#666",
+                    "&:hover": { backgroundColor: "rgba(0, 0, 0, 0.05)" },
+                  }}
+                >
+                  Ukloni filtere
+                </Button>
+              </div>
+            </>
+          )}
         </div>
 
         {/* LOADING */}
@@ -741,17 +786,19 @@ useEffect(() => {
                       </div>
 
                       {/* SADRŽAJ – SKRAĆEN */}
-<p
-  className="card-desc"
-  onClick={(e) => e.stopPropagation()}
->
-  <Linkify options={linkifyOptions}>
-    {(obj.sadrzaj || "Nema opisa.").length > 180
-      ? `${(obj.sadrzaj || "Nema opisa.").slice(0, 180)}...`
-      : obj.sadrzaj || "Nema opisa."}
-  </Linkify>
-</p>
-
+                      <p
+                        className="card-desc"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <Linkify options={linkifyOptions}>
+                          {(obj.sadrzaj || "Nema opisa.").length > 180
+                            ? `${(obj.sadrzaj || "Nema opisa.").slice(
+                                0,
+                                180
+                              )}...`
+                            : obj.sadrzaj || "Nema opisa."}
+                        </Linkify>
+                      </p>
 
                       {/* META INFO - POJEDNOSTAVLJENO */}
                       <div

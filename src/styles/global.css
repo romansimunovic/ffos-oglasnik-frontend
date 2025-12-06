@@ -7,7 +7,7 @@
   --ffos-dark-bg: #232536;
   --ffos-dark-bg-secondary: #181926;
   --ffos-dark-card: #26283b;
-  --ffos-dark-txt: #e6e6e6;
+  --ffos-dark-txt: #f9fafb;
   --ffos-light-bg: #f7f7f7;
   --ffos-light-card: #fff;
   --ffos-light-txt: #181926;
@@ -170,14 +170,14 @@ body.dark a:hover {
 }
 
 .card-static::before {
-  display: none;   /* nema onog “svjetlucanja” */
+  display: none; /* nema onog “svjetlucanja” */
 }
 
 .card-static:hover,
 .card-static:active {
-  transform: none;                             /* ne pomiče se */
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);  /* miran shadow kao normalna card */
-  border-color: rgba(0, 0, 0, 0.04);           /* osnovni border */
+  transform: none; /* ne pomiče se */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06); /* miran shadow kao normalna card */
+  border-color: rgba(0, 0, 0, 0.04); /* osnovni border */
 }
 
 body.dark .card {
@@ -303,14 +303,15 @@ body.dark button,
 body.dark .form-submit,
 body.dark .main-btn {
   background: var(--ffos-dark-card);
-  color: var(--ffos-red);
-  border: 1px solid #444;
+  color: #f9fafb; /* SVJETLIJA SLOVA */
+  border: 1px solid #555;
 }
+
 body.dark button:hover,
 body.dark .form-submit:hover,
 body.dark .main-btn:hover {
-  background: #ffe5e9;
-  color: var(--ffos-red);
+  background: #2f3245; /* malo svjetlija tamna za hover */
+  color: #ffffff; /* još svjetlija slova na hoveru */
 }
 
 .approve-btn {
@@ -1037,12 +1038,13 @@ body.dark .MuiTypography-root {
 }
 body.dark .MuiButton-root {
   background: var(--ffos-dark-card) !important;
-  color: var(--ffos-red) !important;
-  border: 1px solid #444 !important;
+  color: #f9fafb !important; /* puno svjetlija slova */
+  border: 1px solid #666 !important; /* mrvicu jači rub */
 }
+
 body.dark .MuiButton-root:hover {
-  background: #ffe5e9 !important;
-  color: var(--ffos-red) !important;
+  background: #6a0a07 !important; /* malo svjetliji hover */
+  color: #ffffff !important; /* još bjelja slova na hoveru */
 }
 body.dark .MuiChip-root {
   background-color: #2a2c3b !important;

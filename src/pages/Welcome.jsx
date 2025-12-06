@@ -31,7 +31,7 @@ export default function Welcome() {
         }}
       >
         <Box
-          className="card"
+          className="card card-static"
           sx={{
             maxWidth: 420,
             width: "100%",
