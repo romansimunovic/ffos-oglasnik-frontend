@@ -56,12 +56,14 @@ export default function ObjavaDetalj() {
     }
   };
 
-  if (loading || !objava) return <p className="center-msg">⏳ Učitavanje objave...</p>;
+  if (loading || !objava)
+    return <p className="center-msg">⏳ Učitavanje objave...</p>;
 
   const shareText = objava?.naslov || "Pogledaj ovu objavu";
 
   const facebookUrl =
-    "https://www.facebook.com/sharer/sharer.php?u=" + encodeURIComponent(currentUrl);
+    "https://www.facebook.com/sharer/sharer.php?u=" +
+    encodeURIComponent(currentUrl);
   const xUrl =
     "https://x.com/intent/tweet?url=" +
     encodeURIComponent(currentUrl) +
@@ -70,27 +72,27 @@ export default function ObjavaDetalj() {
   const whatsappUrl =
     "https://wa.me/?text=" + encodeURIComponent(shareText + " " + currentUrl);
 
-  const autor = objava.autor && typeof objava.autor === "object" ? objava.autor : null;
+  const autor =
+    objava.autor && typeof objava.autor === "object" ? objava.autor : null;
   const autorIme = autor?.ime || objava.autor || "Nepoznato";
   const autorId = autor?._id || objava.autorId || null;
   const autorAvatar = autor?.avatar || objava.autorAvatar || null;
 
-const buildAvatarSrc = (avatarPath) => {
-  if (!avatarPath) return "/default-avatar.png";
-  if (avatarPath.startsWith("http://") || avatarPath.startsWith("https://"))
-    return `${avatarPath}?t=${Date.now()}`;
-  const base = api.defaults.baseURL || "";
-  const backendOrigin = base.replace(/\/api\/?$/i, "");
-  return `${backendOrigin}${avatarPath}?t=${Date.now()}`;
-};
-
-
+  const buildAvatarSrc = (avatarPath) => {
+    if (!avatarPath) return "/default-avatar.png";
+    if (avatarPath.startsWith("http://") || avatarPath.startsWith("https://"))
+      return `${avatarPath}?t=${Date.now()}`;
+    const base = api.defaults.baseURL || "";
+    const backendOrigin = base.replace(/\/api\/?$/i, "");
+    return `${backendOrigin}${avatarPath}?t=${Date.now()}`;
+  };
 
   const avatarSrc = buildAvatarSrc(autorAvatar);
 
   const tipNaziv = objava.tip || "Ostalo";
   const odsjekNaziv =
-    ODSJECI.find((x) => x.id === (objava.odsjek?._id || objava.odsjek))?.naziv || "-";
+    ODSJECI.find((x) => x.id === (objava.odsjek?._id || objava.odsjek))
+      ?.naziv || "-";
   const datum =
     objava.datum &&
     new Date(objava.datum).toLocaleDateString("hr-HR", {
@@ -114,7 +116,10 @@ const buildAvatarSrc = (avatarPath) => {
           </Button>
         </div>
 
-        <div className="card" style={{ padding: "1rem", maxWidth: 800, margin: "0 auto" }}>
+        <div
+          className="card card-static"
+          style={{ padding: "1rem", maxWidth: 800, margin: "0 auto" }}
+        >
           {/* HEADER */}
           <div
             style={{
@@ -157,7 +162,10 @@ const buildAvatarSrc = (avatarPath) => {
           </div>
 
           {/* SADRŽAJ */}
-          <p className="card-desc" style={{ whiteSpace: "pre-wrap", lineHeight: 1.6 }}>
+          <p
+            className="card-desc"
+            style={{ whiteSpace: "pre-wrap", lineHeight: 1.6 }}
+          >
             <Linkify options={{ nl2br: true }}>{objava.sadrzaj}</Linkify>
           </p>
 
@@ -173,14 +181,29 @@ const buildAvatarSrc = (avatarPath) => {
         </div>
 
         {/* SHARE DIALOG */}
-        <Dialog open={shareOpen} onClose={() => setShareOpen(false)} maxWidth="sm" fullWidth>
+        <Dialog
+          open={shareOpen}
+          onClose={() => setShareOpen(false)}
+          maxWidth="sm"
+          fullWidth
+        >
           <DialogTitle>📤 Podijeli objavu</DialogTitle>
           <DialogContent dividers>
-            <p style={{ marginBottom: "1rem", fontWeight: 500 }}>Odaberi gdje želiš podijeliti:</p>
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+            <p style={{ marginBottom: "1rem", fontWeight: 500 }}>
+              Odaberi gdje želiš podijeliti:
+            </p>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "0.75rem",
+              }}
+            >
               <Button
                 variant="contained"
-                onClick={() => window.open(facebookUrl, "_blank", "noopener,noreferrer")}
+                onClick={() =>
+                  window.open(facebookUrl, "_blank", "noopener,noreferrer")
+                }
                 startIcon={<FacebookIcon />}
                 sx={{
                   backgroundColor: "#1877F2",
@@ -192,7 +215,9 @@ const buildAvatarSrc = (avatarPath) => {
               </Button>
               <Button
                 variant="contained"
-                onClick={() => window.open(whatsappUrl, "_blank", "noopener,noreferrer")}
+                onClick={() =>
+                  window.open(whatsappUrl, "_blank", "noopener,noreferrer")
+                }
                 startIcon={<WhatsAppIcon />}
                 sx={{
                   backgroundColor: "#25D366",
@@ -204,7 +229,9 @@ const buildAvatarSrc = (avatarPath) => {
               </Button>
               <Button
                 variant="contained"
-                onClick={() => window.open(xUrl, "_blank", "noopener,noreferrer")}
+                onClick={() =>
+                  window.open(xUrl, "_blank", "noopener,noreferrer")
+                }
                 startIcon={<XIcon />}
                 sx={{
                   backgroundColor: "#000",

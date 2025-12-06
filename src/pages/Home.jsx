@@ -69,14 +69,14 @@ export default function Home() {
     }
   };
 
- const buildAvatarSrc = (avatarPath) => {
-  if (!avatarPath) return "/default-avatar.png";
-  if (avatarPath.startsWith("http://") || avatarPath.startsWith("https://"))
-    return `${avatarPath}?t=${Date.now()}`;
-  const base = api.defaults.baseURL || "";
-  const backendOrigin = base.replace(/\/api\/?$/i, "");
-  return `${backendOrigin}${avatarPath}?t=${Date.now()}`;
-};
+  const buildAvatarSrc = (avatarPath) => {
+    if (!avatarPath) return "/default-avatar.png";
+    if (avatarPath.startsWith("http://") || avatarPath.startsWith("https://"))
+      return `${avatarPath}?t=${Date.now()}`;
+    const base = api.defaults.baseURL || "";
+    const backendOrigin = base.replace(/\/api\/?$/i, "");
+    return `${backendOrigin}${avatarPath}?t=${Date.now()}`;
+  };
 
   return (
     <section className="page-bg">
@@ -84,7 +84,7 @@ export default function Home() {
       <Box
         sx={{
           background:
-            "linear-gradient(135deg, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.3) 100%), url('https://www.ffos.unios.hr/wp-content/uploads/2025/02/IMG_7438-scaled.jpg') center/cover",
+            "linear-gradient(135deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.10) 100%), url('https://www.ffos.unios.hr/wp-content/uploads/2025/02/IMG_7438-scaled.jpg') center/cover",
           backgroundAttachment: "fixed",
           color: "#fff",
           py: { xs: 8, md: 12 },
@@ -97,14 +97,16 @@ export default function Home() {
           <Typography
             variant="overline"
             sx={{
-              fontSize: "1rem",
-              fontWeight: "bold",
-              letterSpacing: 2,
-              color: "#10b981",
+              fontSize: "1.1rem",
+              fontWeight: 800,
+              letterSpacing: 3,
+              color: "#fff", // ista crvena kao navbar
+              textTransform: "uppercase",
               mb: 2,
+              textShadow: "0 2px 6px rgba(0, 0, 0, 1)", // 👈 shadow
             }}
           >
-            ✨ Dobrodošli na
+            🎓 Dobrodošli na
           </Typography>
 
           <Typography
@@ -113,7 +115,7 @@ export default function Home() {
               fontSize: { xs: "2.5rem", md: "4rem" },
               fontWeight: 900,
               mb: 2,
-              textShadow: "2px 2px 8px rgba(0,0,0,0.5)",
+              textShadow: "2px 2px 8px rgba(111, 110, 110, 0.5)",
               letterSpacing: -1,
             }}
           >
@@ -129,6 +131,8 @@ export default function Home() {
               mx: "auto",
               mb: 4,
               lineHeight: 1.6,
+              color: "rgba(255, 255, 255, 1)", // malo potamnjen tekst
+              textShadow: "0 2px 6px rgba(0, 0, 0, 3)", // 👈 shadow
             }}
           >
             Digitalni prostor Filozofskog fakulteta gdje se dijele studentski
@@ -142,13 +146,13 @@ export default function Home() {
               onClick={() => navigate("/objave")}
               endIcon={<ArrowRightIcon />}
               sx={{
-                backgroundColor: "#10b981",
+                backgroundColor: "var(--ffos-red)", // ista crvena kao navbar
                 color: "#fff",
                 fontWeight: "bold",
                 px: 4,
                 py: 1.5,
                 fontSize: "1rem",
-                "&:hover": { backgroundColor: "#059669" },
+                "&:hover": { backgroundColor: "#8f191f" }, // malo tamnija crvena na hover
               }}
             >
               Vidi sve objave
@@ -159,108 +163,116 @@ export default function Home() {
 
       <div className="container">
         {/* STATISTIKE - 3 KARTICE - POTPUNO CENTRIRANE */}
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "center",
-          mb: 6,
-          width: "100%",
-          mx: "auto",
-          px: 2,
-        }}
-      >
         <Box
           sx={{
-            display: "grid",
-            gridTemplateColumns: {
-              xs: "1fr",
-              sm: "repeat(3, 1fr)",
-            },
-            gap: 3,
-            maxWidth: "1000px",
+            display: "flex",
+            justifyContent: "center",
+            mb: 6,
             width: "100%",
+            mx: "auto",
+            px: 2,
           }}
         >
-          {/* KARTICA 1 - Ukupno objava */}
-<Card
-  onClick={() => navigate("/objave")}
-  sx={{
-    textAlign: "center",
-    p: 3,
-    background:
-      "linear-gradient(135deg, rgba(180, 31, 36, 0.1), rgba(180, 31, 36, 0.05))",
-    borderTop: "4px solid #b41f24",
-    transition: "transform 0.3s, box-shadow 0.3s",
-    cursor: "pointer",
-    "&:hover": {
-      transform: "translateY(-6px)",
-      boxShadow: "0 12px 24px rgba(180, 31, 36, 0.15)",
-    },
-  }}
->
-  <CategoryIcon sx={{ fontSize: 48, color: "#b41f24", mb: 2 }} />
-  <Typography variant="h3" sx={{ fontWeight: 900, color: "#b41f24" }}>
-    {stats.total}
-  </Typography>
-  <Typography variant="body1" color="text.secondary" sx={{ mt: 1 }}>
-    Ukupno objava
-  </Typography>
-</Card>
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: {
+                xs: "1fr",
+                sm: "repeat(3, 1fr)",
+              },
+              gap: 3,
+              maxWidth: "1000px",
+              width: "100%",
+            }}
+          >
+            {/* KARTICA 1 - Ukupno objava */}
+            <Card
+              onClick={() => navigate("/objave")}
+              sx={{
+                textAlign: "center",
+                p: 3,
+                background:
+                  "linear-gradient(135deg, rgba(180, 31, 36, 0.1), rgba(180, 31, 36, 0.05))",
+                borderTop: "4px solid #b41f24",
+                transition: "transform 0.3s, box-shadow 0.3s",
+                cursor: "pointer",
+                "&:hover": {
+                  transform: "translateY(-6px)",
+                  boxShadow: "0 12px 24px rgba(180, 31, 36, 0.15)",
+                },
+              }}
+            >
+              <CategoryIcon sx={{ fontSize: 48, color: "#b41f24", mb: 2 }} />
+              <Typography
+                variant="h3"
+                sx={{ fontWeight: 900, color: "#b41f24" }}
+              >
+                {stats.total}
+              </Typography>
+              <Typography variant="body1" color="text.secondary" sx={{ mt: 1 }}>
+                Ukupno objava
+              </Typography>
+            </Card>
 
-{/* KARTICA 2 - Novih ovaj tjedan */}
-<Card
-  onClick={() => navigate("/objave?filter=thisWeek")}
-  sx={{
-    textAlign: "center",
-    p: 3,
-    background:
-      "linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.05))",
-    borderTop: "4px solid #10b981",
-    transition: "transform 0.3s, box-shadow 0.3s",
-    cursor: "pointer",
-    "&:hover": {
-      transform: "translateY(-6px)",
-      boxShadow: "0 12px 24px rgba(16, 185, 129, 0.15)",
-    },
-  }}
->
-  <TrendingUpIcon sx={{ fontSize: 48, color: "#10b981", mb: 2 }} />
-  <Typography variant="h3" sx={{ fontWeight: 900, color: "#10b981" }}>
-    {stats.thisWeek}
-  </Typography>
-  <Typography variant="body1" color="text.secondary" sx={{ mt: 1 }}>
-    Novih ovaj tjedan
-  </Typography>
-</Card>
+            {/* KARTICA 2 - Novih ovaj tjedan */}
+            <Card
+              onClick={() => navigate("/objave?filter=thisWeek")}
+              sx={{
+                textAlign: "center",
+                p: 3,
+                background:
+                  "linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.05))",
+                borderTop: "4px solid #10b981",
+                transition: "transform 0.3s, box-shadow 0.3s",
+                cursor: "pointer",
+                "&:hover": {
+                  transform: "translateY(-6px)",
+                  boxShadow: "0 12px 24px rgba(16, 185, 129, 0.15)",
+                },
+              }}
+            >
+              <TrendingUpIcon sx={{ fontSize: 48, color: "#10b981", mb: 2 }} />
+              <Typography
+                variant="h3"
+                sx={{ fontWeight: 900, color: "#10b981" }}
+              >
+                {stats.thisWeek}
+              </Typography>
+              <Typography variant="body1" color="text.secondary" sx={{ mt: 1 }}>
+                Novih ovaj tjedan
+              </Typography>
+            </Card>
 
-{/* KARTICA 3 - Kategorija */}
-<Card
-  onClick={() => navigate("/objave?view=byCategory")}
-  sx={{
-    textAlign: "center",
-    p: 3,
-    background:
-      "linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(59, 130, 246, 0.05))",
-    borderTop: "4px solid #3b82f6",
-    transition: "transform 0.3s, box-shadow 0.3s",
-    cursor: "pointer",
-    "&:hover": {
-      transform: "translateY(-6px)",
-      boxShadow: "0 12px 24px rgba(59, 130, 246, 0.15)",
-    },
-  }}
->
-  <PeopleIcon sx={{ fontSize: 48, color: "#3b82f6", mb: 2 }} />
-  <Typography variant="h3" sx={{ fontWeight: 900, color: "#3b82f6" }}>
-    {Object.keys(stats.categories).length}
-  </Typography>
-  <Typography variant="body1" color="text.secondary" sx={{ mt: 1 }}>
-    Kategorija
-  </Typography>
-</Card>
+            {/* KARTICA 3 - Kategorija */}
+            <Card
+              onClick={() => navigate("/objave?view=byCategory")}
+              sx={{
+                textAlign: "center",
+                p: 3,
+                background:
+                  "linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(59, 130, 246, 0.05))",
+                borderTop: "4px solid #3b82f6",
+                transition: "transform 0.3s, box-shadow 0.3s",
+                cursor: "pointer",
+                "&:hover": {
+                  transform: "translateY(-6px)",
+                  boxShadow: "0 12px 24px rgba(59, 130, 246, 0.15)",
+                },
+              }}
+            >
+              <PeopleIcon sx={{ fontSize: 48, color: "#3b82f6", mb: 2 }} />
+              <Typography
+                variant="h3"
+                sx={{ fontWeight: 900, color: "#3b82f6" }}
+              >
+                {Object.keys(stats.categories).length}
+              </Typography>
+              <Typography variant="body1" color="text.secondary" sx={{ mt: 1 }}>
+                Kategorija
+              </Typography>
+            </Card>
+          </Box>
         </Box>
-      </Box>
-
 
         {/* SVE OBJAVE - GRID */}
         <div style={{ marginBottom: "4rem" }}>
