@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import api from "../api/axiosInstance";
 import { useToast } from "../components/Toast";
+import { useAuth } from "../context/AuthContext";
 
 const DOMAIN = "@ffos.hr";
 
@@ -19,6 +20,7 @@ function passwordStrength(pwd) {
 export default function Registracija() {
   const navigate = useNavigate();
   const toast = useToast();
+  const { login } = useAuth();
 
   const [form, setForm] = useState({
     ime: "",
@@ -117,10 +119,8 @@ export default function Registracija() {
       const { token, user } = res.data;
 
       if (token && user) {
-        // ako koristiš AuthContext, ovdje možeš pozvati login(user, token)
-        localStorage.setItem("token", token);
-        localStorage.setItem("user", JSON.stringify(user));
-        api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+        // koristimo isti login kao i u Login.jsx
+        login(user, token);
       }
 
       toast("Email verificiran! Preusmjeravanje...", "success");

@@ -22,6 +22,7 @@ export default function ObjavaDetalj() {
   const [loading, setLoading] = useState(true);
   const [shareOpen, setShareOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [showFull, setShowFull] = useState(false);
   const navigate = useNavigate();
   const toast = useToast();
   const currentUrl = typeof window !== "undefined" ? window.location.href : "";
@@ -60,6 +61,8 @@ export default function ObjavaDetalj() {
     return <p className="center-msg">⏳ Učitavanje objave...</p>;
 
   const shareText = objava?.naslov || "Pogledaj ovu objavu";
+  // smije se dijeliti samo ako je odobrena (ili ako iz nekog razloga status ne postoji)
+  const canShare = objava.status === "odobreno" || !objava.status;
 
   const facebookUrl =
     "https://www.facebook.com/sharer/sharer.php?u=" +
@@ -101,6 +104,20 @@ export default function ObjavaDetalj() {
       year: "numeric",
     });
 
+  const MAX_WORDS = 300;
+  const fullText = objava.sadrzaj || "";
+
+  let isTruncated = false;
+  let displayText = fullText;
+
+  if (!showFull && fullText) {
+    const words = fullText.split(/\s+/);
+    if (words.length > MAX_WORDS) {
+      isTruncated = true;
+      displayText = words.slice(0, MAX_WORDS).join(" ");
+    }
+  }
+
   return (
     <section className="page-bg">
       <div className="container">
@@ -118,7 +135,12 @@ export default function ObjavaDetalj() {
 
         <div
           className="card card-static"
-          style={{ padding: "1rem", maxWidth: 800, margin: "0 auto" }}
+          style={{
+            padding: "1.8rem 2.2rem",
+            maxWidth: "1000px",
+            width: "100%",
+            margin: "0 auto",
+          }}
         >
           {/* HEADER */}
           <div
@@ -166,101 +188,138 @@ export default function ObjavaDetalj() {
             className="card-desc"
             style={{ whiteSpace: "pre-wrap", lineHeight: 1.6 }}
           >
-            <Linkify options={{ nl2br: true }}>{objava.sadrzaj}</Linkify>
+            <Linkify options={{ nl2br: true }}>
+              {displayText}
+              {isTruncated && !showFull ? "..." : ""}
+            </Linkify>
+
+            {isTruncated && !showFull && (
+              <button
+                type="button"
+                onClick={() => setShowFull(true)}
+                style={{
+                  marginLeft: 6,
+                  background: "none",
+                  border: "none",
+                  padding: 0,
+                  color: "#971d21",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  textDecoration: "underline",
+                }}
+              >
+                Nastavi čitati
+              </button>
+            )}
           </p>
-
-          {/* SHARE */}
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={() => setShareOpen(true)}
-            style={{ marginTop: "1rem" }}
-          >
-            🔗 Podijeli objavu
-          </Button>
-        </div>
-
-        {/* SHARE DIALOG */}
-        <Dialog
-          open={shareOpen}
-          onClose={() => setShareOpen(false)}
-          maxWidth="sm"
-          fullWidth
-        >
-          <DialogTitle>📤 Podijeli objavu</DialogTitle>
-          <DialogContent dividers>
-            <p style={{ marginBottom: "1rem", fontWeight: 500 }}>
-              Odaberi gdje želiš podijeliti:
-            </p>
-            <div
+          {/* SHARE / INFO O STATUSU */}
+          {canShare ? (
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => setShareOpen(true)}
+              style={{ marginTop: "1rem" }}
+            >
+              🔗 Podijeli objavu
+            </Button>
+          ) : (
+            <p
               style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "0.75rem",
+                marginTop: "1rem",
+                fontStyle: "italic",
+                color: "#666",
+                fontSize: "0.9rem",
               }}
             >
-              <Button
-                variant="contained"
-                onClick={() =>
-                  window.open(facebookUrl, "_blank", "noopener,noreferrer")
-                }
-                startIcon={<FacebookIcon />}
-                sx={{
-                  backgroundColor: "#1877F2",
-                  color: "#fff",
-                  "&:hover": { backgroundColor: "#155FBD" },
+              Objavu možete podijeliti tek kada bude odobrena. Trenutni status:{" "}
+              <strong>{objava.status || "na čekanju"}</strong>.
+            </p>
+          )}
+        </div>
+
+        {/* SHARE DIALOG – samo ako je dijeljenje dozvoljeno */}
+        {canShare && (
+          <Dialog
+            open={shareOpen}
+            onClose={() => setShareOpen(false)}
+            maxWidth="sm"
+            fullWidth
+          >
+            <DialogTitle>📤 Podijeli objavu</DialogTitle>
+            <DialogContent dividers>
+              <p style={{ marginBottom: "1rem", fontWeight: 500 }}>
+                Odaberi gdje želiš podijeliti:
+              </p>
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "0.75rem",
                 }}
               >
-                Facebook
+                <Button
+                  variant="contained"
+                  onClick={() =>
+                    window.open(facebookUrl, "_blank", "noopener,noreferrer")
+                  }
+                  startIcon={<FacebookIcon />}
+                  sx={{
+                    backgroundColor: "#1877F2",
+                    color: "#fff",
+                    "&:hover": { backgroundColor: "#155FBD" },
+                  }}
+                >
+                  Facebook
+                </Button>
+                <Button
+                  variant="contained"
+                  onClick={() =>
+                    window.open(whatsappUrl, "_blank", "noopener,noreferrer")
+                  }
+                  startIcon={<WhatsAppIcon />}
+                  sx={{
+                    backgroundColor: "#25D366",
+                    color: "#fff",
+                    "&:hover": { backgroundColor: "#20BA5C" },
+                  }}
+                >
+                  WhatsApp
+                </Button>
+                <Button
+                  variant="contained"
+                  onClick={() =>
+                    window.open(xUrl, "_blank", "noopener,noreferrer")
+                  }
+                  startIcon={<XIcon />}
+                  sx={{
+                    backgroundColor: "#000",
+                    color: "#fff",
+                    "&:hover": { backgroundColor: "#333" },
+                  }}
+                >
+                  X (Twitter)
+                </Button>
+                <Button
+                  variant="outlined"
+                  onClick={copyLink}
+                  startIcon={<LinkIcon />}
+                  color={copied ? "success" : "primary"}
+                  sx={{
+                    borderColor: copied ? "#4CAF50" : undefined,
+                    color: copied ? "#4CAF50" : undefined,
+                  }}
+                >
+                  {copied ? "✅ Link kopiran!" : "🔗 Kopiraj link"}
+                </Button>
+              </div>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={() => setShareOpen(false)} color="inherit">
+                Zatvori
               </Button>
-              <Button
-                variant="contained"
-                onClick={() =>
-                  window.open(whatsappUrl, "_blank", "noopener,noreferrer")
-                }
-                startIcon={<WhatsAppIcon />}
-                sx={{
-                  backgroundColor: "#25D366",
-                  color: "#fff",
-                  "&:hover": { backgroundColor: "#20BA5C" },
-                }}
-              >
-                WhatsApp
-              </Button>
-              <Button
-                variant="contained"
-                onClick={() =>
-                  window.open(xUrl, "_blank", "noopener,noreferrer")
-                }
-                startIcon={<XIcon />}
-                sx={{
-                  backgroundColor: "#000",
-                  color: "#fff",
-                  "&:hover": { backgroundColor: "#333" },
-                }}
-              >
-                X (Twitter)
-              </Button>
-              <Button
-                variant="outlined"
-                onClick={copyLink}
-                startIcon={<LinkIcon />}
-                color={copied ? "success" : "primary"}
-                sx={{
-                  borderColor: copied ? "#4CAF50" : undefined,
-                  color: copied ? "#4CAF50" : undefined,
-                }}
-              >
-                {copied ? "✅ Link kopiran!" : "🔗 Kopiraj link"}
-              </Button>
-            </div>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setShareOpen(false)} color="inherit">
-              Zatvori
-            </Button>
-          </DialogActions>
-        </Dialog>
+            </DialogActions>
+          </Dialog>
+        )}
       </div>
     </section>
   );

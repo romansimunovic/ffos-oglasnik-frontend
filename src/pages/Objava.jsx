@@ -309,7 +309,7 @@ export default function Objava() {
 
         {/* FORMA ZA NOVU OBJAVU */}
         {showForm && user && user.uloga !== "admin" && (
-          <div className="card" style={{ marginBottom: "2rem" }}>
+          <div className="card card-static" style={{ marginBottom: "2rem" }}>
             <h2 style={{ marginTop: 0, color: "#971d21" }}>Nova objava</h2>
             <form onSubmit={handleCreateObjava}>
               <TextField
