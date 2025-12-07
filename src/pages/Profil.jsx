@@ -17,6 +17,7 @@ export default function Profil() {
   const [localUser, setLocalUser] = useState(() =>
     JSON.parse(localStorage.getItem("user") || "null")
   );
+  const [mojeNaCekanju, setMojeNaCekanju] = useState([]);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [logoutConfirm, setLogoutConfirm] = useState(false);
   const fileInputRef = useRef(null);
@@ -28,6 +29,7 @@ export default function Profil() {
   useEffect(() => {
     if (!user || user.uloga === "admin") {
       setSpremljene([]);
+      setMojeNaCekanju([]);
       return;
     }
 
@@ -46,7 +48,21 @@ export default function Profil() {
       }
     };
 
+    const fetchMojeNaCekanju = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const { data } = await api.get("/objave/moje?status=na čekanju", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (isMounted) setMojeNaCekanju(data || []);
+      } catch (err) {
+        console.error("Greška pri dohvaćanju mojih objava na čekanju:", err);
+        if (isMounted) setMojeNaCekanju([]);
+      }
+    };
+
     fetchSpremljene();
+    fetchMojeNaCekanju();
 
     const handler = () => fetchSpremljene();
     window.addEventListener("refreshSpremljene", handler);
@@ -228,6 +244,45 @@ export default function Profil() {
                       >
                         Ukloni
                       </button>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </section>
+        )}
+
+        {user.uloga !== "admin" && (
+          <section
+            className="card card-static saved-card"
+            style={{ marginTop: "1.5rem" }}
+          >
+            <h3>Moje objave na čekanju</h3>
+            {mojeNaCekanju.length === 0 ? (
+              <p>Trenutno nemaš objava na čekanju.</p>
+            ) : (
+              <div className="card-grid">
+                {mojeNaCekanju.map((o) => (
+                  <Link
+                    key={o._id}
+                    to={`/objava/${o._id}`}
+                    className="card-link"
+                  >
+                    <div className="card saved-post">
+                      <h4>{o.naslov || "Bez naslova"}</h4>
+                      <p>
+                        {o.sadrzaj?.length > 120
+                          ? `${o.sadrzaj.slice(0, 120)}...`
+                          : o.sadrzaj || "Nema opisa."}
+                      </p>
+                      <p className="card-date">
+                        {o.datum
+                          ? new Date(o.datum).toLocaleDateString("hr-HR")
+                          : ""}
+                      </p>
+                      <p className="card-date">
+                        Status: {o.status || "na čekanju"}
+                      </p>
                     </div>
                   </Link>
                 ))}
