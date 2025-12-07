@@ -223,10 +223,31 @@ export default function Navbar() {
   return (
     <AppBar position="static" className="navbar">
       {isMobile ? (
-        <Toolbar>
-          <IconButton color="inherit" onClick={toggleDrawer}>
+        <Toolbar sx={{ display: "flex", alignItems: "center" }}>
+          {/* LOGO LJEVO */}
+          <Box
+            className="navbar-logo-group"
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              cursor: "pointer",
+              flexGrow: 1,
+            }}
+            onClick={() => navigate("/")}
+          >
+            <img src={FFOSLogo} alt="FFOS" className="navbar-logo" />
+            <span className="navbar-title">FFOS Oglasnik</span>
+          </Box>
+
+          {/* BURGER DESNO */}
+          <IconButton
+            color="inherit"
+            onClick={toggleDrawer}
+            sx={{ marginLeft: "auto" }} // gurne ga skroz desno
+          >
             <MenuIcon />
           </IconButton>
+
           {MobileDrawer}
         </Toolbar>
       ) : (
