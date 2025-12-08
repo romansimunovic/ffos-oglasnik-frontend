@@ -81,7 +81,7 @@ export default function Home() {
       <Box
         sx={{
           background:
-            "linear-gradient(135deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.10) 100%), url('https://www.ffos.unios.hr/wp-content/uploads/2025/02/IMG_7438-scaled.jpg') center/cover",
+            "linear-gradient(135deg, rgba(236, 205, 205, 0.25) 0%, rgba(255,255,255,0.10) 100%), url('https://www.ffos.unios.hr/wp-content/uploads/2025/02/IMG_7438-scaled.jpg') center/cover",
           backgroundAttachment: "fixed",
           color: "#fff",
           py: { xs: 8, md: 12 },
@@ -94,11 +94,11 @@ export default function Home() {
           <Typography variant="overline" sx={{ fontSize: "1.1rem", fontWeight: 800, letterSpacing: 3, mb: 2, textShadow: "0 2px 6px rgba(0,0,0,1)" }}>
             🎓 Dobrodošli na
           </Typography>
-          <Typography variant="h1" sx={{ fontSize: { xs: "2.5rem", md: "4rem" }, fontWeight: 900, mb: 2, textShadow: "2px 2px 8px rgba(111,110,110,0.5)", letterSpacing: -1 }}>
+          <Typography variant="h1" sx={{ fontSize: { xs: "2.5rem", md: "4rem" }, fontWeight: 900, mb: 2, textShadow: "2px 2px 8px rgba(254, 241, 241, 0.5)", letterSpacing: -1 }}>
             FFOS Oglasnik
           </Typography>
           <Typography variant="h5" sx={{ fontSize: { xs: "1rem", md: "1.3rem" }, fontWeight: 300, maxWidth: "600px", mx: "auto", mb: 4, lineHeight: 1.6, textShadow: "0 2px 6px rgba(0,0,0,3)" }}>
-            Digitalni prostor Filozofskog fakulteta gdje se dijele studentski projekti, radionice, konferencije i akademske prilike.
+            Digitalni prostor FFOS-a na kojem možete dijeliti studentske projekti, radionice, konferencije i akademske prilike.
           </Typography>
           <Button
             variant="contained"
@@ -135,7 +135,9 @@ export default function Home() {
         </Box>
 
         {/* ZADNJE OBJAVE */}
-        <Typography variant="h4" sx={{ fontWeight: 700, mb: 3 }}>Zadnje objave</Typography>
+        <Typography variant="h1" sx={{ fontSize: { xs: "1.5rem", md: "2.5rem" }, fontWeight: 700, mb: 2, textShadow: "5px 2px 8px rgba(146, 139, 139, 0.5)", letterSpacing: -1 }}>
+            Najnovije objave
+          </Typography>
 
         {loading ? (
           <p className="center-msg">Učitavanje objava...</p>
