@@ -60,8 +60,9 @@ export default function Navbar() {
 
   const toggleDrawer = () => setMobileOpen(!mobileOpen);
 
+  // build avatar src; fallback na public/default-avatar.png
   const buildAvatarSrc = (avatarPath) => {
-    if (!avatarPath) return null;
+    if (!avatarPath) return "/default-avatar.png";
     if (avatarPath.startsWith("http")) return `${avatarPath}?t=${Date.now()}`;
     const base = api.defaults.baseURL?.replace(/\/api\/?$/i, "") || "";
     return `${base}${avatarPath}?t=${Date.now()}`;
@@ -78,27 +79,23 @@ export default function Navbar() {
 
   // DESKTOP NAV
   const DesktopNav = (
-    <Box className="navbar-inner">
+    <Box className="navbar-inner" sx={{ width: "100%", display: "flex", alignItems: "center" }}>
       {/* Lijevi dio – logo skroz lijevo */}
-      <Box className="navbar-section navbar-section-left">
-        <Box className="navbar-logo-group" onClick={() => navigate("/")}>
+      <Box className="navbar-section navbar-section-left" sx={{ display: "flex", alignItems: "center" }}>
+        <Box className="navbar-logo-group" onClick={() => navigate("/")} sx={{ cursor: "pointer" }}>
           <img src={FFOSLogo} alt="FFOS" className="navbar-logo" />
         </Box>
       </Box>
 
       {/* Srednji dio – linkovi u sredini */}
-      <Box className="navbar-section navbar-section-center">
+      <Box className="navbar-section navbar-section-center" sx={{ flexGrow: 1, display: "flex", justifyContent: "center" }}>
         <Box className="navbar-links">
           {navLinks.map((link) => (
             <Button
               key={link.name}
               component={Link}
               to={link.href}
-              className={
-                location.pathname === link.href
-                  ? "navbar-link navbar-link-active"
-                  : "navbar-link"
-              }
+              className={location.pathname === link.href ? "navbar-link navbar-link-active" : "navbar-link"}
             >
               {link.name}
             </Button>
@@ -107,56 +104,44 @@ export default function Navbar() {
       </Box>
 
       {/* Desni dio – admin, prijava/odjava i avatar skroz desno */}
-      <Box className="navbar-section navbar-section-right">
+      <Box className="navbar-section navbar-section-right" sx={{ display: "flex", alignItems: "center", gap: 1 }}>
         {user?.uloga === "admin" && (
           <Button component={Link} to="/admin" className="navbar-chip">
             Admin panel
-            {zahtjeviCount > 0 && (
-              <span className="navbar-chip-badge">{zahtjeviCount}</span>
-            )}
+            {zahtjeviCount > 0 && <span className="navbar-chip-badge">{zahtjeviCount}</span>}
           </Button>
         )}
 
         {user ? (
           <>
-            {/* Prvo gumb Odjava */}
-            <Button
-              onClick={handleLogout}
-              startIcon={<LogoutIcon />}
-              className="navbar-logout"
-            >
+            {/* Odjava */}
+            <Button onClick={handleLogout} startIcon={<LogoutIcon />} className="navbar-logout">
               Odjava
             </Button>
 
-            {/* Pa desno od njega avatar */}
-            <IconButton
-              onClick={handleProfileClick}
-              className="navbar-avatar-btn"
-            >
-              {avatarSrc ? (
-                <Avatar
-                  src={avatarSrc}
-                  alt={user.ime}
-                  className="navbar-avatar"
-                />
-              ) : (
-                <Avatar className="navbar-avatar">
-                  {user.ime?.charAt(0) || "U"}
-                </Avatar>
-              )}
+            {/* Avatar (koristi default-avatar.png ako nema user.avatar) */}
+            <IconButton onClick={handleProfileClick} className="navbar-avatar-btn" sx={{ p: 0 }}>
+              <Avatar
+                src={avatarSrc}
+                alt={user.ime || "Profil"}
+                className="navbar-avatar"
+                sx={{ width: 36, height: 36, border: "2px solid rgba(255,255,255,0.12)" }}
+              />
             </IconButton>
           </>
         ) : (
           <>
-            {/* Za neprijavljenog: Prijava + generički avatar desno */}
+            {/* Prijava + default avatar */}
             <Button component={Link} to="/login" className="navbar-logout">
               Prijava
             </Button>
-            <IconButton
-              onClick={handleProfileClick}
-              className="navbar-avatar-btn"
-            >
-              <Avatar className="navbar-avatar">?</Avatar>
+            <IconButton onClick={handleProfileClick} className="navbar-avatar-btn" sx={{ p: 0 }}>
+              <Avatar
+                src="/default-avatar.png"
+                alt="Prijava"
+                className="navbar-avatar"
+                sx={{ width: 36, height: 36 }}
+              />
             </IconButton>
           </>
         )}
@@ -167,18 +152,14 @@ export default function Navbar() {
   // MOBILNI DRAWER ostaje isto
   const MobileDrawer = (
     <Drawer anchor="right" open={mobileOpen} onClose={toggleDrawer}>
-      <List className="navbar-drawer">
+      <List className="navbar-drawer" sx={{ width: 250 }}>
         <ListItem>
           <ListItemButton onClick={toggleDrawer}>Zatvori</ListItemButton>
         </ListItem>
 
         {navLinks.map((link) => (
           <ListItem key={link.name} disablePadding>
-            <ListItemButton
-              component={Link}
-              to={link.href}
-              onClick={toggleDrawer}
-            >
+            <ListItemButton component={Link} to={link.href} onClick={toggleDrawer}>
               <ListItemText primary={link.name} />
             </ListItemButton>
           </ListItem>
@@ -224,25 +205,12 @@ export default function Navbar() {
       {isMobile ? (
         <Toolbar sx={{ display: "flex", alignItems: "center" }}>
           {/* LOGO LJEVO */}
-          <Box
-            className="navbar-logo-group"
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              cursor: "pointer",
-              flexGrow: 1,
-            }}
-            onClick={() => navigate("/")}
-          >
+          <Box className="navbar-logo-group" sx={{ display: "flex", alignItems: "center", cursor: "pointer", flexGrow: 1 }} onClick={() => navigate("/")}>
             <img src={FFOSLogo} alt="FFOS" className="navbar-logo" />
           </Box>
 
           {/* BURGER DESNO */}
-          <IconButton
-            color="inherit"
-            onClick={toggleDrawer}
-            sx={{ marginLeft: "auto" }} // gurne ga skroz desno
-          >
+          <IconButton color="inherit" onClick={toggleDrawer} sx={{ marginLeft: "auto" }}>
             <MenuIcon />
           </IconButton>
 
