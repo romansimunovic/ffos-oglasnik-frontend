@@ -1,5 +1,5 @@
 // src/pages/AdminPanel.jsx
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import {
   Box, Button, Checkbox, Chip,
   Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions,
@@ -22,8 +22,10 @@ export default function AdminPanel() {
   const [lastBulkAction, setLastBulkAction] = useState(null);
 
   const [reasonDialogOpen, setReasonDialogOpen] = useState(false);
-  const [reasonForId, setReasonForId] = useState(null);
+  const [reasonForId, setReasonForId] = useState(null); // single id or "__bulk__:statusKey"
   const [rejectReason, setRejectReason] = useState("");
+
+  const bulkTargetIdsRef = useRef([]); // <-- koristi umjesto window.__admin_bulk_targetIds
 
   const toast = useToast();
 
@@ -62,15 +64,19 @@ export default function AdminPanel() {
     const prevStatus = objave.find(o => o._id === id)?.status;
     setLoadingId(id);
     try {
-      await api.patch(`/objave/${id}/status`, { status: noviStatus });
+      await api.patch(`/objave/${id}/status`, { status: noviStatus, reason: reason || undefined });
       setObjave(prev => prev.map(o => o._id === id ? { ...o, status: noviStatus } : o));
       setLastBulkAction({ type: "status", items: [{ id, prevStatus }] });
 
+      // notifikacija autoru
       const obj = objave.find(o => o._id === id);
       const authorId = obj?.autor?._id || obj?.autorId || null;
       if (authorId) {
         const title = noviStatus === "odobreno" ? "Objava odobrena" : "Objava odbijena";
-        const message = noviStatus === "odobreno" ? "Vaša objava je odobrena i postala je javna." : reason || "Objava odbijena od strane administratora.";
+        const message = noviStatus === "odobreno"
+          ? "Vaša objava je odobrena i postala je javna."
+          : (reason || "Objava odbijena od strane administratora.");
+        // endpoint: POST /korisnik/:userId/obavijesti (protect)
         await api.post(`/korisnik/${authorId}/obavijesti`, { title, message, objavaId: id });
       }
 
@@ -87,14 +93,16 @@ export default function AdminPanel() {
     }
   };
 
-  const handleBulkStatusChange = async (statusKey, noviStatus, askReason = false) => {
-    const targetIds = grupirane[statusKey].filter(o => selectedIds.includes(o._id)).map(o => o._id);
+  // moguće proslijediti ciljnu listu targetIdsOverride (koristi se kod bulk nakon reason dialog)
+  const handleBulkStatusChange = async (statusKey, noviStatus, askReason = false, targetIdsOverride = null) => {
+    const candidate = grupirane[statusKey].map(o => o._id);
+    const targetIds = Array.isArray(targetIdsOverride) ? targetIdsOverride : candidate.filter(o => selectedIds.includes(o));
     if (!targetIds.length) return toast("Nema odabranih objava.", "info");
 
     if (noviStatus === "odbijeno" && askReason) {
       setReasonForId("__bulk__:" + statusKey);
+      bulkTargetIdsRef.current = targetIds;
       setReasonDialogOpen(true);
-      window.__admin_bulk_targetIds = targetIds;
       return;
     }
 
@@ -104,6 +112,25 @@ export default function AdminPanel() {
       await Promise.all(targetIds.map(id => api.patch(`/objave/${id}/status`, { status: noviStatus })));
       setObjave(prev => prev.map(o => targetIds.includes(o._id) ? { ...o, status: noviStatus } : o));
       setLastBulkAction({ type: "status", items: prevStatuses });
+
+      // send notifications to authors
+      await Promise.all(
+        objave.filter(o => targetIds.includes(o._id)).map(async o => {
+          const authorId = o.autor?._id || o.autor;
+          if (!authorId) return;
+          const title = noviStatus === "odobreno" ? "Objava odobrena" : "Objava odbijena";
+          const message = noviStatus === "odobreno"
+            ? "Vaša objava je odobrena i postala je javna."
+            : (rejectReason || "Objava odbijena od strane administratora.");
+          try {
+            await api.post(`/korisnik/${authorId}/obavijesti`, { title, message, objavaId: o._id });
+          } catch (e) {
+            // ignore individual send fails
+            console.warn("notif fail:", e);
+          }
+        })
+      );
+
       setSelectedIds(prev => prev.filter(id => !targetIds.includes(id)));
       toast(`${noviStatus === "odobreno" ? "Odobreno" : "Odbijeno"} ${targetIds.length} objava.`, "success");
     } catch (err) {
@@ -207,18 +234,20 @@ export default function AdminPanel() {
             <TextField fullWidth multiline minRows={3} value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} placeholder="Unesi razlog..." />
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setReasonDialogOpen(false)}>Odustani</Button>
+            <Button onClick={() => { setReasonDialogOpen(false); setReasonForId(null); setRejectReason(""); }}>Odustani</Button>
             <Button color="error" onClick={async () => {
               if (reasonForId?.startsWith("__bulk__")) {
                 const statusKey = reasonForId.split("__bulk__:")[1];
-                const targetIds = (window as any).__admin_bulk_targetIds || [];
-                await handleBulkStatusChange(statusKey, "odbijeno", false);
+                const targetIds = Array.isArray(bulkTargetIdsRef.current) ? bulkTargetIdsRef.current : [];
+                setReasonDialogOpen(false);
+                setReasonForId(null);
+                // proslijedi targetIdsOverride da se koristi ista lista koju smo spremili
+                await handleBulkStatusChange(statusKey, "odbijeno", false, targetIds);
               } else {
                 await handleStatusChange(reasonForId, "odbijeno", rejectReason);
               }
-              setReasonDialogOpen(false);
               setRejectReason("");
-            }}>Pošalji</Button>
+            }} variant="contained">Pošalji</Button>
           </DialogActions>
         </Dialog>
       </div>
