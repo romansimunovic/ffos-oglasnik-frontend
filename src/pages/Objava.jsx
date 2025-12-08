@@ -328,9 +328,28 @@ export default function Objava() {
 
           {isMobile && (
             <div style={{ marginBottom: "1rem", display: "flex", justifyContent: "center" }}>
-              <Button variant="outlined" size="small" onClick={() => setShowMobileFilters((prev) => !prev)} startIcon={<FilterAltOutlinedIcon />} sx={{ borderColor: "#971d21", color: "#971d21", width: "100%", maxWidth: 400, borderRadius: "8px", py: 1.1, fontWeight: 600 }}>
-                {showMobileFilters ? "Sakrij filtere" : "Prikaži filtere"}
-              </Button>
+              <Button
+  variant="outlined"
+  size="small"
+  onClick={(e) => {
+    setShowMobileFilters((prev) => !prev);
+    e.currentTarget.blur(); // uklanja fokus odmah nakon klika
+  }}
+  startIcon={<FilterAltOutlinedIcon />}
+  sx={{
+    borderColor: "#971d21",
+    color: "#971d21",
+    width: "100%",
+    maxWidth: 400,
+    borderRadius: "8px",
+    py: 1.1,
+    fontWeight: 600,
+    "&:focus": { boxShadow: "none", outline: "none" }, // uklanja crveni fokus
+  }}
+>
+  {showMobileFilters ? "Sakrij filtere" : "Prikaži filtere"}
+</Button>
+
             </div>
           )}
 
