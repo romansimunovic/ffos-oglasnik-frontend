@@ -147,31 +147,61 @@ export default function Home() {
         ) : (
           <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "repeat(2,1fr)", md: "repeat(3,1fr)" }, gap: 3, mb: 4 }}>
             {objave.map((obj) => {
-              const autor = obj.autor && typeof obj.autor === "object" ? obj.autor : null;
-              const autorIme = autor?.ime || obj.autor || "Nepoznato";
-              const autorAvatar = autor?.avatar || obj.autorAvatar || null;
-              const avatarSrc = buildAvatarSrc(autorAvatar);
-              const isNew = obj.datum && new Date() - new Date(obj.datum) < 3 * 24 * 60 * 60 * 1000;
+  const autor = obj.autor && typeof obj.autor === "object" ? obj.autor : null;
+  const autorIme = autor?.ime || obj.autor || "Nepoznato";
+  const autorAvatar = autor?.avatar || obj.autorAvatar || null;
+  const avatarSrc = buildAvatarSrc(autorAvatar);
+  const isNew = obj.datum && new Date() - new Date(obj.datum) < 3 * 24 * 60 * 60 * 1000;
 
-              return (
-                <Card key={obj._id} sx={{ cursor: "pointer", p: 2, position: "relative" }} onClick={() => navigate(`/objava/${obj._id}`)}>
-                  {isNew && <Box sx={{ position: "absolute", top: 8, left: 8, bgcolor: "#10b981", color: "#fff", px: 1.5, py: 0.5, borderRadius: 10, fontSize: "0.75rem", fontWeight: 700 }}>Najnovije</Box>}
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1 }}>
-                    <img src={avatarSrc} alt={autorIme} style={{ width: 40, height: 40, borderRadius: "50%", border: "2px solid #b41f24" }} />
-                    <Typography sx={{ fontWeight: 700, color: "#b41f24" }}>{autorIme}</Typography>
-                  </Box>
-                  <Typography sx={{ fontWeight: 700, mb: 1 }}>{obj.naslov || "Bez naslova"}</Typography>
-                  <Typography sx={{ fontSize: "0.9rem", color: "#555" }}>
-                    {obj.sadrzaj?.length > 120 ? `${obj.sadrzaj.slice(0, 120)}...` : obj.sadrzaj || "Nema opisa."}
-                  </Typography>
-                  <Box sx={{ display: "flex", gap: 1, mt: 2, fontSize: "0.8rem", color: "#666", flexWrap: "wrap" }}>
-                    <span>📌 {obj.tip || "Ostalo"}</span>
-                    <span>🏫 {ODSJECI.find((ods) => ods.id === obj.odsjek)?.naziv || "-"}</span>
-                    <span sx={{ ml: "auto" }}>📅 {obj.datum ? new Date(obj.datum).toLocaleDateString("hr-HR") : ""}</span>
-                  </Box>
-                </Card>
-              );
-            })}
+  return (
+    <Card
+      key={obj._id}
+      sx={{ cursor: "pointer", p: 2, position: "relative" }}
+      onClick={() => navigate(`/objava/${obj._id}`)}
+    >
+      {/* Najnovije badge u gornjem desnom kutu */}
+      {isNew && (
+        <Box
+          sx={{
+            position: "absolute",
+            top: 8,
+            right: 8,
+            bgcolor: "#10b981",
+            color: "#fff",
+            px: 1.5,
+            py: 0.5,
+            borderRadius: 10,
+            fontSize: "0.75rem",
+            fontWeight: 700,
+            zIndex: 1,
+          }}
+        >
+          Najnovije
+        </Box>
+      )}
+
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1 }}>
+        <img
+          src={avatarSrc}
+          alt={autorIme}
+          style={{ width: 40, height: 40, borderRadius: "50%", border: "2px solid #b41f24" }}
+        />
+        <Typography sx={{ fontWeight: 700, color: "#b41f24" }}>{autorIme}</Typography>
+      </Box>
+
+      <Typography sx={{ fontWeight: 700, mb: 1 }}>{obj.naslov || "Bez naslova"}</Typography>
+      <Typography sx={{ fontSize: "0.9rem", color: "#555" }}>
+        {obj.sadrzaj?.length > 120 ? `${obj.sadrzaj.slice(0, 120)}...` : obj.sadrzaj || "Nema opisa."}
+      </Typography>
+      <Box sx={{ display: "flex", gap: 1, mt: 2, fontSize: "0.8rem", color: "#666", flexWrap: "wrap" }}>
+        <span>📌 {obj.tip || "Ostalo"}</span>
+        <span>🏫 {ODSJECI.find((ods) => ods.id === obj.odsjek)?.naziv || "-"}</span>
+        <span sx={{ ml: "auto" }}>📅 {obj.datum ? new Date(obj.datum).toLocaleDateString("hr-HR") : ""}</span>
+      </Box>
+    </Card>
+  );
+})}
+
           </Box>
         )}
 
