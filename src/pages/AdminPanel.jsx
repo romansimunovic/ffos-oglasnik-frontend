@@ -1,3 +1,4 @@
+// src/pages/AdminPanel.jsx
 import { useEffect, useState } from "react";
 import {
   Dialog,
@@ -14,11 +15,13 @@ import {
   IconButton,
   Chip,
   Checkbox,
+  Box,
 } from "@mui/material";
 import PushPinIcon from "@mui/icons-material/PushPin";
 import PushPinOutlinedIcon from "@mui/icons-material/PushPinOutlined";
 import NewReleasesIcon from "@mui/icons-material/NewReleases";
 import NewReleasesOutlinedIcon from "@mui/icons-material/NewReleasesOutlined";
+import DeleteIcon from "@mui/icons-material/Delete";
 import api from "../api/axiosInstance";
 import { useToast } from "../components/Toast";
 import { ODSJECI } from "../constants/odsjeci";
@@ -33,9 +36,9 @@ export default function AdminPanel() {
   const [selectedIds, setSelectedIds] = useState([]);
   const [lastBulkAction, setLastBulkAction] = useState(null);
 
-  // 🔹 NOVO: filtriranje po datumu
-  const [dateFrom, setDateFrom] = useState("");
-  const [dateTo, setDateTo] = useState("");
+  const [reasonDialogOpen, setReasonDialogOpen] = useState(false);
+  const [reasonForId, setReasonForId] = useState(null); // id koji odbijamo
+  const [rejectReason, setRejectReason] = useState("");
 
   const toast = useToast();
 
@@ -57,7 +60,6 @@ export default function AdminPanel() {
       const params = new URLSearchParams();
       if (search) params.append("search", search);
       if (filterTip !== "Sve") params.append("tip", filterTip);
-
       const { data } = await api.get(`/objave/admin/sve?${params}`);
       setObjave(data || []);
     } catch (err) {
@@ -66,7 +68,6 @@ export default function AdminPanel() {
     }
   };
 
-  // helper za selekciju
   const toggleSelect = (id) => {
     setSelectedIds((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
@@ -79,85 +80,112 @@ export default function AdminPanel() {
     const allSelected = selectedInStatus.length === statusIds.length;
 
     setSelectedIds((prev) => {
-      if (allSelected) {
-        // makni sve iz tog statusa
-        return prev.filter((id) => !statusIds.includes(id));
-      } else {
-        // dodaj sve iz tog statusa
-        const asSet = new Set(prev);
-        statusIds.forEach((id) => asSet.add(id));
-        return Array.from(asSet);
-      }
+      if (allSelected) return prev.filter((id) => !statusIds.includes(id));
+      const asSet = new Set(prev);
+      statusIds.forEach((id) => asSet.add(id));
+      return Array.from(asSet);
     });
   };
 
-  // single change – i dalje radi kao prije, samo spremamo za undo
-  const handleStatusChange = async (id, noviStatus) => {
+  // helper: nakon što status promijenimo, šaljemo notifikaciju autoru
+  const sendNotificationToAuthor = async (authorId, title, message, objavaId) => {
+    if (!authorId) return;
+    try {
+      await api.post(`/korisnik/${authorId}/obavijesti`, {
+        title,
+        message,
+        objavaId,
+      });
+    } catch (err) {
+      console.warn("Ne mogu poslati notifikaciju:", err);
+    }
+  };
+
+  // pojedinačna promjena statusa (sad podržava razlog za odbijanje)
+  const handleStatusChange = async (id, noviStatus, reason = null) => {
     const prevStatus = objave.find((o) => o._id === id)?.status;
     setLoadingId(id);
     try {
+      // backend očekuje samo status; mi također zovemo endpoint za notifikaciju
       await api.patch(`/objave/${id}/status`, { status: noviStatus });
-      setObjave((prev) =>
-        prev.map((o) => (o._id === id ? { ...o, status: noviStatus } : o))
-      );
 
-      setLastBulkAction({
-        type: "status",
-        items: [{ id, prevStatus }],
-      });
-
-      toast(
-        noviStatus === "odobreno" ? "Objava odobrena!" : "Objava odbijena!",
-        "success"
+      // ažuriraj lokalni state
+      const updated = objave.map((o) =>
+        o._id === id ? { ...o, status: noviStatus } : o
       );
+      setObjave(updated);
+
+      // spremi za undo
+      setLastBulkAction({ type: "status", items: [{ id, prevStatus }] });
+
+      // dohvati autora iz objave (ako postoji)
+      const obj = objave.find((o) => o._id === id);
+      const authorId = obj?.autor?._id || obj?.autorId || null;
+
+      // posalji notifikaciju autoru (razlog ide u poruku)
+      if (noviStatus === "odbijeno") {
+        const title = "Objava odbijena";
+        const message =
+          (reason && reason.trim()) ||
+          "Vaša objava je odbijena od strane administratora.";
+        await sendNotificationToAuthor(authorId, title, message, id);
+      } else if (noviStatus === "odobreno") {
+        await sendNotificationToAuthor(
+          authorId,
+          "Objava odobrena",
+          "Vaša objava je odobrena i postala je javna.",
+          id
+        );
+      }
+
+      toast(noviStatus === "odobreno" ? "Objava odobrena!" : "Objava odbijena!", "success");
     } catch (err) {
       console.error("update status error:", err);
       toast("Greška pri promjeni statusa.", "error");
     }
     setLoadingId(null);
+    // zatvori reason dialog ako je otvoren za taj id
+    if (reasonForId === id) {
+      setReasonDialogOpen(false);
+      setReasonForId(null);
+      setRejectReason("");
+    }
   };
 
-  // bulk approve / reject
-  const handleBulkStatusChange = async (statusKey, noviStatus, grupirane) => {
+  // bulk promjena (za odbijanje grupno, otvorimo modal s razlogom)
+  const handleBulkStatusChange = async (statusKey, noviStatus, grupirane, askReason = false) => {
     const kandidatIds = grupirane[statusKey].map((o) => o._id);
     const targetIds = kandidatIds.filter((id) => selectedIds.includes(id));
+    if (targetIds.length === 0) return toast("Nema odabranih objava za ovu akciju.", "info");
 
-    if (targetIds.length === 0) {
-      return toast("Nema odabranih objava za ovu akciju.", "info");
+    if (noviStatus === "odbijeno" && askReason) {
+      // otvori dialog za unos razloga i pamtimo targetIds u state
+      setReasonForId("__bulk__:" + statusKey);
+      setReasonDialogOpen(true);
+      (window as any).__admin_bulk_targetIds = targetIds; // quick hack za prosljeđivanje
+      return;
     }
 
-    const prevStatuses = objave
-      .filter((o) => targetIds.includes(o._id))
-      .map((o) => ({ id: o._id, prevStatus: o.status }));
-
+    const prevStatuses = objave.filter((o) => targetIds.includes(o._id)).map((o) => ({ id: o._id, prevStatus: o.status }));
     setBulkLoading(true);
     try {
-      await Promise.all(
-        targetIds.map((id) =>
-          api.patch(`/objave/${id}/status`, { status: noviStatus })
-        )
-      );
+      await Promise.all(targetIds.map((id) => api.patch(`/objave/${id}/status`, { status: noviStatus })));
 
-      setObjave((prev) =>
-        prev.map((o) =>
-          targetIds.includes(o._id) ? { ...o, status: noviStatus } : o
-        )
-      );
+      setObjave((prev) => prev.map((o) => (targetIds.includes(o._id) ? { ...o, status: noviStatus } : o)));
+      setLastBulkAction({ type: "status", items: prevStatuses });
 
-      setLastBulkAction({
-        type: "status",
-        items: prevStatuses,
-      });
+      // poslji notifikacije autorima (ako odbijamo, može biti isti razlog)
+      if (noviStatus === "odbijeno") {
+        const reason = rejectReason || "Objava je odbijena od strane administratora.";
+        const authors = objave.filter((o) => targetIds.includes(o._id)).map((o) => ({ id: o._id, authorId: o.autor?._id || o.autor }));
+        await Promise.all(authors.map((a) => sendNotificationToAuthor(a.authorId, "Objava odbijena", reason, a.id)));
+      } else if (noviStatus === "odobreno") {
+        const authors = objave.filter((o) => targetIds.includes(o._id)).map((o) => ({ id: o._id, authorId: o.autor?._id || o.autor }));
+        await Promise.all(authors.map((a) => sendNotificationToAuthor(a.authorId, "Objava odobrena", "Objava je odobrena.", a.id)));
+      }
 
-      // nakon bulk akcije makni selekciju iz tog statusa
       setSelectedIds((prev) => prev.filter((id) => !targetIds.includes(id)));
-
-      toast(
-        noviStatus === "odobreno"
-          ? `Odobreno ${targetIds.length} objava.`
-          : `Odbijeno ${targetIds.length} objava.`,
-        "success"
-      );
+      toast(noviStatus === "odobreno" ? `Odobreno ${targetIds.length} objava.` : `Odbijeno ${targetIds.length} objava.`, "success");
     } catch (err) {
       console.error("bulk status error:", err);
       toast("Greška pri grupnoj promjeni statusa.", "error");
@@ -166,37 +194,14 @@ export default function AdminPanel() {
   };
 
   const handleBulkDeleteSelected = async () => {
-    // dopuštamo brisanje samo odobrenih i odbijenih
-    const deletableIds = objave
-      .filter(
-        (o) =>
-          selectedIds.includes(o._id) &&
-          (o.status === "odobreno" || o.status === "odbijeno")
-      )
-      .map((o) => o._id);
-
-    if (deletableIds.length === 0) {
-      return toast(
-        "Nema odabranih prihvaćenih/odbijenih objava za brisanje.",
-        "info"
-      );
-    }
-
-    if (
-      !window.confirm(
-        `Sigurno želiš obrisati ${deletableIds.length} odabranih objava? Ova radnja je nepovratna.`
-      )
-    ) {
-      return;
-    }
-
+    const deletableIds = objave.filter((o) => selectedIds.includes(o._id) && (o.status === "odobreno" || o.status === "odbijeno")).map((o) => o._id);
+    if (deletableIds.length === 0) return toast("Nema odabranih prihvaćenih/odbijenih objava za brisanje.", "info");
+    if (!window.confirm(`Sigurno želiš obrisati ${deletableIds.length} odabranih objava?`)) return;
     setBulkLoading(true);
     try {
       await Promise.all(deletableIds.map((id) => api.delete(`/objave/${id}`)));
-
       setObjave((prev) => prev.filter((o) => !deletableIds.includes(o._id)));
       setSelectedIds((prev) => prev.filter((id) => !deletableIds.includes(id)));
-
       toast(`Obrisano ${deletableIds.length} objava.`, "success");
     } catch (err) {
       console.error("bulk delete error:", err);
@@ -206,28 +211,16 @@ export default function AdminPanel() {
   };
 
   const handleUndoLastAction = async () => {
-    if (!lastBulkAction || lastBulkAction.type !== "status") {
-      return;
-    }
-
+    if (!lastBulkAction || lastBulkAction.type !== "status") return;
     const items = lastBulkAction.items;
     if (!items || items.length === 0) return;
-
     setBulkLoading(true);
     try {
-      await Promise.all(
-        items.map((it) =>
-          api.patch(`/objave/${it.id}/status`, { status: it.prevStatus })
-        )
-      );
-
-      setObjave((prev) =>
-        prev.map((o) => {
-          const found = items.find((it) => it.id === o._id);
-          return found ? { ...o, status: found.prevStatus } : o;
-        })
-      );
-
+      await Promise.all(items.map((it) => api.patch(`/objave/${it.id}/status`, { status: it.prevStatus })));
+      setObjave((prev) => prev.map((o) => {
+        const found = items.find((it) => it.id === o._id);
+        return found ? { ...o, status: found.prevStatus } : o;
+      }));
       toast("Zadnja akcija je poništena.", "success");
       setLastBulkAction(null);
     } catch (err) {
@@ -241,13 +234,8 @@ export default function AdminPanel() {
     setLoadingId(id);
     try {
       await api.patch(`/objave/${id}/pin`);
-      setObjave((prev) =>
-        prev.map((o) => (o._id === id ? { ...o, pinned: !currentPinned } : o))
-      );
-      toast(
-        currentPinned ? "Objava otkvačena." : "Objava prikvačena!",
-        "success"
-      );
+      setObjave((prev) => prev.map((o) => (o._id === id ? { ...o, pinned: !currentPinned } : o)));
+      toast(currentPinned ? "Objava otkvačena." : "Objava prikvačena!", "success");
     } catch (err) {
       console.error("toggle pin error:", err);
       toast("Greška pri prikvačivanju objave.", "error");
@@ -259,17 +247,8 @@ export default function AdminPanel() {
     setLoadingId(id);
     try {
       await api.patch(`/objave/${id}/urgentno`);
-      setObjave((prev) =>
-        prev.map((o) =>
-          o._id === id ? { ...o, urgentno: !currentUrgentno } : o
-        )
-      );
-      toast(
-        currentUrgentno
-          ? "Objava više nije hitna."
-          : "Objava označena kao hitna!",
-        "success"
-      );
+      setObjave((prev) => prev.map((o) => (o._id === id ? { ...o, urgentno: !currentUrgentno } : o)));
+      toast(currentUrgentno ? "Objava više nije hitna." : "Objava označena kao hitna!", "success");
     } catch (err) {
       console.error("toggle urgentno error:", err);
       toast("Greška pri označavanju objave.", "error");
@@ -277,10 +256,7 @@ export default function AdminPanel() {
     setLoadingId(null);
   };
 
-  const confirmDelete = (id) => {
-    setDeleteId(id);
-  };
-
+  const confirmDelete = (id) => setDeleteId(id);
   const handleDelete = async () => {
     if (!deleteId) return;
     setLoadingId(deleteId);
@@ -296,44 +272,9 @@ export default function AdminPanel() {
     setDeleteId(null);
   };
 
-  // 🔹 LOKALNO FILTRIRANJE PO DATUMU
-  const filteredObjave = objave.filter((o) => {
-    if (!dateFrom && !dateTo) return true; // nema filtera po datumu
-
-    if (!o.datum) return false; // ako nema datum, ne prikazuj kad je aktivan date filter
-
-    const d = new Date(o.datum);
-    if (Number.isNaN(d.getTime())) return false;
-
-    if (dateFrom) {
-      const from = new Date(dateFrom + "T00:00:00");
-      if (d < from) return false;
-    }
-    if (dateTo) {
-      const to = new Date(dateTo + "T23:59:59");
-      if (d > to) return false;
-    }
-    return true;
-  });
-
-  // Grupiranje po statusu (NA FILTRIRANIM OBJAVAMA!)
-  const grupirane = {
-    "na čekanju": [],
-    odobreno: [],
-    odbijeno: [],
-  };
-  filteredObjave.forEach((o) => {
-    if (grupirane[o.status]) grupirane[o.status].push(o);
-  });
-
-  // koliko je odabranih u kojem statusu (također na filtriranom setu)
-  const selectedPendingCount = grupirane["na čekanju"].filter((o) =>
-    selectedIds.includes(o._id)
-  ).length;
-
-  const selectedFinalCount =
-    grupirane["odobreno"].filter((o) => selectedIds.includes(o._id)).length +
-    grupirane["odbijeno"].filter((o) => selectedIds.includes(o._id)).length;
+  // simple grouping
+  const grupirane = { "na čekanju": [], odobreno: [], odbijeno: [] };
+  objave.forEach((o) => { if (grupirane[o.status]) grupirane[o.status].push(o); });
 
   const statusi = [
     { key: "na čekanju", label: "Na čekanju", color: "#f6af24" },
@@ -346,465 +287,131 @@ export default function AdminPanel() {
       <div className="container">
         <h1>Admin panel</h1>
 
-        {/* FILTERI ZA ADMIN */}
-        <div
-          style={{
-            display: "flex",
-            gap: 12,
-            marginBottom: "1rem",
-            flexWrap: "wrap",
-            alignItems: "center",
-          }}
-        >
-          <TextField
-            size="small"
-            variant="outlined"
-            label="Pretraži objave"
-            value={search}
-            style={{ minWidth: 200 }}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Naslov ili sadržaj..."
-          />
-
-          <FormControl size="small" style={{ minWidth: 150 }}>
-            <InputLabel id="admin-tip-label">Tip</InputLabel>
-            <Select
-              labelId="admin-tip-label"
-              value={filterTip}
-              label="Tip"
-              onChange={(e) => setFilterTip(e.target.value)}
-            >
-              {tipovi.map((t) => (
-                <MenuItem key={t.value} value={t.value}>
-                  {t.label}
-                </MenuItem>
-              ))}
+        {/* top controls */}
+        <Box sx={{ display: "flex", gap: 1, mb: 2, flexWrap: "wrap" }}>
+          <TextField size="small" label="Pretraži" value={search} onChange={(e) => setSearch(e.target.value)} />
+          <FormControl size="small" sx={{ minWidth: 160 }}>
+            <InputLabel>Tip</InputLabel>
+            <Select value={filterTip} label="Tip" onChange={(e) => setFilterTip(e.target.value)}>
+              {tipovi.map(t => <MenuItem key={t.value} value={t.value}>{t.label}</MenuItem>)}
             </Select>
           </FormControl>
 
-          {/* 🔹 DATUM OD */}
-          <TextField
-            size="small"
-            label="Od datuma"
-            type="date"
-            value={dateFrom}
-            onChange={(e) => setDateFrom(e.target.value)}
-            InputLabelProps={{ shrink: true }}
-          />
+          <Button variant="outlined" onClick={() => handleBulkStatusChange("na čekanju", "odobreno", grupirane, false)} disabled={bulkLoading}>Odobri odabrane</Button>
+          <Button variant="outlined" color="error" onClick={() => handleBulkStatusChange("na čekanju", "odbijeno", grupirane, true)} disabled={bulkLoading}>Odbij odabrane (s razlogom)</Button>
+          <Button variant="outlined" color="error" onClick={handleBulkDeleteSelected} disabled={bulkLoading}><DeleteIcon /> Obriši odabrane</Button>
+          <Button variant="outlined" onClick={handleUndoLastAction} disabled={!lastBulkAction || bulkLoading}>Poništi zadnju</Button>
+        </Box>
 
-          {/* 🔹 DATUM DO */}
-          <TextField
-            size="small"
-            label="Do datuma"
-            type="date"
-            value={dateTo}
-            onChange={(e) => setDateTo(e.target.value)}
-            InputLabelProps={{ shrink: true }}
-            inputProps={{
-              min: dateFrom || undefined,
-            }}
-          />
-
-          {/* (Opcionalno) gumb za brzo čišćenje datuma */}
-          {(dateFrom || dateTo) && (
-            <Button
-              size="small"
-              variant="text"
-              onClick={() => {
-                setDateFrom("");
-                setDateTo("");
-              }}
-            >
-              Očisti datume
-            </Button>
-          )}
-        </div>
-
-        {/* INFO O SELEKCIJI + BULK GUMBI */}
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: "2rem",
-            flexWrap: "wrap",
-            gap: 8,
-          }}
-        >
-          <div style={{ fontSize: "0.9rem", color: "#555" }}>
-            Odabrano objava: <strong>{selectedIds.length}</strong>
-          </div>
-
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            {/* ODOBRI ODABRANE */}
-            <Button
-              variant="outlined"
-              size="small"
-              disabled={selectedPendingCount === 0 || bulkLoading}
-              onClick={() =>
-                handleBulkStatusChange("na čekanju", "odobreno", grupirane)
-              }
-              sx={{
-                borderColor: "#23cb63",
-                color: "#23cb63",
-                boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
-                backgroundColor: "#fff",
-                opacity: selectedPendingCount === 0 ? 0.5 : 1,
-                "&:hover": {
-                  backgroundColor:
-                    selectedPendingCount === 0
-                      ? "#fff"
-                      : "rgba(35,203,99,0.08)",
-                },
-              }}
-            >
-              Odobri odabrane
-            </Button>
-
-            {/* ODBIJ ODABRANE */}
-            <Button
-              variant="outlined"
-              size="small"
-              disabled={selectedPendingCount === 0 || bulkLoading}
-              onClick={() =>
-                handleBulkStatusChange("na čekanju", "odbijeno", grupirane)
-              }
-              sx={{
-                borderColor: "#e21a1a",
-                color: "#e21a1a",
-                boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
-                backgroundColor: "#fff",
-                opacity: selectedPendingCount === 0 ? 0.5 : 1,
-                "&:hover": {
-                  backgroundColor:
-                    selectedPendingCount === 0
-                      ? "#fff"
-                      : "rgba(226,26,26,0.08)",
-                },
-              }}
-            >
-              Odbij odabrane
-            </Button>
-
-            {/* OBRIŠI ODABRANE (odobrene/odbijene) */}
-            <Button
-              variant="outlined"
-              size="small"
-              disabled={selectedFinalCount === 0 || bulkLoading}
-              onClick={handleBulkDeleteSelected}
-              sx={{
-                borderColor: "#e74c3c",
-                color: "#e74c3c",
-                boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
-                backgroundColor: "#fff",
-                opacity: selectedFinalCount === 0 ? 0.5 : 1,
-                "&:hover": {
-                  backgroundColor:
-                    selectedFinalCount === 0 ? "#fff" : "rgba(231,76,60,0.08)",
-                },
-              }}
-            >
-              Obriši odabrane
-            </Button>
-
-            {/* UNDO */}
-            <Button
-              variant="outlined"
-              size="small"
-              disabled={!lastBulkAction || bulkLoading}
-              onClick={handleUndoLastAction}
-              sx={{
-                boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
-                borderColor: "#999",
-                color: "#444",
-                backgroundColor: "#fff",
-                opacity: !lastBulkAction ? 0.5 : 1,
-                "&:hover": {
-                  backgroundColor: !lastBulkAction ? "#fff" : "#f5f5f5",
-                },
-              }}
-            >
-              Poništi zadnju akciju
-            </Button>
-          </div>
-        </div>
-
-        <div
-          className="card-grid"
-          style={{ gridTemplateColumns: "1fr 1fr 1fr" }}
-        >
-          {statusi.map((st) => {
-            const statusIds = grupirane[st.key].map((o) => o._id);
-            const selectedInStatus = statusIds.filter((id) =>
-              selectedIds.includes(id)
-            );
-            const allSelected =
-              statusIds.length > 0 &&
-              selectedInStatus.length === statusIds.length;
-            const partiallySelected =
-              selectedInStatus.length > 0 && !allSelected;
-
-            return (
-              <div key={st.key} className="card card-static status-card">
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    marginBottom: "0.5rem",
-                    gap: 8,
-                  }}
-                >
-                  <h2
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 8,
-                      marginBottom: 0,
-                    }}
-                  >
-                    {st.label}
-                    <Chip
-                      label={grupirane[st.key].length}
+        {/* cards by status */}
+        <div className="card-grid" style={{ gridTemplateColumns: "1fr 1fr 1fr" }}>
+          {statusi.map(st => (
+            <div key={st.key} className="card card-static status-card">
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                <h2 style={{ margin: 0 }}>{st.label} <Chip label={grupirane[st.key].length} size="small" sx={{ bgcolor: st.color, color: "#fff", fontWeight: 700, ml: 1 }} /></h2>
+                {grupirane[st.key].length > 0 && (
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <Checkbox
                       size="small"
-                      style={{
-                        backgroundColor: st.color,
-                        color: "#fff",
-                        fontWeight: "bold",
-                      }}
+                      checked={grupirane[st.key].every(o => selectedIds.includes(o._id))}
+                      indeterminate={grupirane[st.key].some(o => selectedIds.includes(o._id)) && !grupirane[st.key].every(o => selectedIds.includes(o._1))}
+                      onChange={() => toggleSelectStatus(st.key, grupirane)}
                     />
-                  </h2>
-
-                  {grupirane[st.key].length > 0 && (
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 4,
-                        fontSize: "0.8rem",
-                        color: "#555",
-                      }}
-                    >
-                      <Checkbox
-                        size="small"
-                        checked={allSelected}
-                        indeterminate={partiallySelected}
-                        onChange={() => toggleSelectStatus(st.key, grupirane)}
-                      />
-                      <span>Označi sve</span>
-                    </div>
-                  )}
-                </div>
-
-                {grupirane[st.key].length === 0 ? (
-                  <p className="center-msg" style={{ fontSize: "0.98rem" }}>
-                    Nema dostupnih objava.
-                  </p>
-                ) : (
-                  grupirane[st.key].map((o) => {
-                    const isSelected = selectedIds.includes(o._id);
-
-                    return (
-                      <div
-                        key={o._id}
-                        className="card card-static inner-card"
-                        style={{
-                          marginBottom: "1.1rem",
-                          marginTop: "0.8rem",
-                          position: "relative",
-                        }}
-                      >
-                        {/* Checkbox u kutu */}
-                        <div
-                          style={{
-                            position: "absolute",
-                            top: 6,
-                            right: 6,
-                          }}
-                        >
-                          <Checkbox
-                            size="small"
-                            checked={isSelected}
-                            onChange={() => toggleSelect(o._id)}
-                          />
-                        </div>
-
-                        {/* BADGES */}
-                        <div
-                          style={{
-                            display: "flex",
-                            gap: 6,
-                            marginBottom: 8,
-                            paddingRight: 32,
-                          }}
-                        >
-                          {o.pinned && (
-                            <Chip
-                              icon={<PushPinIcon />}
-                              label="Prikvačeno"
-                              size="small"
-                              color="primary"
-                            />
-                          )}
-                          {o.urgentno && (
-                            <Chip
-                              icon={<NewReleasesIcon />}
-                              label="Hitno"
-                              size="small"
-                              color="error"
-                            />
-                          )}
-                        </div>
-
-                        <h3 style={{ marginBottom: "0.7rem" }}>{o.naslov}</h3>
-                        <p style={{ fontSize: "0.9rem", color: "#555" }}>
-                          {o.sadrzaj?.length > 160
-                            ? `${o.sadrzaj.slice(0, 160)}...`
-                            : o.sadrzaj || "Nema opisa."}
-                        </p>
-
-                        <div className="meta-info">
-                          <span>
-                            Autor:{" "}
-                            {o.autorIme ||
-                              o.autor?.ime ||
-                              o.autor ||
-                              "Nepoznato"}
-                          </span>
-                          <span>Tip: {o.tip}</span>
-                          <span>
-                            Odsjek:{" "}
-                            {ODSJECI.find((ods) => ods.id === o.odsjek)
-                              ?.naziv ||
-                              o.odsjek?.naziv ||
-                              o.odsjek ||
-                              "-"}
-                          </span>
-                          <span className="card-date">
-                            {o.datum
-                              ? new Date(o.datum).toLocaleDateString("hr-HR")
-                              : ""}
-                          </span>
-                        </div>
-
-                        {/* ADMIN KONTROLE */}
-                        <div
-                          style={{
-                            display: "flex",
-                            gap: 8,
-                            marginTop: "0.9rem",
-                            flexWrap: "wrap",
-                          }}
-                        >
-                          {/* STATUS GUMBI */}
-                          {st.key === "na čekanju" && (
-                            <>
-                              <button
-                                disabled={loadingId === o._id || bulkLoading}
-                                onClick={() =>
-                                  handleStatusChange(o._id, "odobreno")
-                                }
-                                className="approve-btn"
-                                style={{
-                                  fontSize: "0.85rem",
-                                  padding: "6px 12px",
-                                }}
-                              >
-                                {loadingId === o._id ? "..." : "Odobri"}
-                              </button>
-                              <button
-                                disabled={loadingId === o._id || bulkLoading}
-                                onClick={() =>
-                                  handleStatusChange(o._id, "odbijeno")
-                                }
-                                className="reject-btn"
-                                style={{
-                                  fontSize: "0.85rem",
-                                  padding: "6px 12px",
-                                }}
-                              >
-                                {loadingId === o._id ? "..." : "Odbij"}
-                              </button>
-                            </>
-                          )}
-
-                          {/* PIN / URGENTNO GUMBI (samo za odobrene) */}
-                          {st.key === "odobreno" && (
-                            <>
-                              <IconButton
-                                size="small"
-                                onClick={() => handleTogglePin(o._id, o.pinned)}
-                                disabled={loadingId === o._id || bulkLoading}
-                                color={o.pinned ? "primary" : "default"}
-                                title={
-                                  o.pinned
-                                    ? "Otkvači objavu"
-                                    : "Prikvači objavu"
-                                }
-                              >
-                                {o.pinned ? (
-                                  <PushPinIcon />
-                                ) : (
-                                  <PushPinOutlinedIcon />
-                                )}
-                              </IconButton>
-                              <IconButton
-                                size="small"
-                                onClick={() =>
-                                  handleToggleUrgentno(o._id, o.urgentno)
-                                }
-                                disabled={loadingId === o._id || bulkLoading}
-                                color={o.urgentno ? "error" : "default"}
-                                title={
-                                  o.urgentno
-                                    ? "Ukloni oznaku hitno"
-                                    : "Označi kao hitno"
-                                }
-                              >
-                                {o.urgentno ? (
-                                  <NewReleasesIcon />
-                                ) : (
-                                  <NewReleasesOutlinedIcon />
-                                )}
-                              </IconButton>
-                            </>
-                          )}
-
-                          {/* DELETE GUMB */}
-                          <button
-                            disabled={loadingId === o._id || bulkLoading}
-                            onClick={() => confirmDelete(o._id)}
-                            className="delete-btn"
-                            style={{
-                              fontSize: "0.85rem",
-                              padding: "6px 12px",
-                            }}
-                          >
-                            {loadingId === o._id ? "..." : "Obriši"}
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })
+                    <span style={{ fontSize: 13, color: "#555" }}>Označi sve</span>
+                  </div>
                 )}
               </div>
-            );
-          })}
+
+              {grupirane[st.key].length === 0 ? <p className="center-msg">Nema objava.</p> :
+                grupirane[st.key].map(o => {
+                  const isSelected = selectedIds.includes(o._1) || selectedIds.includes(o._id);
+                  const oid = o._id || o._1;
+                  return (
+                    <div key={oid} className="card card-static inner-card" style={{ marginBottom: 12, position: "relative" }}>
+                      <div style={{ position: "absolute", top: 8, right: 8 }}>
+                        <Checkbox size="small" checked={selectedIds.includes(oid)} onChange={() => toggleSelect(oid)} />
+                      </div>
+
+                      <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 8 }}>
+                        {o.pinned && <Chip icon={<PushPinIcon />} label="Prikvačeno" size="small" />}
+                        {o.urgentno && <Chip icon={<NewReleasesIcon />} label="Hitno" size="small" color="error" />}
+                        <div style={{ marginLeft: "auto", color: "#666", fontSize: 13 }}>{new Date(o.datum || Date.now()).toLocaleDateString("hr-HR")}</div>
+                      </div>
+
+                      <h3 style={{ marginTop: 0 }}>{o.naslov}</h3>
+                      <p style={{ color: "#555", marginBottom: 8 }}>{o.sadrzaj?.length > 160 ? `${o.sadrzaj.slice(0,160)}...` : o.sadrzaj || "Nema opisa."}</p>
+
+                      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+                        {st.key === "na čekanju" && (
+                          <>
+                            <Button size="small" onClick={() => handleStatusChange(oid, "odobreno")} disabled={loadingId === oid || bulkLoading}>Odobri</Button>
+                            <Button size="small" color="error" onClick={() => { setReasonForId(oid); setReasonDialogOpen(true); }} disabled={loadingId === oid || bulkLoading}>Odbij</Button>
+                          </>
+                        )}
+
+                        {st.key === "odobreno" && (
+                          <>
+                            <IconButton size="small" onClick={() => handleTogglePin(oid, !!o.pinned)} disabled={loadingId === oid || bulkLoading} title={o.pinned ? "Otkvači" : "Prikvači"}>
+                              {o.pinned ? <PushPinIcon /> : <PushPinOutlinedIcon />}
+                            </IconButton>
+                            <IconButton size="small" onClick={() => handleToggleUrgentno(oid, !!o.urgentno)} disabled={loadingId === oid || bulkLoading} title={o.urgentno ? "Ukloni hitno" : "Označi hitno"}>
+                              {o.urgentno ? <NewReleasesIcon /> : <NewReleasesOutlinedIcon />}
+                            </IconButton>
+                          </>
+                        )}
+
+                        <Button size="small" color="error" onClick={() => { confirmDelete(oid); }} disabled={loadingId === oid || bulkLoading}>Obriši</Button>
+                      </div>
+
+                      <div style={{ marginTop: 8, color: "#666", fontSize: 13 }}>
+                        <span>Autor: {o.autor?.ime || o.autorIme || o.autor || "Nepoznato"}</span>
+                        <span style={{ marginLeft: 12 }}>Tip: {o.tip}</span>
+                        <span style={{ marginLeft: 12 }}>Odsjek: {ODSJECI.find(x => x.id === o.odsjek)?.naziv || o.odsjek || "-"}</span>
+                      </div>
+                    </div>
+                  );
+                })
+              }
+            </div>
+          ))}
         </div>
 
-        {/* Potvrda brisanja */}
         <Dialog open={!!deleteId} onClose={() => setDeleteId(null)}>
           <DialogTitle>Potvrdi brisanje</DialogTitle>
+          <DialogContent><DialogContentText>Sigurno želite obrisati ovu objavu? Ova radnja je nepovratna.</DialogContentText></DialogContent>
+          <DialogActions><Button onClick={() => setDeleteId(null)}>Odustani</Button><Button onClick={handleDelete} color="error" variant="contained">Obriši</Button></DialogActions>
+        </Dialog>
+
+        {/* RAZLOG DIALOG (pojedinačno ili bulk) */}
+        <Dialog open={reasonDialogOpen} onClose={() => { setReasonDialogOpen(false); setReasonForId(null); setRejectReason(""); }}>
+          <DialogTitle>Razlog odbijanja</DialogTitle>
           <DialogContent>
-            <DialogContentText>
-              Sigurno želite obrisati ovu objavu? Ova radnja je nepovratna.
-            </DialogContentText>
+            <DialogContentText>Unesi kratak razlog zašto odbijaš objavu — poruka će biti poslana autoru.</DialogContentText>
+            <TextField autoFocus fullWidth multiline minRows={3} value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} placeholder="Npr. Neispravan datum, nedostaje kontakt..." sx={{ mt: 2 }} />
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setDeleteId(null)}>Odustani</Button>
-            <Button onClick={handleDelete} color="error" variant="contained">
-              Obriši
-            </Button>
+            <Button onClick={() => { setReasonDialogOpen(false); setReasonForId(null); setRejectReason(""); }}>Odustani</Button>
+            <Button onClick={async () => {
+              // ako je bulk
+              if (reasonForId && reasonForId.startsWith("__bulk__:")) {
+                const statusKey = reasonForId.split("__bulk__:")[1];
+                // retrieve targets
+                const targetIds = (window as any).__admin_bulk_targetIds || [];
+                if (!targetIds || targetIds.length === 0) {
+                  toast("Nema odabranih objava za odbijanje.", "info");
+                  setReasonDialogOpen(false);
+                  return;
+                }
+                // apply bulk with reason
+                setReasonDialogOpen(false);
+                setReasonForId(null);
+                await handleBulkStatusChange(statusKey, "odbijeno", { [statusKey]: objave.filter(o => targetIds.includes(o._id)) }, false);
+              } else {
+                // pojedinačno
+                await handleStatusChange(reasonForId, "odbijeno", rejectReason);
+              }
+              setRejectReason("");
+            }} color="error" variant="contained">Pošalji i odbij</Button>
           </DialogActions>
         </Dialog>
       </div>
