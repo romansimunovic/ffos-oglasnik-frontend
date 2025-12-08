@@ -34,30 +34,35 @@ export default function Profil() {
   const user = localUser;
 
   useEffect(() => {
-    if (!user) return;
+  if (!user) return;
 
-    if (user.uloga === "admin") {
-      setSpremljene([]);
-      setMojeNaCekanju([]);
-      fetchObavijesti();
-      return;
-    }
+  // Postavi previewUrl iz user.avatar odmah pri mountu
+  if (user.avatar) {
+    setPreviewUrl(buildAvatarSrc(user.avatar));
+  }
 
-    fetchSpremljene();
-    fetchMojeNaCekanju();
+  if (user.uloga === "admin") {
+    setSpremljene([]);
+    setMojeNaCekanju([]);
     fetchObavijesti();
+    return;
+  }
 
-    const refreshSpremljeneHandler = () => fetchSpremljene();
-    const refreshObavijestiHandler = () => fetchObavijesti();
+  fetchSpremljene();
+  fetchMojeNaCekanju();
+  fetchObavijesti();
 
-    window.addEventListener("refreshSpremljene", refreshSpremljeneHandler);
-    window.addEventListener("refreshObavijesti", refreshObavijestiHandler);
+  const refreshSpremljeneHandler = () => fetchSpremljene();
+  const refreshObavijestiHandler = () => fetchObavijesti();
 
-    return () => {
-      window.removeEventListener("refreshSpremljene", refreshSpremljeneHandler);
-      window.removeEventListener("refreshObavijesti", refreshObavijestiHandler);
-    };
-  }, [user]);
+  window.addEventListener("refreshSpremljene", refreshSpremljeneHandler);
+  window.addEventListener("refreshObavijesti", refreshObavijestiHandler);
+
+  return () => {
+    window.removeEventListener("refreshSpremljene", refreshSpremljeneHandler);
+    window.removeEventListener("refreshObavijesti", refreshObavijestiHandler);
+  };
+}, [user]);
 
   const fetchSpremljene = async () => {
     if (!user) return;
