@@ -6,6 +6,12 @@ import { ODSJECI } from "../constants/odsjeci";
 import { Button } from "@mui/material";
 import { useToast } from "../components/Toast";
 
+const ROLE_LABELS = {
+  admin: "Administrator",
+  user: "Korisnik",
+  moderator: "Moderator",
+};
+
 export default function UserProfil() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -19,7 +25,7 @@ export default function UserProfil() {
   const localUser = JSON.parse(localStorage.getItem("user") || "null");
   const localUserId = localUser?._id || localUser?.id || null;
 
-  // ako je ovo moj profil, redirect na /profil (osobni view)
+  // redirect ako je ovo moj profil
   useEffect(() => {
     if (localUserId && id && localUserId.toString() === id.toString()) {
       navigate("/profil");
@@ -38,6 +44,7 @@ export default function UserProfil() {
 
   useEffect(() => {
     let mounted = true;
+
     const fetchUser = async () => {
       try {
         const res = await api.get(`/korisnik/${id}`);
@@ -52,7 +59,6 @@ export default function UserProfil() {
 
     const fetchPosts = async () => {
       try {
-        // backend route /objave/autor/:autorId vraća samo odobrene objave (prema tvom controlleru)
         const res = await api.get(`/objave/autor/${id}`);
         if (mounted) setObjave(res.data || []);
       } catch (err) {
@@ -94,20 +100,25 @@ export default function UserProfil() {
   return (
     <section className="page-bg">
       <div className="container" style={{ maxWidth: 1000, margin: "0 auto" }}>
-        <div className="card profile-card" style={{ marginBottom: 20 }}>
-          <div className="avatar-wrap" style={{ textAlign: "center" }}>
+        {/* Profil korisnika */}
+        <div className="card profile-card" style={{ marginBottom: 20, textAlign: "center" }}>
+          <div className="avatar-wrap">
             <img
               src={buildAvatarSrc(korisnik.avatar)}
               alt={korisnik.ime}
               className="profile-avatar"
             />
           </div>
-          <h2 style={{ textAlign: "center" }}>{korisnik.ime}</h2>
-          <p style={{ textAlign: "center", color: "#666" }}>
-            <strong>Uloga:</strong> {korisnik.uloga}
+          <h2>{korisnik.ime}</h2>
+          <p style={{ color: "#666", margin: "4px 0" }}>
+            <strong>Uloga:</strong> {ROLE_LABELS[korisnik.uloga] || korisnik.uloga}
+          </p>
+          <p style={{ color: "#666", margin: "2px 0" }}>
+            <strong>Email:</strong> {korisnik.email || "-"}
           </p>
         </div>
 
+        {/* Objave korisnika */}
         <section className="card" style={{ marginBottom: 16 }}>
           <h3 style={{ marginTop: 0 }}>Objave autora</h3>
           {loadingPosts ? (
@@ -128,10 +139,10 @@ export default function UserProfil() {
                     <p className="card-desc">
                       {o.sadrzaj ? (o.sadrzaj.length > 140 ? o.sadrzaj.slice(0, 140) + "..." : o.sadrzaj) : "Nema opisa."}
                     </p>
-                    <div className="meta-info">
+                    <div className="meta-info" style={{ display: "flex", gap: 12, fontSize: 12, color: "#666", flexWrap: "wrap" }}>
                       <span>Tip: <i>{o.tip}</i></span>
                       <span>Odsjek: {ODSJECI.find(x => x.id === (o.odsjek?._id || o.odsjek))?.naziv || "-"}</span>
-                      <span className="card-date">{o.datum ? new Date(o.datum).toLocaleDateString("hr-HR") : ""}</span>
+                      <span>{o.datum ? new Date(o.datum).toLocaleDateString("hr-HR") : ""}</span>
                     </div>
                   </div>
                 </div>
