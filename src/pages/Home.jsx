@@ -488,7 +488,7 @@ export default function Home() {
               variant="body1"
               sx={{ color: "#666", mb: 3, fontSize: "1.05rem" }}
             >
-              Registrirajte se s FFOS email adresom i počnite dijeliti projekte,
+              Registrirajte se sa svojom AAI email adresom i podijelite projekte,
               radionice i prilike s akademskom zajednicom.
             </Typography>
             <Box sx={{ display: "flex", gap: 2, justifyContent: "center" }}>

@@ -83,7 +83,6 @@ export default function Navbar() {
       <Box className="navbar-section navbar-section-left">
         <Box className="navbar-logo-group" onClick={() => navigate("/")}>
           <img src={FFOSLogo} alt="FFOS" className="navbar-logo" />
-          <span className="navbar-title">FFOS Oglasnik</span>
         </Box>
       </Box>
 
