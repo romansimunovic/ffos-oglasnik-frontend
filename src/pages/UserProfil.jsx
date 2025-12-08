@@ -113,9 +113,6 @@ export default function UserProfil() {
           <p style={{ color: "#666", margin: "4px 0" }}>
             <strong>Uloga:</strong> {ROLE_LABELS[korisnik.uloga] || korisnik.uloga}
           </p>
-          <p style={{ color: "#666", margin: "2px 0" }}>
-            <strong>Email:</strong> {korisnik.email || "-"}
-          </p>
         </div>
 
         {/* Objave korisnika */}
