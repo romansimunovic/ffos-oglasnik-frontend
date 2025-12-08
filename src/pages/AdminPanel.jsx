@@ -94,7 +94,7 @@ export default function AdminPanel() {
     if (noviStatus === "odbijeno" && askReason) {
       setReasonForId("__bulk__:" + statusKey);
       setReasonDialogOpen(true);
-      (window as any).__admin_bulk_targetIds = targetIds;
+      window.__admin_bulk_targetIds = targetIds;
       return;
     }
 
