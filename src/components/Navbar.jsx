@@ -235,7 +235,6 @@ export default function Navbar() {
             onClick={() => navigate("/")}
           >
             <img src={FFOSLogo} alt="FFOS" className="navbar-logo" />
-            <span className="navbar-title">FFOS Oglasnik</span>
           </Box>
 
           {/* BURGER DESNO */}
