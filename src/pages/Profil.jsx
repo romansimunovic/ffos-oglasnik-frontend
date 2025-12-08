@@ -1,4 +1,3 @@
-// src/pages/Profil.jsx
 import { useEffect, useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
@@ -8,16 +7,23 @@ import {
   DialogContentText,
   DialogActions,
   Button,
+  Box,
+  Typography,
+  Avatar,
+  IconButton,
+  useTheme,
+  useMediaQuery,
 } from "@mui/material";
+import EditIcon from "@mui/icons-material/Edit";
+import LogoutIcon from "@mui/icons-material/Logout";
+import SaveIcon from "@mui/icons-material/Bookmark";
 import api from "../api/axiosInstance";
 import { useToast } from "../components/Toast";
 
 export default function Profil() {
   const [spremljene, setSpremljene] = useState([]);
   const [uploading, setUploading] = useState(false);
-  const [localUser, setLocalUser] = useState(() =>
-    JSON.parse(localStorage.getItem("user") || "null")
-  );
+  const [localUser, setLocalUser] = useState(() => JSON.parse(localStorage.getItem("user") || "null"));
   const [mojeNaCekanju, setMojeNaCekanju] = useState([]);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [logoutConfirm, setLogoutConfirm] = useState(false);
@@ -26,6 +32,10 @@ export default function Profil() {
   const toast = useToast();
 
   const user = localUser;
+
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+
   useEffect(() => {
     if (!user || user.uloga === "admin") {
       setSpremljene([]);
@@ -147,7 +157,7 @@ export default function Profil() {
       });
 
       setSpremljene((prev) => prev.filter((o) => o._id !== objavaId));
-      toast("Objava je uklonjena iz spremljenih.", "success");
+      toast("Objava uklonjena iz spremljenih.", "success");
     } catch (err) {
       console.error("Greška pri uklanjanju spremljene objave:", err);
       toast("Greška pri uklanjanju objave.", "error");
@@ -164,94 +174,114 @@ export default function Profil() {
     );
   }
 
-  const avatarSrc =
-    previewUrl ||
-    (user.avatar ? buildAvatarSrc(user.avatar) : "/default-avatar.png");
+  const avatarSrc = previewUrl || (user.avatar ? buildAvatarSrc(user.avatar) : "/default-avatar.png");
 
   return (
     <section className="page-bg">
-      <div className="container">
-        <div className="card card-static profile-card">
-          <h2>Moj Profil</h2>
+      <div
+        className="container"
+        style={{
+          display: "grid",
+          gap: 20,
+          gridTemplateColumns: isMobile ? "1fr" : "320px 1fr",
+          alignItems: "start",
+        }}
+      >
+        {/* left column (profile card) */}
+        <div>
+          <div className="card profile-card" style={{ textAlign: "center" }}>
+            <Box sx={{ display: "flex", justifyContent: "center", mb: 1 }}>
+              <Avatar src={avatarSrc} sx={{ width: 120, height: 120 }} />
+            </Box>
+            <Typography variant="h6" sx={{ fontWeight: 700 }}>{user.ime}</Typography>
+            <Typography variant="body2" sx={{ color: "#666" }}>{user.email}</Typography>
 
-          <div className="avatar-wrap">
-            <img src={avatarSrc} alt="Profilna fotografija" className="profile-avatar" />
-            <label className="avatar-upload-btn" style={{ cursor: "pointer" }}>
-              Promijeni profilnu
-              <input ref={fileInputRef} type="file" accept="image/png,image/jpeg" onChange={handleAvatarChange} style={{ display: "none" }} />
-            </label>
-            {uploading && <p className="card-date">Upload u tijeku...</p>}
+            <Box sx={{ display: "flex", justifyContent: "center", gap: 1, mt: 1 }}>
+              <label style={{ cursor: "pointer" }}>
+                <input ref={fileInputRef} type="file" accept="image/png,image/jpeg" onChange={handleAvatarChange} style={{ display: "none" }} />
+                <Button startIcon={<EditIcon />} size="small">Promijeni</Button>
+              </label>
+              <Button startIcon={<LogoutIcon />} size="small" color="error" onClick={() => setLogoutConfirm(true)}>Odjava</Button>
+            </Box>
+
+            {uploading && <Typography variant="body2" sx={{ mt: 1 }}>Upload u tijeku...</Typography>}
           </div>
 
-          <p><span className="font-bold">Ime: </span>{user.ime}</p>
-          <p><span className="font-bold">Email: </span>{user.email}</p>
-          <p><span className="font-bold">Uloga: </span>{user.uloga}</p>
+          {/* desktop: quick links */}
+          {!isMobile && (
+            <div style={{ marginTop: 12 }}>
+              <div className="card" style={{ padding: 12 }}>
+                <Typography variant="subtitle1" sx={{ mb: 1 }}>Brzi linkovi</Typography>
+                <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                  <Button size="small" onClick={() => navigate("/objave")} variant="outlined">Pregledaj objave</Button>
+                  <Button size="small" component={Link} to="/objave?filter=thisWeek" variant="outlined">Nove ovaj tjedan</Button>
+                </Box>
+              </div>
+            </div>
+          )}
         </div>
 
-        {user.uloga !== "admin" && (
-          <section className="card card-static saved-card">
-            <h3>Spremljene objave</h3>
+        {/* right column */}
+        <div>
+          <div className="card" style={{ marginBottom: 16 }}>
+            <Typography variant="h6">Spremljene objave <SaveIcon fontSize="small" sx={{ ml: 1 }} /></Typography>
             {spremljene.length === 0 ? (
-              <p>Još nemaš spremljenih objava.</p>
+              <Typography variant="body2" sx={{ color: "#666", mt: 1 }}>Još nemaš spremljenih objava.</Typography>
             ) : (
-              <div className="card-grid">
+              <Box sx={{ display: "grid", gap: 1, mt: 1 }}>
                 {spremljene.map((o) => (
-                  <Link key={o._id} to={`/objava/${o._id}`} className="card-link">
-                    <div className="card saved-post">
-                      <h4>{o.naslov || "Bez naslova"}</h4>
-                      <p>
-                        {o.sadrzaj?.length > 120 ? `${o.sadrzaj.slice(0, 120)}...` : o.sadrzaj || "Nema opisa."}
-                      </p>
-                      <p className="card-date">{o.datum ? new Date(o.datum).toLocaleDateString("hr-HR") : ""}</p>
-
-                      <button type="button" className="unsave-btn" style={{ marginTop: "0.5rem" }} onClick={(e) => handleRemoveSaved(o._id, e)}>
-                        Ukloni
-                      </button>
+                  <Link key={o._id} to={`/objava/${o._id}`} className="card-link" style={{ textDecoration: "none" }}>
+                    <div className="card" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <div>
+                        <Typography variant="subtitle1" sx={{ margin: 0 }}>{o.naslov || "Bez naslova"}</Typography>
+                        <Typography variant="body2" sx={{ color: "#666" }}>{o.sadrzaj ? (o.sadrzaj.length > 80 ? `${o.sadrzaj.slice(0, 80)}...` : o.sadrzaj) : "Nema opisa."}</Typography>
+                        <Typography variant="caption" sx={{ color: "#666" }}>{o.datum ? new Date(o.datum).toLocaleDateString("hr-HR") : ""}</Typography>
+                      </div>
+                      <IconButton onClick={(e) => handleRemoveSaved(o._id, e)} size="small" aria-label="Ukloni">
+                        <SaveIcon />
+                      </IconButton>
                     </div>
                   </Link>
                 ))}
-              </div>
+              </Box>
             )}
-          </section>
-        )}
+          </div>
 
-        {user.uloga !== "admin" && (
-          <section className="card card-static saved-card" style={{ marginTop: "1.5rem" }}>
-            <h3>Moje objave na čekanju</h3>
+          <div className="card">
+            <Typography variant="h6">Moje objave na čekanju</Typography>
             {mojeNaCekanju.length === 0 ? (
-              <p>Trenutno nemaš objava na čekanju.</p>
+              <Typography variant="body2" sx={{ color: "#666", mt: 1 }}>Trenutno nemaš objava na čekanju.</Typography>
             ) : (
-              <div className="card-grid">
+              <Box sx={{ display: "grid", gap: 1, mt: 1 }}>
                 {mojeNaCekanju.map((o) => (
-                  <Link key={o._id} to={`/objava/${o._1}`} className="card-link">
-                    <div className="card saved-post">
-                      <h4>{o.naslov || "Bez naslova"}</h4>
-                      <p>{o.sadrzaj?.length > 120 ? `${o.sadrzaj.slice(0, 120)}...` : o.sadrzaj || "Nema opisa."}</p>
-                      <p className="card-date">{o.datum ? new Date(o.datum).toLocaleDateString("hr-HR") : ""}</p>
-                      <p className="card-date">Status: {o.status || "na čekanju"}</p>
+                  <Link key={o._id} to={`/objava/${o._id}`} className="card-link" style={{ textDecoration: "none" }}>
+                    <div className="card" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <div>
+                        <Typography variant="subtitle1" sx={{ margin: 0 }}>{o.naslov || "Bez naslova"}</Typography>
+                        <Typography variant="body2" sx={{ color: "#666" }}>{o.sadrzaj ? (o.sadrzaj.length > 80 ? `${o.sadrzaj.slice(0, 80)}...` : o.sadrzaj) : "Nema opisa."}</Typography>
+                        <Typography variant="caption" sx={{ color: "#666" }}>{o.datum ? new Date(o.datum).toLocaleDateString("hr-HR") : ""}</Typography>
+                        <Typography variant="caption" sx={{ color: "#ff9800", display: "block" }}>Status: {o.status || "na čekanju"}</Typography>
+                      </div>
+                      <Button size="small" variant="outlined">Detalji</Button>
                     </div>
                   </Link>
                 ))}
-              </div>
+              </Box>
             )}
-          </section>
-        )}
-
-        <div style={{ marginTop: 18 }}>
-          <Button variant="outlined" color="error" onClick={() => setLogoutConfirm(true)}>Odjavi se</Button>
+          </div>
         </div>
-
-        <Dialog open={logoutConfirm} onClose={() => setLogoutConfirm(false)}>
-          <DialogTitle>Potvrdi odjavu</DialogTitle>
-          <DialogContent>
-            <DialogContentText>Sigurno se želite odjaviti?</DialogContentText>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setLogoutConfirm(false)}>Odustani</Button>
-            <Button onClick={handleLogout} color="error" variant="contained">Odjavi se</Button>
-          </DialogActions>
-        </Dialog>
       </div>
+
+      <Dialog open={logoutConfirm} onClose={() => setLogoutConfirm(false)}>
+        <DialogTitle>Potvrdi odjavu</DialogTitle>
+        <DialogContent>
+          <DialogContentText>Sigurno se želite odjaviti?</DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setLogoutConfirm(false)}>Odustani</Button>
+          <Button onClick={handleLogout} color="error" variant="contained">Odjavi se</Button>
+        </DialogActions>
+      </Dialog>
     </section>
   );
 }

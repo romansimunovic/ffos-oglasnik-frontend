@@ -6,15 +6,24 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  IconButton,
+  Box,
+  Typography,
 } from "@mui/material";
 import { ODSJECI } from "../constants/odsjeci";
 import Linkify from "linkify-react";
 import api from "../api/axiosInstance";
 import { useToast } from "../components/Toast";
+
 import FacebookIcon from "@mui/icons-material/Facebook";
 import WhatsAppIcon from "@mui/icons-material/WhatsApp";
 import XIcon from "@mui/icons-material/X";
 import LinkIcon from "@mui/icons-material/Link";
+import CategoryIcon from "@mui/icons-material/Category";
+import ApartmentIcon from "@mui/icons-material/Apartment";
+import EventIcon from "@mui/icons-material/Event";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import BookmarkIcon from "@mui/icons-material/Bookmark";
 
 export default function ObjavaDetalj() {
   const { id } = useParams();
@@ -40,9 +49,7 @@ export default function ObjavaDetalj() {
         if (mounted) setLoading(false);
       }
     })();
-    return () => {
-      mounted = false;
-    };
+    return () => (mounted = false);
   }, [id, toast]);
 
   const copyLink = async () => {
@@ -57,26 +64,17 @@ export default function ObjavaDetalj() {
     }
   };
 
-  if (loading || !objava)
-    return <p className="center-msg">⏳ Učitavanje objave...</p>;
+  if (loading) return <p className="center-msg">⏳ Učitavanje objave...</p>;
+  if (!objava) return <p className="center-msg">Objava nije pronađena.</p>;
 
   const shareText = objava?.naslov || "Pogledaj ovu objavu";
-  // smije se dijeliti samo ako je odobrena (ili ako iz nekog razloga status ne postoji)
   const canShare = objava.status === "odobreno" || !objava.status;
 
-  const facebookUrl =
-    "https://www.facebook.com/sharer/sharer.php?u=" +
-    encodeURIComponent(currentUrl);
-  const xUrl =
-    "https://x.com/intent/tweet?url=" +
-    encodeURIComponent(currentUrl) +
-    "&text=" +
-    encodeURIComponent(shareText);
-  const whatsappUrl =
-    "https://wa.me/?text=" + encodeURIComponent(shareText + " " + currentUrl);
+  const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(currentUrl)}`;
+  const xUrl = `https://x.com/intent/tweet?url=${encodeURIComponent(currentUrl)}&text=${encodeURIComponent(shareText)}`;
+  const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareText + " " + currentUrl)}`;
 
-  const autor =
-    objava.autor && typeof objava.autor === "object" ? objava.autor : null;
+  const autor = objava.autor && typeof objava.autor === "object" ? objava.autor : null;
   const autorIme = autor?.ime || objava.autor || "Nepoznato";
   const autorId = autor?._id || objava.autorId || null;
   const autorAvatar = autor?.avatar || objava.autorAvatar || null;
@@ -89,23 +87,16 @@ export default function ObjavaDetalj() {
     const backendOrigin = base.replace(/\/api\/?$/i, "");
     return `${backendOrigin}${avatarPath}?t=${Date.now()}`;
   };
-
   const avatarSrc = buildAvatarSrc(autorAvatar);
 
   const tipNaziv = objava.tip || "Ostalo";
-  const odsjekNaziv =
-    ODSJECI.find((x) => x.id === (objava.odsjek?._id || objava.odsjek))
-      ?.naziv || "-";
+  const odsjekNaziv = ODSJECI.find((x) => x.id === (objava.odsjek?._id || objava.odsjek))?.naziv || "-";
   const datum =
     objava.datum &&
-    new Date(objava.datum).toLocaleDateString("hr-HR", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    });
+    new Date(objava.datum).toLocaleDateString("hr-HR", { day: "2-digit", month: "2-digit", year: "numeric" });
 
-  const MAX_WORDS = 300;
-  const fullText = objava.sadrzaj || "";
+  const MAX_WORDS = 100; // manja vrijednost radi pregleda
+  const fullText = objava.sadrzaj || objava.sadrzaj === "" ? objava.sadrzaj : "";
 
   let isTruncated = false;
   let displayText = fullText;
@@ -121,37 +112,15 @@ export default function ObjavaDetalj() {
   return (
     <section className="page-bg">
       <div className="container">
-        {/* Povratak */}
-        <div style={{ marginBottom: "1rem" }}>
-          <Button
-            variant="text"
-            size="small"
-            onClick={() => navigate(-1)}
-            sx={{ color: "#971d21" }}
-          >
-            ← Natrag na objave
+        <div style={{ marginBottom: 12 }}>
+          <Button variant="text" size="small" onClick={() => navigate(-1)} sx={{ color: "#971d21" }}>
+            ← Natrag
           </Button>
         </div>
 
-        <div
-          className="card card-static"
-          style={{
-            padding: "1.8rem 2.2rem",
-            maxWidth: "1000px",
-            width: "100%",
-            margin: "0 auto",
-          }}
-        >
-          {/* HEADER */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 12,
-              marginBottom: 16,
-              flexWrap: "wrap",
-            }}
-          >
+        <div className="card card-static" style={{ maxWidth: 1000, margin: "0 auto", padding: 20 }}>
+          {/* header */}
+          <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 12 }}>
             <img
               src={avatarSrc}
               alt={`Avatar ${autorIme}`}
@@ -159,167 +128,75 @@ export default function ObjavaDetalj() {
               style={{ cursor: autorId ? "pointer" : "default" }}
               onClick={() => autorId && navigate(`/profil/${autorId}`)}
             />
-            <div style={{ flex: 1, minWidth: 200 }}>
-              <h1 style={{ margin: 0, fontSize: "1.5rem" }}>{objava.naslov}</h1>
-              <div style={{ color: "#666", fontSize: 14 }}>Opis {autorIme}</div>
+            <div style={{ flex: 1 }}>
+              <Typography variant="h5" sx={{ color: "#971d21", fontWeight: 700 }}>{objava.naslov}</Typography>
+              <Typography variant="body2" sx={{ color: "#666" }}>Autor: {autorIme}</Typography>
+            </div>
+            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+              <Button size="small" onClick={() => setShareOpen(true)} variant="outlined">Podijeli</Button>
             </div>
           </div>
 
-          {/* META */}
-          <div
-            style={{
-              display: "flex",
-              flexWrap: "wrap",
-              gap: 12,
-              fontSize: 14,
-              color: "#555",
-              marginBottom: 16,
-            }}
-          >
-            <span> Vrsta: {tipNaziv}</span>
-            <span> Odsjek: {odsjekNaziv}</span>
-            <span> Datum: {datum}</span>
-            <span title="Broj spremanja">Broj spremanja {objava.saves || 0}</span>
-            <span title="Broj pregleda">Broj pregleda {objava.views || 0}</span>
-          </div>
+          {/* meta with icons */}
+          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, mb: 2, color: "#555" }}>
+            <Box sx={{ display: "inline-flex", alignItems: "center", gap: 0.5 }}>
+              <CategoryIcon fontSize="small" /> <Typography variant="body2" sx={{ ml: 0.5 }}>{tipNaziv}</Typography>
+            </Box>
+            <Box sx={{ display: "inline-flex", alignItems: "center", gap: 0.5 }}>
+              <ApartmentIcon fontSize="small" /> <Typography variant="body2" sx={{ ml: 0.5 }}>{odsjekNaziv}</Typography>
+            </Box>
+            <Box sx={{ display: "inline-flex", alignItems: "center", gap: 0.5 }}>
+              <EventIcon fontSize="small" /> <Typography variant="body2" sx={{ ml: 0.5 }}>{datum}</Typography>
+            </Box>
+            <Box sx={{ display: "inline-flex", alignItems: "center", gap: 0.5, ml: "auto" }}>
+              <BookmarkIcon fontSize="small" /> <Typography variant="body2" sx={{ ml: 0.5 }}>{objava.saves || 0}</Typography>
+            </Box>
+            <Box sx={{ display: "inline-flex", alignItems: "center", gap: 0.5 }}>
+              <VisibilityIcon fontSize="small" /> <Typography variant="body2" sx={{ ml: 0.5 }}>{objava.views || 0}</Typography>
+            </Box>
+          </Box>
 
-          {/* SADRŽAJ */}
-          <p
-            className="card-desc"
-            style={{ whiteSpace: "pre-wrap", lineHeight: 1.6 }}
-          >
-            <Linkify options={{ nl2br: true }}>
-              {displayText}
-              {isTruncated && !showFull ? "..." : ""}
-            </Linkify>
-
+          {/* content */}
+          <Typography component="div" sx={{ whiteSpace: "pre-wrap", lineHeight: 1.7, mb: 2 }}>
+            <Linkify options={{ nl2br: true }}>{displayText}{isTruncated && !showFull ? "..." : ""}</Linkify>
             {isTruncated && !showFull && (
-              <button
-                type="button"
-                onClick={() => setShowFull(true)}
-                style={{
-                  marginLeft: 6,
-                  background: "none",
-                  border: "none",
-                  padding: 0,
-                  color: "#971d21",
-                  fontWeight: 600,
-                  cursor: "pointer",
-                  textDecoration: "underline",
-                }}
-              >
+              <Button size="small" onClick={() => setShowFull(true)} sx={{ ml: 1, textTransform: "none", color: "#971d21" }}>
                 Nastavi čitati
-              </button>
+              </Button>
             )}
-          </p>
-          {/* SHARE / INFO O STATUSU */}
-          {canShare ? (
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={() => setShareOpen(true)}
-              style={{ marginTop: "1rem" }}
-            >
-              Podijeli
-            </Button>
-          ) : (
-            <p
-              style={{
-                marginTop: "1rem",
-                fontStyle: "italic",
-                color: "#666",
-                fontSize: "0.9rem",
-              }}
-            >
-              Objavu možete podijeliti tek kada bude odobrena. Trenutni status:{" "}
-              <strong>{objava.status || "na čekanju"}</strong>.
-            </p>
+          </Typography>
+
+          {/* status or share hint */}
+          {!canShare && (
+            <Typography variant="body2" sx={{ color: "#666", fontStyle: "italic" }}>
+              Objavu možete podijeliti tek kad bude odobrena. Status: <strong>{objava.status || "na čekanju"}</strong>.
+            </Typography>
           )}
         </div>
 
-        {/* SHARE DIALOG – samo ako je dijeljenje dozvoljeno */}
-        {canShare && (
-          <Dialog
-            open={shareOpen}
-            onClose={() => setShareOpen(false)}
-            maxWidth="sm"
-            fullWidth
-          >
-            <DialogTitle> Podijeli </DialogTitle>
-            <DialogContent dividers>
-              <p style={{ marginBottom: "1rem", fontWeight: 500 }}>
-                Odaberi gdje želiš podijeliti:
-              </p>
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "0.75rem",
-                }}
-              >
-                <Button
-                  variant="contained"
-                  onClick={() =>
-                    window.open(facebookUrl, "_blank", "noopener,noreferrer")
-                  }
-                  startIcon={<FacebookIcon />}
-                  sx={{
-                    backgroundColor: "#1877F2",
-                    color: "#fff",
-                    "&:hover": { backgroundColor: "#155FBD" },
-                  }}
-                >
-                  Facebook
-                </Button>
-                <Button
-                  variant="contained"
-                  onClick={() =>
-                    window.open(whatsappUrl, "_blank", "noopener,noreferrer")
-                  }
-                  startIcon={<WhatsAppIcon />}
-                  sx={{
-                    backgroundColor: "#25D366",
-                    color: "#fff",
-                    "&:hover": { backgroundColor: "#20BA5C" },
-                  }}
-                >
-                  WhatsApp
-                </Button>
-                <Button
-                  variant="contained"
-                  onClick={() =>
-                    window.open(xUrl, "_blank", "noopener,noreferrer")
-                  }
-                  startIcon={<XIcon />}
-                  sx={{
-                    backgroundColor: "#000",
-                    color: "#fff",
-                    "&:hover": { backgroundColor: "#333" },
-                  }}
-                >
-                  X (Twitter)
-                </Button>
-                <Button
-                  variant="outlined"
-                  onClick={copyLink}
-                  startIcon={<LinkIcon />}
-                  color={copied ? "success" : "primary"}
-                  sx={{
-                    borderColor: copied ? "#4CAF50" : undefined,
-                    color: copied ? "#4CAF50" : undefined,
-                  }}
-                >
-                  {copied ? "Link kopiran!" : " Kopiraj link"}
-                </Button>
-              </div>
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={() => setShareOpen(false)} color="inherit">
-                Zatvori
+        {/* share dialog */}
+        <Dialog open={shareOpen} onClose={() => setShareOpen(false)} maxWidth="xs" fullWidth>
+          <DialogTitle>Podijeli objavu</DialogTitle>
+          <DialogContent>
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+              <Button variant="contained" startIcon={<FacebookIcon />} onClick={() => window.open(facebookUrl, "_blank", "noopener,noreferrer")} sx={{ backgroundColor: "#1877F2", "&:hover": { backgroundColor: "#155FBD" } }}>
+                Facebook
               </Button>
-            </DialogActions>
-          </Dialog>
-        )}
+              <Button variant="contained" startIcon={<WhatsAppIcon />} onClick={() => window.open(whatsappUrl, "_blank", "noopener,noreferrer")} sx={{ backgroundColor: "#25D366", "&:hover": { backgroundColor: "#20BA5C" } }}>
+                WhatsApp
+              </Button>
+              <Button variant="contained" startIcon={<XIcon />} onClick={() => window.open(xUrl, "_blank", "noopener,noreferrer")} sx={{ backgroundColor: "#000", "&:hover": { backgroundColor: "#333" } }}>
+                X
+              </Button>
+              <Button variant="outlined" startIcon={<LinkIcon />} onClick={copyLink} color={copied ? "success" : "primary"}>
+                {copied ? "Link kopiran!" : "Kopiraj link"}
+              </Button>
+            </Box>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setShareOpen(false)}>Zatvori</Button>
+          </DialogActions>
+        </Dialog>
       </div>
     </section>
   );

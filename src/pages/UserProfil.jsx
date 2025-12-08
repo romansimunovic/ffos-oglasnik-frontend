@@ -106,14 +106,6 @@ export default function UserProfil() {
           <p style={{ textAlign: "center", color: "#666" }}>
             <strong>Uloga:</strong> {korisnik.uloga}
           </p>
-          <div style={{ display: "flex", justifyContent: "center", gap: 8, marginTop: 8 }}>
-            <Button size="small" variant="outlined" onClick={() => navigate(-1)}>
-              Nazad
-            </Button>
-            <Button size="small" onClick={() => navigate(`/kontakt/${id}`)}>
-              Pošalji poruku
-            </Button>
-          </div>
         </div>
 
         <section className="card" style={{ marginBottom: 16 }}>
