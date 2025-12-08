@@ -430,7 +430,16 @@ export default function Objava() {
 
                     <div className="card">
                       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
-                        <img src={avatarSrc} alt={`Avatar ${autorIme}`} className="tiny-avatar" onClick={(e) => autorId && openProfil(e, autorId)} style={{ cursor: autorId ? "pointer" : "default" }} />
+                        <img
+src={avatarSrc}
+  alt={`Avatar ${autorIme}`}
+  className="tiny-avatar"
+  onClick={(e) => {
+    e.stopPropagation();
+    if (autorId) navigate(`/profil/${autorId}`);
+  }}
+  style={{ cursor: autorId ? "pointer" : "default" }}
+/>
                         <div style={{ flex: 1 }}>
                           <h2 style={{ margin: 0, fontSize: "1.1rem", color: "#971d21" }}>{obj.naslov || "Bez naslova"}</h2>
                           <div style={{ fontSize: "0.85rem", color: "#666", marginTop: "2px" }}>{autorIme}</div>
