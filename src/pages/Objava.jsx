@@ -331,24 +331,24 @@ export default function Objava() {
               <Button
   variant="outlined"
   size="small"
-  onClick={(e) => {
-    setShowMobileFilters((prev) => !prev);
-    e.currentTarget.blur(); // uklanja fokus odmah nakon klika
-  }}
+  onClick={() => setShowMobileFilters((prev) => !prev)}
   startIcon={<FilterAltOutlinedIcon />}
   sx={{
     borderColor: "#971d21",
-    color: "#971d21",
+    color: showMobileFilters ? "#971d21" : "#971d21",
+    backgroundColor: showMobileFilters ? "transparent" : "transparent",
     width: "100%",
     maxWidth: 400,
     borderRadius: "8px",
     py: 1.1,
     fontWeight: 600,
-    "&:focus": { boxShadow: "none", outline: "none" }, // uklanja crveni fokus
+    "&:hover": { backgroundColor: "rgba(151,29,33,0.1)" },
+    "&:focus": { boxShadow: "none", outline: "none" },
   }}
 >
   {showMobileFilters ? "Sakrij filtere" : "Prikaži filtere"}
 </Button>
+
 
             </div>
           )}
