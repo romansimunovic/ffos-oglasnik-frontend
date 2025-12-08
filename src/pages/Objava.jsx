@@ -444,7 +444,7 @@ export default function Objava() {
                       </p>
 
                       <div style={{ display: "flex", flexWrap: "wrap", gap: "12px", fontSize: "0.85rem", color: "#666", marginTop: "12px", paddingTop: "12px", borderTop: "1px solid #eee" }}>
-                        <span style={{ display: "inline-flex", alignItems: "center", gap: "4px" }}>📌 {obj.tip || "Ostalo"}</span>
+                        <span style={{ display: "inline-flex", alignItems: "center", gap: "4px" }}>Vrsta {obj.tip || "Ostalo"}</span>
                         <span style={{ display: "inline-flex", alignItems: "center", gap: "4px" }}>{ODSJECI.find((x) => x.id === obj.odsjek)?.naziv || "-"}</span>
                         <span style={{ display: "inline-flex", alignItems: "center", gap: "4px" }}>{obj.datum ? new Date(obj.datum).toLocaleDateString("hr-HR") : ""}</span>
                         <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", marginLeft: "auto" }}>⭐ {obj.saves || 0}</span>

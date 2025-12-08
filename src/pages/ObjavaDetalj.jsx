@@ -48,11 +48,11 @@ export default function ObjavaDetalj() {
   const copyLink = async () => {
     try {
       await navigator.clipboard.writeText(currentUrl);
-      toast("✅ Link kopiran!", "success");
+      toast("Link kopiran!", "success");
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
-      console.error("❌ Clipboard greška:", err);
+      console.error("Clipboard greška:", err);
       toast("Ne mogu kopirati link", "error");
     }
   };
@@ -161,7 +161,7 @@ export default function ObjavaDetalj() {
             />
             <div style={{ flex: 1, minWidth: 200 }}>
               <h1 style={{ margin: 0, fontSize: "1.5rem" }}>{objava.naslov}</h1>
-              <div style={{ color: "#666", fontSize: 14 }}>📝 {autorIme}</div>
+              <div style={{ color: "#666", fontSize: 14 }}>Opis {autorIme}</div>
             </div>
           </div>
 
@@ -176,11 +176,11 @@ export default function ObjavaDetalj() {
               marginBottom: 16,
             }}
           >
-            <span>📌 Tip: {tipNaziv}</span>
-            <span>📂 Odsjek: {odsjekNaziv}</span>
-            <span>📅 {datum}</span>
-            <span title="Broj spremanja">⭐ {objava.saves || 0}</span>
-            <span title="Broj pregleda">👁️ {objava.views || 0}</span>
+            <span> Vrsta: {tipNaziv}</span>
+            <span> Odsjek: {odsjekNaziv}</span>
+            <span> Datum: {datum}</span>
+            <span title="Broj spremanja">Broj spremanja {objava.saves || 0}</span>
+            <span title="Broj pregleda">Broj pregleda {objava.views || 0}</span>
           </div>
 
           {/* SADRŽAJ */}
@@ -220,7 +220,7 @@ export default function ObjavaDetalj() {
               onClick={() => setShareOpen(true)}
               style={{ marginTop: "1rem" }}
             >
-              🔗 Podijeli objavu
+              Podijeli
             </Button>
           ) : (
             <p
@@ -245,7 +245,7 @@ export default function ObjavaDetalj() {
             maxWidth="sm"
             fullWidth
           >
-            <DialogTitle>📤 Podijeli objavu</DialogTitle>
+            <DialogTitle> Podijeli </DialogTitle>
             <DialogContent dividers>
               <p style={{ marginBottom: "1rem", fontWeight: 500 }}>
                 Odaberi gdje želiš podijeliti:
@@ -309,7 +309,7 @@ export default function ObjavaDetalj() {
                     color: copied ? "#4CAF50" : undefined,
                   }}
                 >
-                  {copied ? "✅ Link kopiran!" : "🔗 Kopiraj link"}
+                  {copied ? "Link kopiran!" : " Kopiraj link"}
                 </Button>
               </div>
             </DialogContent>
