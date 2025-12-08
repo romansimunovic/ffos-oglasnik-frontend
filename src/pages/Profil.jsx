@@ -11,39 +11,38 @@ import {
   Avatar,
   useTheme,
   useMediaQuery,
+  IconButton,
 } from "@mui/material";
 import SaveIcon from "@mui/icons-material/Bookmark";
 import api from "../api/axiosInstance";
 import { useToast } from "../components/Toast";
+import PhotoCameraIcon from "@mui/icons-material/PhotoCamera";
 
 export default function Profil() {
   const [spremljene, setSpremljene] = useState([]);
-  const [localUser, setLocalUser] = useState(() => JSON.parse(localStorage.getItem("user") || "null"));
   const [mojeNaCekanju, setMojeNaCekanju] = useState([]);
   const [obavijesti, setObavijesti] = useState([]);
   const [previewUrl, setPreviewUrl] = useState(null);
-  const [logoutConfirm, setLogoutConfirm] = useState(false);
+  const [avatarDialogOpen, setAvatarDialogOpen] = useState(false);
+  const [localUser, setLocalUser] = useState(() => JSON.parse(localStorage.getItem("user") || "null"));
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
   const toast = useToast();
-
-  const user = localUser;
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+
+  const user = localUser;
 
   useEffect(() => {
     if (!user) return;
 
     if (user.uloga === "admin") {
-      // admin nema spremljene/na čekanju objave u UI - ali može imati avatar itd.
       setSpremljene([]);
       setMojeNaCekanju([]);
-      // fetch admin's public profile info (if needed) - optional
       fetchObavijesti();
       return;
     }
 
-    // korisnik: dohvat spremljenih, moje na cekanju i obavijesti
     fetchSpremljene();
     fetchMojeNaCekanju();
     fetchObavijesti();
@@ -58,7 +57,6 @@ export default function Profil() {
       window.removeEventListener("refreshSpremljene", refreshSpremljeneHandler);
       window.removeEventListener("refreshObavijesti", refreshObavijestiHandler);
     };
-    // eslint-disable-next-line
   }, [user]);
 
   const fetchSpremljene = async () => {
@@ -70,7 +68,7 @@ export default function Profil() {
       });
       setSpremljene(data || []);
     } catch (err) {
-      console.error("Greška pri dohvaćanju spremljenih:", err);
+      console.error(err);
       setSpremljene([]);
     }
   };
@@ -84,7 +82,7 @@ export default function Profil() {
       });
       setMojeNaCekanju(data || []);
     } catch (err) {
-      console.error("Greška pri dohvaćanju mojih objava na čekanju:", err);
+      console.error(err);
       setMojeNaCekanju([]);
     }
   };
@@ -98,7 +96,7 @@ export default function Profil() {
       });
       setObavijesti(data || []);
     } catch (err) {
-      console.error("Greška pri dohvaćanju obavijesti:", err);
+      console.error(err);
       setObavijesti([]);
     }
   };
@@ -107,12 +105,16 @@ export default function Profil() {
     if (!user) return;
     try {
       const token = localStorage.getItem("token");
-      await api.post(`/korisnik/${user._id || user.id}/obavijesti/${notifId}/read`, {}, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setObavijesti(prev => prev.map(n => n._id === notifId ? { ...n, read: true } : n));
+      await api.post(
+        `/korisnik/${user._id || user.id}/obavijesti/${notifId}/read`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setObavijesti((prev) =>
+        prev.map((n) => (n._id === notifId ? { ...n, read: true } : n))
+      );
     } catch (err) {
-      console.error("markRead err:", err);
+      console.error(err);
       toast("Greška pri označavanju obavijesti.", "error");
     }
   };
@@ -126,7 +128,31 @@ export default function Profil() {
     return `${backendOrigin}${avatarPath}?t=${Date.now()}`;
   };
 
-  // UI: not logged in
+  const handleAvatarChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("avatar", file);
+
+    try {
+      const token = localStorage.getItem("token");
+      const { data } = await api.post("/korisnik/upload-avatar", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setPreviewUrl(data.avatar);
+      setLocalUser(data.user);
+      localStorage.setItem("user", JSON.stringify(data.user));
+      toast("Avatar uspješno ažuriran.", "success");
+    } catch (err) {
+      console.error(err);
+      toast("Greška pri uploadu avatara.", "error");
+    }
+  };
+
   if (!user) {
     return (
       <section className="page-bg">
@@ -141,57 +167,109 @@ export default function Profil() {
 
   return (
     <section className="page-bg">
-      <div className="container" style={{ display: "grid", gap: 20, gridTemplateColumns: isMobile ? "1fr" : "320px 1fr", alignItems: "start" }}>
+      <div
+        className="container"
+        style={{
+          display: "grid",
+          gap: 20,
+          gridTemplateColumns: isMobile ? "1fr" : "320px 1fr",
+          alignItems: "start",
+        }}
+      >
         {/* LEFT: profile */}
         <div>
           <div className="card profile-card" style={{ textAlign: "center" }}>
-            <Box sx={{ display: "flex", justifyContent: "center", mb: 1 }}>
-              <Avatar src={avatarSrc} sx={{ width: 120, height: 120 }} />
+            <Box sx={{ display: "flex", justifyContent: "center", mb: 1, position: "relative" }}>
+              <Avatar
+                src={avatarSrc}
+                sx={{ width: 120, height: 120, cursor: "pointer" }}
+                onClick={() => setAvatarDialogOpen(true)}
+              />
+              <IconButton
+                sx={{ position: "absolute", bottom: 0, right: "calc(50% - 60px)", backgroundColor: "#fff" }}
+                size="small"
+                onClick={() => fileInputRef.current.click()}
+              >
+                <PhotoCameraIcon fontSize="small" />
+              </IconButton>
             </Box>
-            <Typography variant="h6" sx={{ fontWeight: 700 }}>{user.ime}</Typography>
-            <Typography variant="body2" sx={{ color: "#666" }}>{user.email}</Typography>
+            <input
+              type="file"
+              ref={fileInputRef}
+              style={{ display: "none" }}
+              accept="image/png, image/jpeg, image/webp"
+              onChange={handleAvatarChange}
+            />
+            <Typography variant="h6" sx={{ fontWeight: 700 }}>
+              {user.ime}
+            </Typography>
+            <Typography variant="body2" sx={{ color: "#666" }}>
+              {user.email}
+            </Typography>
           </div>
         </div>
 
         {/* RIGHT: notifications + saved + pending */}
         <div>
-          {/* NOTIFIKACIJE */}
+          {/* Obavijesti */}
           <div className="card" style={{ marginBottom: 16 }}>
-            <Typography variant="h6">Obavijesti {obavijesti.filter(n => !n.read).length > 0 && `(${obavijesti.filter(n => !n.read).length})`}</Typography>
+            <Typography variant="h6">
+              Obavijesti {obavijesti.filter((n) => !n.read).length > 0 && `(${obavijesti.filter((n) => !n.read).length})`}
+            </Typography>
             {obavijesti.length === 0 ? (
-              <Typography variant="body2" sx={{ color: "#666", mt: 1 }}>Nema obavijesti.</Typography>
+              <Typography variant="body2" sx={{ color: "#666", mt: 1 }}>
+                Nema obavijesti.
+              </Typography>
             ) : (
               <Box sx={{ display: "grid", gap: 1, mt: 1 }}>
-                {obavijesti.map(n => (
-                  <div key={n._id} className="card" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", opacity: n.read ? 0.6 : 1 }}>
+                {obavijesti.map((n) => (
+                  <div
+                    key={n._id}
+                    className="card"
+                    style={{ display: "flex", justifyContent: "space-between", alignItems: "center", opacity: n.read ? 0.6 : 1 }}
+                  >
                     <div>
-                      <Typography variant="subtitle2" sx={{ margin: 0 }}>{n.title}</Typography>
-                      <Typography variant="body2" sx={{ color: "#666" }}>{n.message}</Typography>
-                      <Typography variant="caption" sx={{ color: "#999" }}>{n.createdAt ? new Date(n.createdAt).toLocaleString("hr-HR") : ""}</Typography>
+                      <Typography variant="subtitle2" sx={{ margin: 0 }}>
+                        {n.title}
+                      </Typography>
+                      <Typography variant="body2" sx={{ color: "#666" }}>
+                        {n.message}
+                      </Typography>
+                      <Typography variant="caption" sx={{ color: "#999" }}>
+                        {n.createdAt ? new Date(n.createdAt).toLocaleString("hr-HR") : ""}
+                      </Typography>
                     </div>
-                    <div>
-                      {!n.read && <Button size="small" onClick={() => markRead(n._id)}>Označi kao pročitano</Button>}
-                    </div>
+                    <div>{!n.read && <Button size="small" onClick={() => markRead(n._id)}>Označi kao pročitano</Button>}</div>
                   </div>
                 ))}
               </Box>
             )}
           </div>
 
-          {/* SPREMLJENE OBJAVE */}
+          {/* Spremljene objave */}
           <div className="card" style={{ marginBottom: 16 }}>
-            <Typography variant="h6">Spremljene objave <SaveIcon fontSize="small" sx={{ ml: 1 }} /></Typography>
+            <Typography variant="h6">
+              Spremljene objave <SaveIcon fontSize="small" sx={{ ml: 1 }} />
+            </Typography>
             {spremljene.length === 0 ? (
-              <Typography variant="body2" sx={{ color: "#666", mt: 1 }}>Još nemaš spremljenih objava.</Typography>
+              <Typography variant="body2" sx={{ color: "#666", mt: 1 }}>
+                Još nemaš spremljenih objava.
+              </Typography>
             ) : (
               <Box sx={{ display: "grid", gap: 1, mt: 1 }}>
-                {spremljene.map(o => (
+                {spremljene.map((o) => (
                   <Link key={o._id} to={`/objava/${o._id}`} className="card-link" style={{ textDecoration: "none" }}>
                     <div className="card" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                       <div>
-                        <Typography variant="subtitle1" sx={{ margin: 0 }}>{o.naslov || "Bez naslova"}</Typography>
-                        <Typography variant="body2" sx={{ color: "#666" }}>{o.sadrzaj ? (o.sadrzaj.length > 80 ? `${o.sadrzaj.slice(0,80)}...` : o.sadrzaj) : "Nema opisa."}</Typography>
-                        <Typography variant="caption" sx={{ color: "#666" }}>{o.datum ? new Date(o.datum).toLocaleDateString("hr-HR") : ""}</Typography>
+                        <Typography variant="subtitle1" sx={{ margin: 0 }}>
+                          {o.naslov || "Bez naslova"}
+                        </Typography>
+                        <Typography variant="body2" sx={{ color: "#666" }}>
+                          {o.sadrzaj ? (o.sadrzaj.length > 80 ? `${o.sadrzaj.slice(0, 80)}...` : o.sadrzaj) : "Nema opisa."}
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: "#666" }}>
+                          {o.datum ? new Date(o.datum).toLocaleDateString("hr-HR") : ""}
+                        </Typography>
                       </div>
                     </div>
                   </Link>
@@ -200,24 +278,36 @@ export default function Profil() {
             )}
           </div>
 
-          {/* MOJE NA ČEKANJU */}
+          {/* Moje na čekanju */}
           <div className="card">
             <Typography variant="h6">Moje objave na čekanju</Typography>
             {mojeNaCekanju.length === 0 ? (
-              <Typography variant="body2" sx={{ color: "#666", mt: 1 }}>Trenutno nemaš objava na čekanju.</Typography>
+              <Typography variant="body2" sx={{ color: "#666", mt: 1 }}>
+                Trenutno nemaš objava na čekanju.
+              </Typography>
             ) : (
               <Box sx={{ display: "grid", gap: 1, mt: 1 }}>
-                {mojeNaCekanju.map(o => (
+                {mojeNaCekanju.map((o) => (
                   <Link key={o._id} to={`/objava/${o._id}`} className="card-link" style={{ textDecoration: "none" }}>
                     <div className="card" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                       <div>
-                        <Typography variant="subtitle1" sx={{ margin: 0 }}>{o.naslov || "Bez naslova"}</Typography>
-                        <Typography variant="body2" sx={{ color: "#666" }}>{o.sadrzaj ? (o.sadrzaj.length > 80 ? `${o.sadrzaj.slice(0,80)}...` : o.sadrzaj) : "Nema opisa."}</Typography>
-                        <Typography variant="caption" sx={{ color: "#666" }}>{o.datum ? new Date(o.datum).toLocaleDateString("hr-HR") : ""}</Typography>
-                        <Typography variant="caption" sx={{ color: "#ff9800", display: "block" }}>Status: {o.status || "na čekanju"}</Typography>
+                        <Typography variant="subtitle1" sx={{ margin: 0 }}>
+                          {o.naslov || "Bez naslova"}
+                        </Typography>
+                        <Typography variant="body2" sx={{ color: "#666" }}>
+                          {o.sadrzaj ? (o.sadrzaj.length > 80 ? `${o.sadrzaj.slice(0, 80)}...` : o.sadrzaj) : "Nema opisa."}
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: "#666" }}>
+                          {o.datum ? new Date(o.datum).toLocaleDateString("hr-HR") : ""}
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: "#ff9800", display: "block" }}>
+                          Status: {o.status || "na čekanju"}
+                        </Typography>
                       </div>
                       <div>
-                        <Button size="small" variant="outlined">Detalji</Button>
+                        <Button size="small" variant="outlined">
+                          Detalji
+                        </Button>
                       </div>
                     </div>
                   </Link>
@@ -227,6 +317,17 @@ export default function Profil() {
           </div>
         </div>
       </div>
+
+      {/* Avatar enlarge dialog */}
+      <Dialog open={avatarDialogOpen} onClose={() => setAvatarDialogOpen(false)} maxWidth="xs" fullWidth>
+        <DialogTitle>Profilna fotografija</DialogTitle>
+        <DialogContent sx={{ textAlign: "center" }}>
+          <Avatar src={avatarSrc} sx={{ width: 200, height: 200, margin: "auto" }} />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setAvatarDialogOpen(false)}>Zatvori</Button>
+        </DialogActions>
+      </Dialog>
     </section>
   );
 }
