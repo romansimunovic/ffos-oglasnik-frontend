@@ -1,11 +1,9 @@
-// src/pages/Profil.jsx
 import { useEffect, useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogContentText,
   DialogActions,
   Button,
   Box,
@@ -22,6 +20,7 @@ export default function Profil() {
   const [spremljene, setSpremljene] = useState([]);
   const [localUser, setLocalUser] = useState(() => JSON.parse(localStorage.getItem("user") || "null"));
   const [mojeNaCekanju, setMojeNaCekanju] = useState([]);
+  const [obavijesti, setObavijesti] = useState([]);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [logoutConfirm, setLogoutConfirm] = useState(false);
   const fileInputRef = useRef(null);
@@ -33,50 +32,90 @@ export default function Profil() {
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
   useEffect(() => {
-    if (!user || user.uloga === "admin") {
+    if (!user) return;
+
+    if (user.uloga === "admin") {
+      // admin nema spremljene/na čekanju objave u UI - ali može imati avatar itd.
       setSpremljene([]);
       setMojeNaCekanju([]);
+      // fetch admin's public profile info (if needed) - optional
+      fetchObavijesti();
       return;
     }
-    let isMounted = true;
 
-    const fetchSpremljene = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const { data } = await api.get(`/korisnik/${user._id || user.id}/spremljene`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (isMounted) setSpremljene(data || []);
-      } catch (err) {
-        console.error("Greška pri dohvaćanju spremljenih:", err);
-        if (isMounted) setSpremljene([]);
-      }
-    };
-
-    const fetchMojeNaCekanju = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const { data } = await api.get(`/objave/moje?status=na čekanju`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (isMounted) setMojeNaCekanju(data || []);
-      } catch (err) {
-        console.error("Greška pri dohvaćanju mojih objava na čekanju:", err);
-        if (isMounted) setMojeNaCekanju([]);
-      }
-    };
-
+    // korisnik: dohvat spremljenih, moje na cekanju i obavijesti
     fetchSpremljene();
     fetchMojeNaCekanju();
+    fetchObavijesti();
 
-    const handler = () => fetchSpremljene();
-    window.addEventListener("refreshSpremljene", handler);
+    const refreshSpremljeneHandler = () => fetchSpremljene();
+    const refreshObavijestiHandler = () => fetchObavijesti();
+
+    window.addEventListener("refreshSpremljene", refreshSpremljeneHandler);
+    window.addEventListener("refreshObavijesti", refreshObavijestiHandler);
 
     return () => {
-      isMounted = false;
-      window.removeEventListener("refreshSpremljene", handler);
+      window.removeEventListener("refreshSpremljene", refreshSpremljeneHandler);
+      window.removeEventListener("refreshObavijesti", refreshObavijestiHandler);
     };
+    // eslint-disable-next-line
   }, [user]);
+
+  const fetchSpremljene = async () => {
+    if (!user) return;
+    try {
+      const token = localStorage.getItem("token");
+      const { data } = await api.get(`/korisnik/${user._id || user.id}/spremljene`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setSpremljene(data || []);
+    } catch (err) {
+      console.error("Greška pri dohvaćanju spremljenih:", err);
+      setSpremljene([]);
+    }
+  };
+
+  const fetchMojeNaCekanju = async () => {
+    if (!user) return;
+    try {
+      const token = localStorage.getItem("token");
+      const { data } = await api.get(`/objave/moje?status=na čekanju`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setMojeNaCekanju(data || []);
+    } catch (err) {
+      console.error("Greška pri dohvaćanju mojih objava na čekanju:", err);
+      setMojeNaCekanju([]);
+    }
+  };
+
+  const fetchObavijesti = async () => {
+    if (!user) return;
+    try {
+      const token = localStorage.getItem("token");
+      const { data } = await api.get(`/korisnik/${user._id || user.id}/obavijesti`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setObavijesti(data || []);
+    } catch (err) {
+      console.error("Greška pri dohvaćanju obavijesti:", err);
+      setObavijesti([]);
+    }
+  };
+
+  const markRead = async (notifId) => {
+    if (!user) return;
+    try {
+      const token = localStorage.getItem("token");
+      await api.post(`/korisnik/${user._id || user.id}/obavijesti/${notifId}/read`, {}, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setObavijesti(prev => prev.map(n => n._id === notifId ? { ...n, read: true } : n));
+    } catch (err) {
+      console.error("markRead err:", err);
+      toast("Greška pri označavanju obavijesti.", "error");
+    }
+  };
 
   const buildAvatarSrc = (avatarPath) => {
     if (!avatarPath) return "/default-avatar.png";
@@ -87,7 +126,7 @@ export default function Profil() {
     return `${backendOrigin}${avatarPath}?t=${Date.now()}`;
   };
 
-  // NOTE: UI sada više ne pokazuje "Promijeni" ni "Odjava" gumbe.
+  // UI: not logged in
   if (!user) {
     return (
       <section className="page-bg">
@@ -103,7 +142,7 @@ export default function Profil() {
   return (
     <section className="page-bg">
       <div className="container" style={{ display: "grid", gap: 20, gridTemplateColumns: isMobile ? "1fr" : "320px 1fr", alignItems: "start" }}>
-        {/* LEFT: profile (without buttons) */}
+        {/* LEFT: profile */}
         <div>
           <div className="card profile-card" style={{ textAlign: "center" }}>
             <Box sx={{ display: "flex", justifyContent: "center", mb: 1 }}>
@@ -114,8 +153,32 @@ export default function Profil() {
           </div>
         </div>
 
-        {/* RIGHT: saved + pending */}
+        {/* RIGHT: notifications + saved + pending */}
         <div>
+          {/* NOTIFIKACIJE */}
+          <div className="card" style={{ marginBottom: 16 }}>
+            <Typography variant="h6">Obavijesti {obavijesti.filter(n => !n.read).length > 0 && `(${obavijesti.filter(n => !n.read).length})`}</Typography>
+            {obavijesti.length === 0 ? (
+              <Typography variant="body2" sx={{ color: "#666", mt: 1 }}>Nema obavijesti.</Typography>
+            ) : (
+              <Box sx={{ display: "grid", gap: 1, mt: 1 }}>
+                {obavijesti.map(n => (
+                  <div key={n._id} className="card" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", opacity: n.read ? 0.6 : 1 }}>
+                    <div>
+                      <Typography variant="subtitle2" sx={{ margin: 0 }}>{n.title}</Typography>
+                      <Typography variant="body2" sx={{ color: "#666" }}>{n.message}</Typography>
+                      <Typography variant="caption" sx={{ color: "#999" }}>{n.createdAt ? new Date(n.createdAt).toLocaleString("hr-HR") : ""}</Typography>
+                    </div>
+                    <div>
+                      {!n.read && <Button size="small" onClick={() => markRead(n._id)}>Označi kao pročitano</Button>}
+                    </div>
+                  </div>
+                ))}
+              </Box>
+            )}
+          </div>
+
+          {/* SPREMLJENE OBJAVE */}
           <div className="card" style={{ marginBottom: 16 }}>
             <Typography variant="h6">Spremljene objave <SaveIcon fontSize="small" sx={{ ml: 1 }} /></Typography>
             {spremljene.length === 0 ? (
@@ -137,6 +200,7 @@ export default function Profil() {
             )}
           </div>
 
+          {/* MOJE NA ČEKANJU */}
           <div className="card">
             <Typography variant="h6">Moje objave na čekanju</Typography>
             {mojeNaCekanju.length === 0 ? (
