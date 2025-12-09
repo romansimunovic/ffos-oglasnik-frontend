@@ -80,9 +80,7 @@ export default function Profil() {
     if (!user) return;
     try {
       const token = localStorage.getItem("token");
-      const { data } = await api.get(`/korisnik/${user._id || user.id}/spremljene`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const { data } = await api.get("/korisnik/spremljene");
       setSpremljene(data || []);
     } catch (err) {
       console.error(err);
