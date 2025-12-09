@@ -18,6 +18,9 @@ import api from "../api/axiosInstance";
 import { useToast } from "../components/Toast";
 import PhotoCameraIcon from "@mui/icons-material/PhotoCamera";
 
+import { useLocation } from "react-router-dom";
+
+
 export default function Profil() {
   const [spremljene, setSpremljene] = useState([]);
   const [mojeNaCekanju, setMojeNaCekanju] = useState([]);
@@ -31,7 +34,16 @@ export default function Profil() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
+  const location = useLocation();
+  
+  const [activeTab, setActiveTab] = useState("overview"); // default tab
   const user = localUser;
+
+  useEffect(() => {
+  const params = new URLSearchParams(location.search);
+  const tab = params.get("tab");
+  if (tab) setActiveTab(tab); // npr. "submitted"
+}, [location.search]);
 
   useEffect(() => {
   if (!user) return;

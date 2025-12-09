@@ -201,10 +201,16 @@ export default function Objava() {
   };
 
   const openObjava = (id) => navigate(`/objava/${id}`);
-  const openProfil = (e, id) => {
-    e.stopPropagation();
-    navigate(`/profil/${id}`);
-  };
+const openProfil = (e, autorId) => {
+  e.stopPropagation();
+  if (!autorId) return; // ako nema ID, ništa
+  if (autorId === userId) {
+    navigate("/profil"); // vlastiti profil
+  } else {
+    navigate(`/profil/${autorId}`); // tuđi profil
+  }
+};
+
 
   // create new post
   const handleCreateObjava = async (e) => {
@@ -578,15 +584,13 @@ const autorAvatar = autor.avatar; // avatar za prikaz
                     <div className="card">
                       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
                         <img
-                          src={avatarSrc}
-                          alt={`Avatar ${autorIme}`}
-                          className="tiny-avatar"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (autorId) navigate(`/profil/${autorId}`);
-                          }}
-                          style={{ cursor: autorId ? "pointer" : "default" }}
-                        />
+  src={avatarSrc}
+  alt={`Avatar ${autorIme}`}
+  className="tiny-avatar"
+  onClick={(e) => openProfil(e, autorId)}
+  style={{ cursor: autorId ? "pointer" : "default" }}
+/>
+
                         <div style={{ flex: 1 }}>
                           <h2 style={{ margin: 0, fontSize: "1.1rem", color: ACCENT }}>{obj.naslov || "Bez naslova"}</h2>
                           <div style={{ fontSize: "0.85rem", color: "#666", marginTop: "2px" }}>{autorIme}</div>
@@ -673,16 +677,16 @@ const autorAvatar = autor.avatar; // avatar za prikaz
           <DialogActions>
             <Button onClick={() => setShowSubmitSuccessDialog(false)} size="small">Zatvori</Button>
             <Button
-              variant="contained"
-              onClick={() => {
-                setShowSubmitSuccessDialog(false);
-                if (userId) navigate(`/profil/${userId}?tab=submitted`);
-                else navigate("/profil");
-              }}
-              sx={{ backgroundColor: ACCENT, "&:hover": { backgroundColor: "#701013" } }}
-            >
-              Vidi poslane objave
-            </Button>
+  variant="contained"
+  onClick={() => {
+    setShowSubmitSuccessDialog(false);
+    if (userId) navigate(`/profil` + "?tab=submitted"); // umjesto userprofil, vodi na vlastiti profil
+    else navigate("/profil");
+  }}
+  sx={{ backgroundColor: ACCENT, "&:hover": { backgroundColor: "#701013" } }}
+>
+  Vidi poslane objave
+</Button>
           </DialogActions>
         </Dialog>
       </div>

@@ -1,5 +1,6 @@
+// src/App.jsx
 import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 
 // Providers
 import { ToastProvider } from "./components/Toast";
@@ -15,7 +16,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Home from "./pages/Home";
 import Objava from "./pages/Objava";
 import ObjavaDetalj from "./pages/ObjavaDetalj";
-import Kalendar from "./pages/Kalendar"; 
+import Kalendar from "./pages/Kalendar";
 import Kontakt from "./pages/Kontakt";
 import Registracija from "./pages/Registracija";
 import Login from "./pages/Login";
@@ -37,13 +38,11 @@ export default function App() {
             <main className="flex-grow pt-8 md:pt-12">
               <Routes>
                 {/* Javne stranice */}
-                <Route path="/" element={<Home />} />
+                <Route path="/" element={<Navigate to="/objave" replace />} />
                 <Route path="/objave" element={<Objava />} />
                 <Route path="/objava/:id" element={<ObjavaDetalj />} />
-                <Route path="/kalendar" element={<Kalendar />} /> {/* ✅ NOVO */}
+                <Route path="/kalendar" element={<Kalendar />} />
                 <Route path="/kontakt" element={<Kontakt />} />
-
-                {/* Auth stranice */}
                 <Route path="/login" element={<Login />} />
                 <Route path="/registracija" element={<Registracija />} />
 
@@ -56,21 +55,14 @@ export default function App() {
                     </ProtectedRoute>
                   }
                 />
-
                 <Route
-  path="/welcome"
-  element={
-    <ProtectedRoute>
-      <Welcome />
-    </ProtectedRoute>
-  }
-/>
-
-
-                {/* Javni profili */}
-                <Route path="/profil/:id" element={<UserProfil />} />
-
-                {/* Admin panel */}
+                  path="/welcome"
+                  element={
+                    <ProtectedRoute>
+                      <Welcome />
+                    </ProtectedRoute>
+                  }
+                />
                 <Route
                   path="/admin"
                   element={
@@ -80,7 +72,10 @@ export default function App() {
                   }
                 />
 
-                {/* 404 Fallback */}
+                {/* Javni profili */}
+                <Route path="/profil/:id" element={<UserProfil />} />
+
+                {/* Fallback 404 */}
                 <Route path="*" element={<NotFoundOrFallback />} />
               </Routes>
             </main>
