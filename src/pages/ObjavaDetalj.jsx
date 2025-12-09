@@ -68,7 +68,7 @@ export default function ObjavaDetalj() {
     }
   };
 
-  if (loading) return <p className="center-msg">⏳ Učitavanje objave...</p>;
+  if (loading) return <p className="center-msg"> Učitavanje objave...</p>;
   if (!objava) return <p className="center-msg">Objava nije pronađena.</p>;
 
   const shareText = objava?.naslov || "Pogledaj ovu objavu";
