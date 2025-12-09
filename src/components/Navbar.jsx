@@ -201,7 +201,7 @@ export default function Navbar() {
   );
 
   return (
-    <AppBar position="static" className="navbar">
+    <AppBar position="static" className="navbar" sx={{ zIndex: 2000 }}>
       {isMobile ? (
         <Toolbar sx={{ display: "flex", alignItems: "center" }}>
           {/* LOGO LJEVO */}
