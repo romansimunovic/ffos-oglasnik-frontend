@@ -15,7 +15,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Home from "./pages/Home";
 import Objava from "./pages/Objava";
 import ObjavaDetalj from "./pages/ObjavaDetalj";
-import Kalendar from "./pages/Kalendar"; // ✅ NOVO
+import Kalendar from "./pages/Kalendar"; 
 import Kontakt from "./pages/Kontakt";
 import Registracija from "./pages/Registracija";
 import Login from "./pages/Login";
