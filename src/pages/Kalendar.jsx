@@ -121,47 +121,38 @@ export default function Kalendar() {
   style={{
     display: "flex",
     justifyContent: "center",
-    alignItems: "flex-start",
     padding: "2rem 1rem",
     minHeight: "100vh",
     boxSizing: "border-box",
   }}
 >
   <div
+    className="container"
     style={{
-      maxWidth: 960,
+      maxWidth: 900,
       width: "100%",
       display: "flex",
       flexDirection: "column",
       alignItems: "center",
     }}
   >
-    <h1 style={{ textAlign: "center", marginBottom: "2rem" }}>
-      Kalendar objava
-    </h1>
+    <h1 style={{ textAlign: "center", marginBottom: "2rem" }}>Kalendar objava</h1>
 
     {/* HEADER SA NAVIGACIJOM */}
     <div
       style={{
         display: "flex",
         alignItems: "center",
-        justifyContent: "center",
-        gap: 16,
-        marginBottom: "2rem",
-        flexWrap: "wrap",
+        justifyContent: "space-between",
+        width: "100%",
+        maxWidth: 400,
+        marginBottom: "1.5rem",
       }}
     >
       <IconButton onClick={handlePrevMonth}>
         <ChevronLeftIcon />
       </IconButton>
-      <h2
-        style={{
-          margin: 0,
-          textTransform: "capitalize",
-          fontSize: "1.5rem",
-          fontWeight: 500,
-        }}
-      >
+      <h2 style={{ margin: 0, textTransform: "capitalize", fontSize: "1.5rem" }}>
         {monthName} {year}
       </h2>
       <IconButton onClick={handleNextMonth}>
@@ -170,43 +161,14 @@ export default function Kalendar() {
     </div>
 
     {/* KALENDAR WRAPPER */}
-    <div
-      className="calendar-wrapper"
-      style={{
-        width: "100%",
-        maxWidth: 420,
-        margin: "0 auto",
-        background: "#fff",
-        borderRadius: 12,
-        boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-        padding: "1rem",
-      }}
-    >
-      {/* KALENDAR GRID */}
-      <div
-        className="calendar-grid"
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(7, 1fr)",
-          gap: 6,
-        }}
-      >
-        {/* Dani u tjednu */}
+    <div className="calendar-wrapper" style={{ width: "100%", maxWidth: 420 }}>
+      <div className="calendar-grid">
         {["Ned", "Pon", "Uto", "Sri", "Čet", "Pet", "Sub"].map((day) => (
-          <div
-            key={day}
-            style={{
-              textAlign: "center",
-              fontWeight: 600,
-              color: "#555",
-              paddingBottom: 6,
-            }}
-          >
+          <div key={day} className="calendar-day-header">
             {day}
           </div>
         ))}
 
-        {/* Dani mjeseca */}
         {days.map((date, idx) => {
           const dayObjave = date ? getObjaveForDate(date) : [];
           const isSelected =
@@ -219,45 +181,16 @@ export default function Kalendar() {
           return (
             <div
               key={idx}
+              className={`calendar-day ${date ? "" : "empty"} ${
+                isSelected ? "selected" : ""
+              } ${isToday(date) ? "today" : ""}`}
               onClick={() => date && handleDateClick(date)}
-              style={{
-                minHeight: 60,
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                background: isSelected
-                  ? "#1976d2"
-                  : isToday(date)
-                  ? "#e3f2fd"
-                  : "#f9f9f9",
-                color: isSelected ? "#fff" : "#333",
-                borderRadius: 8,
-                cursor: date ? "pointer" : "default",
-                transition: "all 0.2s",
-              }}
-              className={date ? "calendar-day" : "calendar-day empty"}
             >
               {date && (
                 <>
-                  <div
-                    style={{
-                      fontWeight: 500,
-                      marginBottom: 4,
-                    }}
-                  >
-                    {date.getDate()}
-                  </div>
+                  <div className="calendar-day-number">{date.getDate()}</div>
                   {dayObjave.length > 0 && (
-                    <div
-                      style={{
-                        fontSize: 12,
-                        color: isSelected ? "#bbdefb" : "#1976d2",
-                        fontWeight: 500,
-                      }}
-                    >
-                      {dayObjave.length} objava
-                    </div>
+                    <div className="calendar-day-count">{dayObjave.length} objava</div>
                   )}
                 </>
               )}
@@ -270,7 +203,7 @@ export default function Kalendar() {
     {/* ODABRANE OBJAVE */}
     {selectedDate && (
       <div style={{ marginTop: "2rem", width: "100%" }}>
-        <h3 style={{ textAlign: "center", marginBottom: "1rem" }}>
+        <h3 style={{ textAlign: "center" }}>
           📅{" "}
           {selectedDate.toLocaleDateString("hr-HR", {
             weekday: "long",
@@ -303,22 +236,6 @@ export default function Kalendar() {
                 key={obj._id}
                 className="card"
                 onClick={() => navigate(`/objava/${obj._id}`)}
-                style={{
-                  background: "#fff",
-                  borderRadius: 12,
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                  padding: "1rem",
-                  cursor: "pointer",
-                  display: "flex",
-                  flexDirection: "column",
-                  transition: "transform 0.15s",
-                }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.transform = "translateY(-4px)")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.transform = "translateY(0px)")
-                }
               >
                 <div style={{ position: "relative", height: 20, marginBottom: 8 }}>
                   {obj.pinned && (
@@ -341,21 +258,10 @@ export default function Kalendar() {
                   )}
                 </div>
 
-                <h2 style={{ marginTop: 0, fontSize: "1.2rem" }}>{obj.naslov}</h2>
-                <p style={{ flex: 1, fontSize: 14, color: "#555" }}>
-                  {obj.sadrzaj}
-                </p>
+                <h2 style={{ marginTop: 0 }}>{obj.naslov}</h2>
+                <p className="card-desc">{obj.sadrzaj}</p>
 
-                <div
-                  className="meta-info"
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    fontSize: 12,
-                    color: "#777",
-                    marginTop: "0.5rem",
-                  }}
-                >
+                <div className="meta-info">
                   <span>
                     Tip: <i>{obj.tip}</i>
                   </span>
@@ -372,6 +278,7 @@ export default function Kalendar() {
     )}
   </div>
 </section>
+
 
   );
 }
