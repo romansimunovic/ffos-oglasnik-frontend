@@ -1,68 +1,44 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Box, Typography, Avatar, Chip } from "@mui/material";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import BookmarkBorderOutlinedIcon from "@mui/icons-material/BookmarkBorderOutlined";
+import api from "../api/axiosInstance";
 import { getTypeDetails, getDeptDetails } from "../utils/uiHelpers";
 
+
 export default function UserProfil() {
-  const { id } = useParams(); // id iz URL-a
+  const { id } = useParams();
   const [user, setUser] = useState(null);
   const [objave, setObjave] = useState([]);
-  const [loading, setLoading] = useState(true); // loading state
-  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        setLoading(true);
-        setError(null);
-
-        // dohvati userId: iz URL param ili iz localStorage
         const userLocal = JSON.parse(localStorage.getItem("user") || "null");
         const userIdParam = id || userLocal?._id;
-        console.log("userIdParam:", userIdParam);
 
-        if (!userIdParam) {
-          throw new Error("Nije definiran userId!");
-        }
+        console.log("🔹 Dohvaćam korisnika s ID:", userIdParam);
 
-        // fetch korisnika
-        const userRes = await fetch(`/api/users/${userIdParam}`);
-        console.log("userRes ok?", userRes.ok, "status:", userRes.status);
-        if (!userRes.ok) throw new Error(`Greška pri dohvaćanju korisnika: ${userRes.status}`);
-
-        const userData = await userRes.json();
-        console.log("userData:", userData);
-        if (!userData || Object.keys(userData).length === 0) throw new Error("Korisnik ne postoji!");
-
+        const { data: userData } = await api.get(`/korisnik/${userIdParam}`);
+        console.log("✅ userData:", userData);
         setUser(userData);
 
-        // fetch objava korisnika
-        const objaveRes = await fetch(`/api/posts/user/${userIdParam}`);
-        console.log("objaveRes ok?", objaveRes.ok, "status:", objaveRes.status);
-        if (!objaveRes.ok) throw new Error(`Greška pri dohvaćanju objava: ${objaveRes.status}`);
-
-        const postsData = await objaveRes.json();
-        console.log("postsData:", postsData);
+        const { data: postsData } = await api.get(`/objave/user/${userIdParam}`);
+        console.log("✅ postsData:", postsData);
         setObjave(Array.isArray(postsData) ? postsData : postsData.objave || []);
 
       } catch (err) {
-        console.error("❌ Error u fetchData:", err);
-        setError(err.message || "Došlo je do pogreške.");
+        console.error("❌ Greška u fetchData:", err);
         setUser(null);
         setObjave([]);
-      } finally {
-        setLoading(false);
       }
     };
 
     fetchData();
   }, [id]);
 
-  if (loading) return <div>Učitavanje korisnika...</div>;
-  if (error) return <div style={{ color: "red" }}>Greška: {error}</div>;
-  if (!user) return <div>Korisnik nije pronađen.</div>;
+  if (!user) return <div>Učitavanje korisnika...</div>;
 
   const avatarSrc = user.avatar || "/default-avatar.png";
 
