@@ -24,7 +24,7 @@ export default function UserProfil() {
         console.log("✅ userData:", userData);
         setUser(userData);
 
-        const { data: postsData } = await api.get(`/objave/user/${userIdParam}`);
+const { data: postsData } = await api.get(`/objave/autor/${userIdParam}`);
         console.log("✅ postsData:", postsData);
         setObjave(Array.isArray(postsData) ? postsData : postsData.objave || []);
 
