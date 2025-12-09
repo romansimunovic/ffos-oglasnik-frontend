@@ -542,10 +542,15 @@ export default function Objava() {
           <>
             <div className="card-grid">
               {objave.map((obj) => {
-                const autor = obj.autor && typeof obj.autor === "object" ? obj.autor : null;
-                const autorIme = autor?.ime || obj.autor || "Nepoznato";
-                const autorId = autor?._id || obj.autor || null;
-                const autorAvatar = autor?.avatar || obj.autorAvatar || null;
+                // Normalizacija autora da uvijek ima ID, ime i avatar
+const autor = obj.autor && typeof obj.autor === "object"
+  ? obj.autor
+  : { _id: null, ime: obj.autor || "Nepoznato", avatar: obj.autorAvatar || null };
+
+const autorId = autor._id;      // koristimo samo ID za navigaciju
+const autorIme = autor.ime;     // ime za prikaz
+const autorAvatar = autor.avatar; // avatar za prikaz
+
                 const avatarSrc = buildAvatarSrc(autorAvatar);
 
                 const isNew = obj.datum && new Date() - new Date(obj.datum) < 3 * 24 * 60 * 60 * 1000;
