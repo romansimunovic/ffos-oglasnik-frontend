@@ -118,14 +118,15 @@ export default function Kalendar() {
   return (
     <section className="page-bg">
       <div className="container">
-        <h1>Kalendar objava</h1>
+        <h1 style={{ textAlign: "center" }}>Kalendar objava</h1>
 
         {/* HEADER SA NAVIGACIJOM */}
         <div
           style={{
             display: "flex",
             alignItems: "center",
-            justifyContent: "space-between",
+            justifyContent: "center",
+            gap: 16,
             marginBottom: "1.5rem",
             marginTop: "2rem",
           }}
@@ -148,7 +149,13 @@ export default function Kalendar() {
         </div>
 
         {/* KALENDAR WRAPPER */}
-        <div className="calendar-wrapper">
+        <div
+          className="calendar-wrapper"
+          style={{
+            maxWidth: 420,
+            margin: "0 auto",
+          }}
+        >
           {/* KALENDAR GRID */}
           <div className="calendar-grid">
             {/* Dani u tjednu */}
@@ -256,8 +263,8 @@ export default function Kalendar() {
                       </span>
                       <span>
                         Odsjek:{" "}
-                        {ODSJECI.find((ods) => ods.id === obj.odsjek)
-                          ?.naziv || "-"}
+                        {ODSJECI.find((ods) => ods.id === obj.odsjek)?.naziv ||
+                          "-"}
                       </span>
                     </div>
                   </div>
