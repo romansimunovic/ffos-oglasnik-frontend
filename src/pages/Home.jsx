@@ -161,11 +161,14 @@ export default function Home() {
               // type + dept visuals
               const t = getTypeDetails((obj.tip || "ostalo").toLowerCase());
               const TypeIcon = t.Icon;
-              const found = ODSJECI.find((x) => x.id === obj.odsjek);
-              const deptKey = found?.id || (obj.odsjek || "");
-              const d = getDeptDetails(deptKey);
-              const DeptIcon = d.Icon;
-              const DeptLabel = found?.naziv || (typeof obj.odsjek === "string" ? obj.odsjek : "-");
+            const odsjekId = typeof obj.odsjek === "object"
+              ? obj.odsjek.id
+              : obj.odsjek;
+            const found = ODSJECI.find((x) => x.id === odsjekId);
+            const deptKey = found?.id || odsjekId || "";
+            const d = getDeptDetails(deptKey);
+            const DeptIcon = d?.Icon || ApartmentIcon; // fallback da nikad ne puca
+            const DeptLabel = found?.naziv || (typeof obj.odsjek === "string" ? obj.odsjek : "-");
 
               return (
                 <Card key={obj._id} sx={{ cursor: "pointer", p: 2, position: "relative" }} onClick={() => navigate(`/objava/${obj._id}`)}>
