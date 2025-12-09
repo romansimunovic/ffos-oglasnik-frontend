@@ -43,7 +43,6 @@ export default function Objava() {
   const [periodFilter, setPeriodFilter] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [hasMore, setHasMore] = useState(false);
   const debouncedSearch = useDebounce(search, 300);
 
   // new post state
@@ -114,7 +113,7 @@ export default function Objava() {
     if (params.get("view") === "byCategory") setSortBy("newest");
   }, [location.search]);
 
-  // fetch posts
+  // fetch posts (paginated)
   const fetchObjave = async (page = 1, append = false) => {
     if (!append) setLoading(true);
     try {
@@ -134,7 +133,6 @@ export default function Objava() {
       else setObjave(lista);
       setCurrentPage(data.currentPage || page);
       setTotalPages(data.totalPages || 1);
-      setHasMore(!!data.hasMore);
     } catch (err) {
       console.error("Fetch objave error:", err);
       if (!append) setObjave([]);
@@ -145,20 +143,17 @@ export default function Objava() {
   };
 
   useEffect(() => {
+    // initial load
     fetchObjave(1, false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
+    // when filters/search/sort change -> reset to page 1 and fetch
     setCurrentPage(1);
     fetchObjave(1, false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filterTip, odsjek, sortBy, debouncedSearch, periodFilter]);
-
-  const handleLoadMore = () => {
-    if (!hasMore) return;
-    fetchObjave(currentPage + 1, true);
-  };
 
   const handleQuickFilter = (type) => {
     if (type === "myDepartment") {
@@ -258,6 +253,90 @@ export default function Objava() {
     }
   };
 
+  // Pagination UI helper (windowed pages)
+  const renderPagination = () => {
+    if (totalPages <= 1) return null;
+
+    const maxButtons = 7; // koliko numeričkih gumbova mostrar
+    let start = Math.max(1, currentPage - Math.floor(maxButtons / 2));
+    let end = start + maxButtons - 1;
+    if (end > totalPages) {
+      end = totalPages;
+      start = Math.max(1, end - maxButtons + 1);
+    }
+
+    const pages = [];
+    if (start > 1) {
+      pages.push(1);
+      if (start > 2) pages.push("dots-start");
+    }
+
+    for (let p = start; p <= end; p++) pages.push(p);
+
+    if (end < totalPages) {
+      if (end < totalPages - 1) pages.push("dots-end");
+      pages.push(totalPages);
+    }
+
+    return (
+      <div style={{ display: "flex", gap: 8, justifyContent: "center", marginTop: 24, flexWrap: "wrap" }}>
+        <Button
+          size="small"
+          onClick={() => {
+            if (currentPage > 1) {
+              fetchObjave(currentPage - 1, false);
+              setCurrentPage((c) => c - 1);
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }
+          }}
+          disabled={currentPage === 1 || loading}
+          sx={{ minWidth: 40 }}
+        >
+          Prev
+        </Button>
+
+        {pages.map((p, idx) =>
+          p === "dots-start" || p === "dots-end" ? (
+            <Typography key={p + idx} style={{ display: "inline-flex", alignItems: "center", padding: "6px 10px", color: "#666" }}>
+              ...
+            </Typography>
+          ) : (
+            <Button
+              key={p}
+              size="small"
+              variant={p === currentPage ? "contained" : "outlined"}
+              onClick={() => {
+                if (p === currentPage) return;
+                fetchObjave(p, false);
+                setCurrentPage(p);
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
+              disabled={loading}
+              sx={{ minWidth: 40, backgroundColor: p === currentPage ? "#971d21" : undefined }}
+            >
+              {p}
+            </Button>
+          )
+        )}
+
+        <Button
+          size="small"
+          onClick={() => {
+            if (currentPage < totalPages) {
+              fetchObjave(currentPage + 1, false);
+              setCurrentPage((c) => c + 1);
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }
+          }}
+          disabled={currentPage === totalPages || loading}
+          sx={{ minWidth: 40 }}
+        >
+          Next
+        </Button>
+      </div>
+    );
+  };
+
   return (
     <section className="page-bg">
       <div className="container">
@@ -329,27 +408,25 @@ export default function Objava() {
           {isMobile && (
             <div style={{ marginBottom: "1rem", display: "flex", justifyContent: "center" }}>
               <Button
-  variant="outlined"
-  size="small"
-  onClick={() => setShowMobileFilters((prev) => !prev)}
-  startIcon={<FilterAltOutlinedIcon />}
-  sx={{
-    borderColor: "#971d21",
-    color: showMobileFilters ? "#971d21" : "#971d21",
-    backgroundColor: showMobileFilters ? "transparent" : "transparent",
-    width: "100%",
-    maxWidth: 400,
-    borderRadius: "8px",
-    py: 1.1,
-    fontWeight: 600,
-    "&:hover": { backgroundColor: "rgba(151,29,33,0.1)" },
-    "&:focus": { boxShadow: "none", outline: "none" },
-  }}
->
-  {showMobileFilters ? "Sakrij filtere" : "Prikaži filtere"}
-</Button>
-
-
+                variant="outlined"
+                size="small"
+                onClick={() => setShowMobileFilters((prev) => !prev)}
+                startIcon={<FilterAltOutlinedIcon />}
+                sx={{
+                  borderColor: "#971d21",
+                  color: showMobileFilters ? "#971d21" : "#971d21",
+                  backgroundColor: showMobileFilters ? "transparent" : "transparent",
+                  width: "100%",
+                  maxWidth: 400,
+                  borderRadius: "8px",
+                  py: 1.1,
+                  fontWeight: 600,
+                  "&:hover": { backgroundColor: "rgba(151,29,33,0.1)" },
+                  "&:focus": { boxShadow: "none", outline: "none" },
+                }}
+              >
+                {showMobileFilters ? "Sakrij filtere" : "Prikaži filtere"}
+              </Button>
             </div>
           )}
 
@@ -450,15 +527,15 @@ export default function Objava() {
                     <div className="card">
                       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
                         <img
-src={avatarSrc}
-  alt={`Avatar ${autorIme}`}
-  className="tiny-avatar"
-  onClick={(e) => {
-    e.stopPropagation();
-    if (autorId) navigate(`/profil/${autorId}`);
-  }}
-  style={{ cursor: autorId ? "pointer" : "default" }}
-/>
+                          src={avatarSrc}
+                          alt={`Avatar ${autorIme}`}
+                          className="tiny-avatar"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (autorId) navigate(`/profil/${autorId}`);
+                          }}
+                          style={{ cursor: autorId ? "pointer" : "default" }}
+                        />
                         <div style={{ flex: 1 }}>
                           <h2 style={{ margin: 0, fontSize: "1.1rem", color: "#971d21" }}>{obj.naslov || "Bez naslova"}</h2>
                           <div style={{ fontSize: "0.85rem", color: "#666", marginTop: "2px" }}>{autorIme}</div>
@@ -490,13 +567,8 @@ src={avatarSrc}
               })}
             </div>
 
-            {hasMore && (
-              <div style={{ textAlign: "center", margin: "2rem 0" }}>
-                <Button variant="outlined" onClick={handleLoadMore} disabled={loading} sx={{ borderColor: "#971d21", color: "#971d21", "&:hover": { borderColor: "#701013", backgroundColor: "rgba(151, 29, 33, 0.05)" } }}>
-                  {loading ? "Učitavanje..." : "Učitaj više objava"}
-                </Button>
-              </div>
-            )}
+            {/* Pagination */}
+            {renderPagination()}
 
             <div style={{ textAlign: "center", color: "#666", marginTop: "1.5rem", fontSize: "0.9rem" }}>
               Stranica {currentPage} od {totalPages}
