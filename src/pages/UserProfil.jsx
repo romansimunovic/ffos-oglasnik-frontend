@@ -10,26 +10,32 @@ export default function UserProfil() {
   const [user, setUser] = useState(null);
   const [objave, setObjave] = useState([]);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const userLocal = JSON.parse(localStorage.getItem("user") || "null");
-        const userIdParam = id || userLocal?._id;
+useEffect(() => {
+  const fetchData = async () => {
+    try {
+      const userLocal = JSON.parse(localStorage.getItem("user") || "null");
+      const userIdParam = id || userLocal?._id;
 
-        const userRes = await fetch(`/api/users/${userIdParam}`);
-        const userData = await userRes.json();
-        setUser(userData);
-
-        const objaveRes = await fetch(`/api/posts/user/${userIdParam}`);
-        const postsData = await objaveRes.json();
-        setObjave(Array.isArray(postsData) ? postsData : postsData.objave || []);
-      } catch (err) {
-        console.error(err);
-        setObjave([]);
+      if (!userIdParam) {
+        console.error("Nema userId za učitavanje profila!");
+        return;
       }
-    };
-    fetchData();
-  }, [id]);
+
+      const userRes = await fetch(`/api/users/${userIdParam}`);
+      const userData = await userRes.json();
+      setUser(userData);
+
+      const objaveRes = await fetch(`/api/posts/user/${userIdParam}`);
+      const postsData = await objaveRes.json();
+      setObjave(Array.isArray(postsData) ? postsData : postsData.objave || []);
+    } catch (err) {
+      console.error(err);
+      setObjave([]);
+    }
+  };
+  fetchData();
+}, [id]);
+
 
   if (!user) return <div>Učitavanje korisnika...</div>;
 
