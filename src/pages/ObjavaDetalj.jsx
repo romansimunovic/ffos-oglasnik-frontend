@@ -6,9 +6,11 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  IconButton,
   Box,
   Typography,
+  Avatar,
+  Chip,
+  IconButton,
 } from "@mui/material";
 import { ODSJECI } from "../constants/odsjeci";
 import Linkify from "linkify-react";
@@ -24,6 +26,8 @@ import ApartmentIcon from "@mui/icons-material/Apartment";
 import EventIcon from "@mui/icons-material/Event";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import BookmarkIcon from "@mui/icons-material/Bookmark";
+
+const ACCENT = "#b41f24";
 
 export default function ObjavaDetalj() {
   const { id } = useParams();
@@ -95,9 +99,9 @@ export default function ObjavaDetalj() {
     objava.datum &&
     new Date(objava.datum).toLocaleDateString("hr-HR", { day: "2-digit", month: "2-digit", year: "numeric" });
 
-  const MAX_WORDS = 100; // manja vrijednost radi pregleda
-  const fullText = objava.sadrzaj || objava.sadrzaj === "" ? objava.sadrzaj : "";
-
+  // sadržaj truncate
+  const MAX_WORDS = 120;
+  const fullText = objava.sadrzaj || "";
   let isTruncated = false;
   let displayText = fullText;
 
@@ -112,73 +116,64 @@ export default function ObjavaDetalj() {
   return (
     <section className="page-bg">
       <div className="container">
-        <div style={{ marginBottom: 12 }}>
-          <Button variant="text" size="small" onClick={() => navigate(-1)} sx={{ color: "#971d21" }}>
+        <Box sx={{ mb: 2 }}>
+          <Button variant="text" size="small" onClick={() => navigate(-1)} sx={{ color: ACCENT }}>
             ← Natrag
           </Button>
-        </div>
+        </Box>
 
-        <div className="card card-static" style={{ maxWidth: 1000, margin: "0 auto", padding: 20 }}>
+        <Box className="card card-static" sx={{ maxWidth: 1000, mx: "auto", p: 3 }}>
           {/* header */}
-          <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 12 }}>
-            <img
-              src={avatarSrc}
-              alt={`Avatar ${autorIme}`}
-              className="tiny-avatar"
-              style={{ cursor: autorId ? "pointer" : "default" }}
-              onClick={() => autorId && navigate(`/profil/${autorId}`)}
-            />
-            <div style={{ flex: 1 }}>
-              <Typography variant="h5" sx={{ color: "#971d21", fontWeight: 700 }}>{objava.naslov}</Typography>
-              <Typography variant="body2" sx={{ color: "#666" }}>Autor: {autorIme}</Typography>
-            </div>
-            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-              <Button size="small" onClick={() => setShareOpen(true)} variant="outlined">Podijeli</Button>
-            </div>
-          </div>
+          <Box sx={{ display: "flex", gap: 2, alignItems: "center", mb: 2 }}>
+            <Avatar src={avatarSrc} sx={{ width: 56, height: 56, border: `2px solid ${ACCENT}` }} onClick={() => autorId && navigate(`/profil/${autorId}`)} />
+            <Box sx={{ flex: 1 }}>
+              <Typography variant="h5" sx={{ color: ACCENT, fontWeight: 800 }}>{objava.naslov}</Typography>
+              <Typography variant="body2" sx={{ color: "#444" }}>Autor: <strong>{autorIme}</strong></Typography>
+            </Box>
 
-          {/* meta with icons */}
-          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, mb: 2, color: "#555" }}>
-            <Box sx={{ display: "inline-flex", alignItems: "center", gap: 0.5 }}>
-              <CategoryIcon fontSize="small" /> <Typography variant="body2" sx={{ ml: 0.5 }}>{tipNaziv}</Typography>
+            <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
+              <Button size="small" variant="outlined" onClick={() => setShareOpen(true)}>Podijeli</Button>
             </Box>
-            <Box sx={{ display: "inline-flex", alignItems: "center", gap: 0.5 }}>
-              <ApartmentIcon fontSize="small" /> <Typography variant="body2" sx={{ ml: 0.5 }}>{odsjekNaziv}</Typography>
-            </Box>
-            <Box sx={{ display: "inline-flex", alignItems: "center", gap: 0.5 }}>
-              <EventIcon fontSize="small" /> <Typography variant="body2" sx={{ ml: 0.5 }}>{datum}</Typography>
-            </Box>
-            <Box sx={{ display: "inline-flex", alignItems: "center", gap: 0.5, ml: "auto" }}>
-              <BookmarkIcon fontSize="small" /> <Typography variant="body2" sx={{ ml: 0.5 }}>{objava.saves || 0}</Typography>
-            </Box>
-            <Box sx={{ display: "inline-flex", alignItems: "center", gap: 0.5 }}>
-              <VisibilityIcon fontSize="small" /> <Typography variant="body2" sx={{ ml: 0.5 }}>{objava.views || 0}</Typography>
+          </Box>
+
+          {/* meta row */}
+          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1.5, mb: 2, alignItems: "center" }}>
+            <Chip icon={<CategoryIcon />} label={tipNaziv} size="small" />
+            <Chip icon={<ApartmentIcon />} label={odsjekNaziv} size="small" />
+            <Chip icon={<EventIcon />} label={datum || ""} size="small" />
+            <Box sx={{ ml: "auto", display: "flex", gap: 1, alignItems: "center" }}>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                <VisibilityIcon fontSize="small" /> <Typography variant="body2">{objava.views || 0}</Typography>
+              </Box>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                <BookmarkIcon fontSize="small" /> <Typography variant="body2">{objava.saves || 0}</Typography>
+              </Box>
             </Box>
           </Box>
 
           {/* content */}
-          <Typography component="div" sx={{ whiteSpace: "pre-wrap", lineHeight: 1.7, mb: 2 }}>
+          <Typography component="div" sx={{ whiteSpace: "pre-wrap", lineHeight: 1.7, color: "#222", mb: 2 }}>
             <Linkify options={{ nl2br: true }}>{displayText}{isTruncated && !showFull ? "..." : ""}</Linkify>
+
             {isTruncated && !showFull && (
-              <Button size="small" onClick={() => setShowFull(true)} sx={{ ml: 1, textTransform: "none", color: "#971d21" }}>
+              <Button size="small" onClick={() => setShowFull(true)} sx={{ ml: 1, textTransform: "none", color: ACCENT }}>
                 Nastavi čitati
               </Button>
             )}
           </Typography>
 
-          {/* status or share hint */}
           {!canShare && (
             <Typography variant="body2" sx={{ color: "#666", fontStyle: "italic" }}>
               Objavu možete podijeliti tek kad bude odobrena. Status: <strong>{objava.status || "na čekanju"}</strong>.
             </Typography>
           )}
-        </div>
+        </Box>
 
-        {/* share dialog */}
+        {/* Share dialog */}
         <Dialog open={shareOpen} onClose={() => setShareOpen(false)} maxWidth="xs" fullWidth>
           <DialogTitle>Podijeli objavu</DialogTitle>
           <DialogContent>
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+            <Box sx={{ display: "grid", gap: 1.25 }}>
               <Button variant="contained" startIcon={<FacebookIcon />} onClick={() => window.open(facebookUrl, "_blank", "noopener,noreferrer")} sx={{ backgroundColor: "#1877F2", "&:hover": { backgroundColor: "#155FBD" } }}>
                 Facebook
               </Button>

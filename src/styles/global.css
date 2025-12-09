@@ -463,7 +463,7 @@ body.dark .form-submit:focus {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
+  width: 90%;
   z-index: 100;
   box-shadow: 0 4px 14px rgba(30, 30, 30, 0.16);
 }
@@ -478,7 +478,7 @@ body.dark .form-submit:focus {
   position: relative; /* VAŽNO – da se center može apsolutno centrirati */
   width: 100%;
   margin: 0;
-  padding: 0.55rem 2.5rem;
+  padding: 0.55rem 1.6em;
   display: flex;
   align-items: center;
 }
@@ -487,7 +487,7 @@ body.dark .form-submit:focus {
 .navbar-left {
   display: flex;
   align-items: center;
-  gap: 2.2rem;
+  gap: 1.2rem;
 }
 
 .navbar-right {
@@ -1433,7 +1433,7 @@ body.dark .skeleton {
 .footer {
   background: var(--ffos-red);
   color: #fff;
-  padding: 1.0em 0 1rem 0;
+  padding: 0.65em 0 1rem 0;
   text-align: center;
   font-size: 1rem;
 }

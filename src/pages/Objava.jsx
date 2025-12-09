@@ -342,7 +342,9 @@ export default function Objava() {
       <div className="container">
         {/* HEADER */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, marginBottom: "2rem" }}>
-          <h1>Objave</h1>
+          <Typography variant="h2" sx={{ fontSize: { xs: "1.5rem", md: "2.1rem" }, fontWeight: 900, mb: 2, textShadow: "5px 2px 8px rgba(185, 185, 185, 0.5)", letterSpacing: -1 }}>
+            Objave
+          </Typography>
           {user && user.uloga !== "admin" && (
             <Button
               variant="contained"
