@@ -20,15 +20,22 @@ export default function UserProfil() {
   const [objave, setObjave] = useState([]);
 
   useEffect(() => {
-    const fetchData = async () => {
+  const fetchData = async () => {
+    try {
       const userRes = await axios.get(`/api/users/${id}`);
       setUser(userRes.data);
 
       const objaveRes = await axios.get(`/api/posts/user/${id}`);
-      setObjave(objaveRes.data);
-    };
-    fetchData();
-  }, [id]);
+      const posts = Array.isArray(objaveRes.data) ? objaveRes.data : objaveRes.data.posts || [];
+      setObjave(posts);
+    } catch (err) {
+      console.error(err);
+      setObjave([]);
+    }
+  };
+  fetchData();
+}, [id]);
+
 
   if (!user) return <div>Učitavanje...</div>;
 
