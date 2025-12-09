@@ -192,18 +192,28 @@ export default function Home() {
 
                   <Box sx={{ display: "flex", gap: 1, mt: 2, alignItems: "center", flexWrap: "wrap" }}>
                     <Chip
-                      icon={<TypeIcon sx={{ color: "#fff" }} />}
-                      label={t.label}
-                      size="small"
-                      sx={{ bgcolor: t.color, color: "#fff" }}
-                    />
+  icon={<TypeIcon sx={t.iconSx} />}
+  label={t.label}
+  size="small"
+  sx={{ 
+    bgcolor: t.color, 
+    color: t.contrastText,
+    fontWeight: 700,
+    "& .MuiChip-icon": { color: `${t.contrastText} !important` }
+  }}
+/>
 
-                    <Chip
-                      icon={<DeptIcon sx={{ color: "#fff" }} />}
-                      label={DeptLabel}
-                      size="small"
-                      sx={{ bgcolor: d.color, color: "#fff" }}
-                    />
+<Chip
+  icon={<DeptIcon sx={d.iconSx} />}
+  label={DeptLabel}
+  size="small"
+  sx={{ 
+    bgcolor: d.color, 
+    color: d.contrastText,
+    "& .MuiChip-icon": { color: `${d.contrastText} !important` }
+  }}
+/>
+
 
                     <Box sx={{ ml: "auto", display: "flex", alignItems: "center", gap: 1 }}>
                       <EventIcon fontSize="small" />

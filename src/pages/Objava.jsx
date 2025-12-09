@@ -576,20 +576,30 @@ export default function Objava() {
 
                       <div style={{ display: "flex", flexWrap: "wrap", gap: "12px", fontSize: "0.85rem", color: "#666", marginTop: "12px", paddingTop: "12px", borderTop: "1px solid #eee", alignItems: "center" }}>
                         {/* TIP */}
-                        <Chip
-                          icon={<TypeIcon sx={{ color: "#fff" }} />}
-                          label={typeDetails.label}
-                          size="small"
-                          sx={{ bgcolor: typeDetails.color, color: "#fff", fontWeight: 700 }}
-                        />
+<Chip
+  icon={<TypeIcon sx={typeDetails.iconSx} />}
+  label={typeDetails.label}
+  size="small"
+  sx={{ 
+    bgcolor: typeDetails.color, 
+    color: typeDetails.contrastText, 
+    fontWeight: 700,
+    "& .MuiChip-icon": { color: `${typeDetails.contrastText} !important` }
+  }}
+/>
 
-                        {/* ODSJEK */}
-                        <Chip
-                          icon={<DeptIcon sx={{ color: "#fff" }} />}
-                          label={DeptLabel}
-                          size="small"
-                          sx={{ bgcolor: deptDetails.color, color: "#fff" }}
-                        />
+{/* ODSJEK */}
+<Chip
+  icon={<DeptIcon sx={deptDetails.iconSx} />}
+  label={DeptLabel}
+  size="small"
+  sx={{ 
+    bgcolor: deptDetails.color, 
+    color: deptDetails.contrastText,
+    "& .MuiChip-icon": { color: `${deptDetails.contrastText} !important` }
+  }}
+/>
+
 
                         {/* DATUM */}
                         <Box style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>

@@ -150,18 +150,28 @@ export default function ObjavaDetalj() {
           {/* meta row */}
           <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1.5, mb: 2, alignItems: "center" }}>
             <Chip
-              icon={<TypeIcon sx={{ color: "#fff" }} />}
-              label={typeDetails.label}
-              size="small"
-              sx={{ bgcolor: typeDetails.color, color: "#fff", fontWeight: 700 }}
-            />
+  icon={<TypeIcon sx={typeDetails.iconSx} />}
+  label={typeDetails.label}
+  size="small"
+  sx={{ 
+    bgcolor: typeDetails.color, 
+    color: typeDetails.contrastText, 
+    fontWeight: 700,
+    "& .MuiChip-icon": { color: `${typeDetails.contrastText} !important` }
+  }}
+/>
 
-            <Chip
-              icon={<DeptIcon sx={{ color: "#fff" }} />}
-              label={ODSJECI.find((x) => x.id === (objava.odsjek?._id || objava.odsjek))?.naziv || (typeof objava.odsjek === "string" ? objava.odsjek : "-")}
-              size="small"
-              sx={{ bgcolor: deptDetails.color, color: "#fff" }}
-            />
+<Chip
+  icon={<DeptIcon sx={deptDetails.iconSx} />}
+  label={ODSJECI.find((x) => x.id === (objava.odsjek?._id || objava.odsjek))?.naziv || (typeof objava.odsjek === "string" ? objava.odsjek : "-")}
+  size="small"
+  sx={{ 
+    bgcolor: deptDetails.color, 
+    color: deptDetails.contrastText,
+    "& .MuiChip-icon": { color: `${deptDetails.contrastText} !important` }
+  }}
+/>
+
 
             <Chip icon={<EventIcon />} label={datum || ""} size="small" />
 
