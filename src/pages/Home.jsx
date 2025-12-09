@@ -207,7 +207,7 @@ export default function Home() {
 />
 
 <Chip
-  icon={<DeptIcon sx={d.iconSx} />}
+  icon={DeptIcon ? <DeptIcon sx={d.iconSx} /> : null }
   label={DeptLabel}
   size="small"
   sx={{ 
