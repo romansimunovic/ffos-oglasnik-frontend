@@ -401,7 +401,6 @@ export default function Objava() {
             <div style={{ display: "flex", gap: 8 }}>
               <Button size="small" onClick={() => handleQuickFilter("radionice")}>Radionice</Button>
               <Button size="small" onClick={() => handleQuickFilter("natječaji")}>Natječaji</Button>
-              <Button size="small" onClick={() => handleQuickFilter("myDepartment")}>Moj odsjek</Button>
             </div>
           </div>
 
