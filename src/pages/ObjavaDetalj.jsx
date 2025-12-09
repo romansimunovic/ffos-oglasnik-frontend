@@ -38,6 +38,8 @@ export default function ObjavaDetalj() {
   const [showFull, setShowFull] = useState(false);
   const navigate = useNavigate();
   const toast = useToast();
+const user = JSON.parse(localStorage.getItem("user") || "null");
+const userId = user?._id || user?.id || null;
   const currentUrl = typeof window !== "undefined" ? window.location.href : "";
 
   useEffect(() => {
@@ -136,7 +138,16 @@ export default function ObjavaDetalj() {
         <Box className="card card-static" sx={{ maxWidth: 1000, mx: "auto", p: 3 }}>
           {/* header */}
           <Box sx={{ display: "flex", gap: 2, alignItems: "center", mb: 2 }}>
-            <Avatar src={avatarSrc} sx={{ width: 56, height: 56, border: `2px solid ${ACCENT}` }} onClick={() => autorId && navigate(`/profil/${autorId}`)} />
+            <Avatar
+  src={avatarSrc}
+  sx={{ width: 56, height: 56, border: `2px solid ${ACCENT}` }}
+  onClick={(e) => {
+    e.stopPropagation();
+    if (!autorId) return;
+    if (autorId === userId) navigate("/profil");
+    else navigate(`/profil/${autorId}`);
+  }}
+/>
             <Box sx={{ flex: 1 }}>
               <Typography variant="h5" sx={{ color: ACCENT, fontWeight: 800 }}>{objava.naslov}</Typography>
               <Typography variant="body2" sx={{ color: "#444" }}>Autor: <strong>{autorIme}</strong></Typography>
