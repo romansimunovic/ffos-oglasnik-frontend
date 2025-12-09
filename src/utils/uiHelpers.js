@@ -26,7 +26,7 @@ import VolunteerActivismIcon from "@mui/icons-material/VolunteerActivism";
  * Helper: vrati '#000' ili '#fff' ovisno o kontrastu boje (simple luminance check)
  */
 export function getContrastText(hexColor) {
-  if (!hexColor) return "#fff"; // IZMJENA: default bijela umjesto crne
+  if (!hexColor) return "#fff";
   const c = hexColor.replace("#", "");
   const r = parseInt(c.substring(0, 2), 16) / 255;
   const g = parseInt(c.substring(2, 4), 16) / 255;
@@ -36,7 +36,7 @@ export function getContrastText(hexColor) {
               0.7152 * (g <= 0.03928 ? g / 12.92 : Math.pow((g + 0.055) / 1.055, 2.4)) +
               0.0722 * (b <= 0.03928 ? b / 12.92 : Math.pow((b + 0.055) / 1.055, 2.4));
 
-  return lum > 0.179 ? "#000" : "#fff"; // IZMJENA: threshold spušten s 0.5 na 0.179 (WCAG standard)
+  return lum > 0.179 ? "#000" : "#fff";
 }
 
 /**
@@ -77,26 +77,54 @@ export const DEPT_MAP_BY_ID = {
 
 /**
  * getTypeDetails(type)
- * vrati { Icon, label, color, contrastText } za tip objave
+ * vrati { Icon, label, color, contrastText, iconSx } za tip objave
  */
 export function getTypeDetails(type) {
-  if (!type) return { ...TYPE_MAP.ostalo, contrastText: getContrastText(TYPE_MAP.ostalo.color) };
+  if (!type) {
+    const contrastText = getContrastText(TYPE_MAP.ostalo.color);
+    return { 
+      ...TYPE_MAP.ostalo, 
+      contrastText,
+      iconSx: { color: `${contrastText} !important`, fontWeight: 700 }
+    };
+  }
   const key = type.toString().toLowerCase();
   const base = TYPE_MAP[key] || TYPE_MAP.ostalo;
-  return { ...base, contrastText: getContrastText(base.color) };
+  const contrastText = getContrastText(base.color);
+  return { 
+    ...base, 
+    contrastText,
+    iconSx: { color: `${contrastText} !important`, fontWeight: 700 }
+  };
 }
 
 /**
  * getDeptDetails(odsjek)
  * - prima id iz ODSJECI (npr. 'inf-znanost') ili puni tekstualni naziv
- * - vraća { Icon, color, label, contrastText }
+ * - vraća { Icon, color, label, contrastText, iconSx }
  */
 export function getDeptDetails(odsjek) {
-  if (!odsjek) return { Icon: ApartmentIcon, color: "#6b7280", label: "-", contrastText: getContrastText("#6b7280") };
+  const defaultContrast = getContrastText("#6b7280");
+  if (!odsjek) {
+    return { 
+      Icon: ApartmentIcon, 
+      color: "#6b7280", 
+      label: "-", 
+      contrastText: defaultContrast,
+      iconSx: { color: `${defaultContrast} !important`, fontWeight: 700 }
+    };
+  }
 
   if (DEPT_MAP_BY_ID[odsjek]) {
     const { Icon, color } = DEPT_MAP_BY_ID[odsjek];
-    return { Icon, color, label: odsjek, contrastText: getContrastText(color) };
+    const contrastText = getContrastText(color);
+    return { 
+      Icon, 
+      color, 
+      label: odsjek, 
+      contrastText,
+      iconSx: { color: `${contrastText} !important`, fontWeight: 700 }
+    };
   }
 
   const n = odsjek.toString().toLowerCase();
@@ -111,8 +139,13 @@ export function getDeptDetails(odsjek) {
   else if (n.includes("student") || n.includes("zbor") || n.includes("zajed")) fallback = { Icon: VolunteerActivismIcon, color: "#2563eb", label: odsjek };
   else if (n.includes("soci") || n.includes("društ")) fallback = { Icon: PublicIcon, color: "#0891b2", label: odsjek };
   else if (n.includes("filoz") || n.includes("filo")) fallback = { Icon: MenuBookIcon, color: "#334155", label: odsjek };
-  else if (n.includes("pedago") || n.includes("pedago")) fallback = { Icon: GroupIcon, color: "#059669", label: odsjek };
+  else if (n.includes("pedago")) fallback = { Icon: GroupIcon, color: "#059669", label: odsjek };
   else if (n.includes("cjelo") || n.includes("cijelo") || n.includes("lifelong")) fallback = { Icon: SchoolIcon, color: "#059669", label: odsjek };
 
-  return { ...fallback, contrastText: getContrastText(fallback.color) };
+  const contrastText = getContrastText(fallback.color);
+  return { 
+    ...fallback, 
+    contrastText,
+    iconSx: { color: `${contrastText} !important`, fontWeight: 700 }
+  };
 }
