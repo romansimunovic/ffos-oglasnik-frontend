@@ -177,22 +177,45 @@ export default function Home() {
                     {obj.sadrzaj?.length > 120 ? `${obj.sadrzaj.slice(0, 120)}...` : obj.sadrzaj || "Nema opisa."}
                   </Typography>
 
-                  <Box sx={{ display: "flex", gap: 1, mt: 2, fontSize: "0.8rem", color: "#666", flexWrap: "wrap", alignItems: 'center' }}>
-                    <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5 }}>
-                      <CategoryIcon fontSize="small" />
-                      <Typography variant="body2">{obj.tip || "Ostalo"}</Typography>
-                    </Box>
+                  <Box sx={{ display: "flex", gap: 1, mt: 2, alignItems: "center", flexWrap: "wrap" }}>
+  {/* tip */}
+  {(() => {
+    const t = getTypeDetails((obj.tip || "ostalo").toLowerCase());
+    const TypeIcon = t.Icon;
+    return (
+      <Chip
+        icon={<TypeIcon sx={{ color: "#fff" }} />}
+        label={t.label}
+        size="small"
+        sx={{ bgcolor: t.color, color: "#fff" }}
+      />
+    );
+  })()}
 
-                    <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5 }}>
-                      <ApartmentIcon fontSize="small" />
-                      <Typography variant="body2">{ODSJECI.find((ods) => ods.id === obj.odsjek)?.naziv || "-"}</Typography>
-                    </Box>
+  {/* odsjek */}
+  {(() => {
+    const found = ODSJECI.find((x) => x.id === obj.odsjek);
+    const deptKey = found?.id || (obj.odsjek || "");
+    const d = getDeptDetails(deptKey);
+    const DeptIcon = d.Icon;
+    const label = found?.naziv || (typeof obj.odsjek === "string" ? obj.odsjek : "-");
+    return (
+      <Chip
+        icon={<DeptIcon sx={{ color: "#fff" }} />}
+        label={label}
+        size="small"
+        sx={{ bgcolor: d.color, color: "#fff" }}
+      />
+    );
+  })()}
 
-                    <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, marginLeft: 'auto' }}>
-                      <EventIcon fontSize="small" />
-                      <Typography variant="body2">{obj.datum ? new Date(obj.datum).toLocaleDateString("hr-HR") : ""}</Typography>
-                    </Box>
-                  </Box>
+  {/* datum */}
+  <Box sx={{ ml: "auto", display: "flex", alignItems: "center", gap: 1 }}>
+    <EventIcon fontSize="small" />
+    <Typography variant="body2">{obj.datum ? new Date(obj.datum).toLocaleDateString("hr-HR") : ""}</Typography>
+  </Box>
+</Box>
+
                 </Card>
               );
             })}

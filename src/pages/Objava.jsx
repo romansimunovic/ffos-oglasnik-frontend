@@ -17,6 +17,7 @@ import {
   DialogActions,
   Typography,
   IconButton,
+  Box,
 } from "@mui/material";
 import FilterAltOutlinedIcon from "@mui/icons-material/FilterAltOutlined";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
@@ -24,12 +25,19 @@ import ClearIcon from "@mui/icons-material/Clear";
 import PushPinIcon from "@mui/icons-material/PushPin";
 import NewReleasesIcon from "@mui/icons-material/NewReleases";
 import SearchIcon from "@mui/icons-material/Search";
+import EventIcon from "@mui/icons-material/Event";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import BookmarkIcon from "@mui/icons-material/Bookmark";
 import Linkify from "linkify-react";
 import api from "../api/axiosInstance";
 import { ODSJECI } from "../constants/odsjeci";
 import { useDebounce } from "../hooks/useDebounce";
 import { SkeletonCard } from "../components/SkeletonCard";
 import { useToast } from "../components/Toast";
+import { getTypeDetails, getDeptDetails } from "../utils/uiHelpers";
+import SearchOffIcon from "@mui/icons-material/SearchOff";
+
+const ACCENT = "#971d21";
 
 export default function Objava() {
   // state
@@ -312,7 +320,7 @@ export default function Objava() {
                 window.scrollTo({ top: 0, behavior: "smooth" });
               }}
               disabled={loading}
-              sx={{ minWidth: 40, backgroundColor: p === currentPage ? "#971d21" : undefined }}
+              sx={{ minWidth: 40, backgroundColor: p === currentPage ? ACCENT : undefined }}
             >
               {p}
             </Button>
@@ -348,7 +356,7 @@ export default function Objava() {
           {user && user.uloga !== "admin" && (
             <Button
               variant="contained"
-              sx={{ backgroundColor: "#971d21", "&:hover": { backgroundColor: "#701013" } }}
+              sx={{ backgroundColor: ACCENT, "&:hover": { backgroundColor: "#701013" } }}
               onClick={() => setShowForm((s) => !s)}
               aria-expanded={showForm}
               aria-controls="nova-objava-form"
@@ -361,7 +369,7 @@ export default function Objava() {
         {/* FORMA ZA NOVU OBJAVU */}
         {showForm && user && user.uloga !== "admin" && (
           <div id="nova-objava-form" className="card card-static" style={{ marginBottom: "2rem" }}>
-            <h2 style={{ marginTop: 0, color: "#971d21" }}>Nova objava</h2>
+            <h2 style={{ marginTop: 0, color: ACCENT }}>Nova objava</h2>
             <form onSubmit={handleCreateObjava}>
               <TextField label="Naslov" fullWidth margin="normal" value={novaNaslov} onChange={(e) => setNovaNaslov(e.target.value)} placeholder="Upiši naslov objave..." required />
               <TextField label="Sadržaj" fullWidth margin="normal" multiline minRows={4} value={novaSadrzaj} onChange={(e) => setNovaSadrzaj(e.target.value)} placeholder="Detaljno objasni što objavljuješ..." required />
@@ -387,7 +395,7 @@ export default function Objava() {
                   </Select>
                 </FormControl>
               </div>
-              <Button type="submit" variant="contained" fullWidth sx={{ marginTop: 2, backgroundColor: "#971d21", "&:hover": { backgroundColor: "#701013" } }}>
+              <Button type="submit" variant="contained" fullWidth sx={{ marginTop: 2, backgroundColor: ACCENT, "&:hover": { backgroundColor: "#701013" } }}>
                 Pošalji na odobrenje
               </Button>
             </form>
@@ -397,8 +405,8 @@ export default function Objava() {
         {/* SEARCH & FILTERS */}
         <div className="filters-section">
           <div style={{ marginBottom: isMobile ? "1rem" : "2rem", display: "flex", gap: 12, alignItems: "center" }}>
-            <SearchIcon sx={{ color: "#971d21", fontSize: 28, opacity: 0.7 }} />
-            <TextField size="small" variant="outlined" label="Pretraži objave" value={search} onChange={(e) => setSearch(e.target.value)} autoComplete="off" placeholder="Upiši pojam..." sx={{ flex: 1, maxWidth: 400, "& .MuiOutlinedInput-root": { borderRadius: "8px", transition: "all 0.2s", "&:hover": { borderColor: "#971d21" }, "&.Mui-focused": { boxShadow: "0 0 0 3px rgba(151, 29, 33, 0.1)" } } }} />
+            <SearchIcon sx={{ color: ACCENT, fontSize: 28, opacity: 0.8 }} />
+            <TextField size="small" variant="outlined" label="Pretraži objave" value={search} onChange={(e) => setSearch(e.target.value)} autoComplete="off" placeholder="Upiši pojam..." sx={{ flex: 1, maxWidth: 400, "& .MuiOutlinedInput-root": { borderRadius: "8px", transition: "all 0.2s", "&:hover": { borderColor: ACCENT }, "&.Mui-focused": { boxShadow: "0 0 0 3px rgba(151, 29, 33, 0.08)" } } }} />
             {/* quick filters */}
             <div style={{ display: "flex", gap: 8 }}>
               <Button size="small" onClick={() => handleQuickFilter("radionice")}>Radionice</Button>
@@ -414,15 +422,14 @@ export default function Objava() {
                 onClick={() => setShowMobileFilters((prev) => !prev)}
                 startIcon={<FilterAltOutlinedIcon />}
                 sx={{
-                  borderColor: "#971d21",
-                  color: showMobileFilters ? "#971d21" : "#971d21",
-                  backgroundColor: showMobileFilters ? "transparent" : "transparent",
+                  borderColor: ACCENT,
+                  color: ACCENT,
                   width: "100%",
                   maxWidth: 400,
                   borderRadius: "8px",
                   py: 1.1,
                   fontWeight: 600,
-                  "&:hover": { backgroundColor: "rgba(151,29,33,0.1)" },
+                  "&:hover": { backgroundColor: "rgba(151,29,33,0.06)" },
                   "&:focus": { boxShadow: "none", outline: "none" },
                 }}
               >
@@ -504,7 +511,13 @@ export default function Objava() {
         {loading ? (
           <div className="card-grid">{[1, 2, 3, 4, 5, 6].map((i) => <SkeletonCard key={i} />)}</div>
         ) : objave.length === 0 ? (
-          <p className="center-msg">{debouncedSearch ? `📭 Nema rezultata za "${debouncedSearch}"` : "📭 Nema dostupnih objava."}</p>
+          <Box sx={{ textAlign: "center", p: 4 }}>
+            <Box sx={{ display: "inline-flex", alignItems: "center", gap: 1, mb: 1 }}>
+              <SearchOffIcon sx={{ color: ACCENT }} />
+              <Typography variant="h6" color="text.secondary">Nema dostupnih objava.</Typography>
+            </Box>
+            {debouncedSearch ? <Typography color="text.secondary">Nema rezultata za „{debouncedSearch}“</Typography> : <Typography color="text.secondary">Vratite se kasnije ili kreirajte prvu objavu!</Typography>}
+          </Box>
         ) : (
           <>
             <div className="card-grid">
@@ -516,6 +529,18 @@ export default function Objava() {
                 const avatarSrc = buildAvatarSrc(autorAvatar);
 
                 const isNew = obj.datum && new Date() - new Date(obj.datum) < 3 * 24 * 60 * 60 * 1000;
+
+                // --- visuals for type + dept
+                const tipKey = (obj.tip || "ostalo").toString().toLowerCase();
+                const typeDetails = getTypeDetails(tipKey); // { Icon, label, color }
+
+                const foundDept = ODSJECI.find((x) => x.id === obj.odsjek);
+                const deptKey = foundDept?.id || (typeof obj.odsjek === "string" ? obj.odsjek : "");
+                const deptDetails = getDeptDetails(deptKey); // { Icon, color, label }
+                const DeptLabel = foundDept?.naziv || (typeof obj.odsjek === "string" ? obj.odsjek : "-");
+
+                const TypeIcon = typeDetails.Icon;
+                const DeptIcon = deptDetails.Icon;
 
                 return (
                   <div key={obj._id} className="card-link" style={{ cursor: "pointer", position: "relative" }} onClick={() => openObjava(obj._id)} role="link" tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter") openObjava(obj._id); }}>
@@ -538,7 +563,7 @@ export default function Objava() {
                           style={{ cursor: autorId ? "pointer" : "default" }}
                         />
                         <div style={{ flex: 1 }}>
-                          <h2 style={{ margin: 0, fontSize: "1.1rem", color: "#971d21" }}>{obj.naslov || "Bez naslova"}</h2>
+                          <h2 style={{ margin: 0, fontSize: "1.1rem", color: ACCENT }}>{obj.naslov || "Bez naslova"}</h2>
                           <div style={{ fontSize: "0.85rem", color: "#666", marginTop: "2px" }}>{autorIme}</div>
                         </div>
                       </div>
@@ -549,12 +574,38 @@ export default function Objava() {
                         </Linkify>
                       </p>
 
-                      <div style={{ display: "flex", flexWrap: "wrap", gap: "12px", fontSize: "0.85rem", color: "#666", marginTop: "12px", paddingTop: "12px", borderTop: "1px solid #eee" }}>
-                        <span style={{ display: "inline-flex", alignItems: "center", gap: "4px" }}>Vrsta {obj.tip || "Ostalo"}</span>
-                        <span style={{ display: "inline-flex", alignItems: "center", gap: "4px" }}>{ODSJECI.find((x) => x.id === obj.odsjek)?.naziv || "-"}</span>
-                        <span style={{ display: "inline-flex", alignItems: "center", gap: "4px" }}>{obj.datum ? new Date(obj.datum).toLocaleDateString("hr-HR") : ""}</span>
-                        <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", marginLeft: "auto" }}>⭐ {obj.saves || 0}</span>
-                        <span style={{ display: "inline-flex", alignItems: "center", gap: "4px" }}>👁 {obj.views || 0}</span>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: "12px", fontSize: "0.85rem", color: "#666", marginTop: "12px", paddingTop: "12px", borderTop: "1px solid #eee", alignItems: "center" }}>
+                        {/* TIP */}
+                        <Chip
+                          icon={<TypeIcon sx={{ color: "#fff" }} />}
+                          label={typeDetails.label}
+                          size="small"
+                          sx={{ bgcolor: typeDetails.color, color: "#fff", fontWeight: 700 }}
+                        />
+
+                        {/* ODSJEK */}
+                        <Chip
+                          icon={<DeptIcon sx={{ color: "#fff" }} />}
+                          label={DeptLabel}
+                          size="small"
+                          sx={{ bgcolor: deptDetails.color, color: "#fff" }}
+                        />
+
+                        {/* DATUM */}
+                        <Box style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                          <EventIcon fontSize="small" />
+                          <span>{obj.datum ? new Date(obj.datum).toLocaleDateString("hr-HR") : ""}</span>
+                        </Box>
+
+                        {/* metrics on the right */}
+                        <div style={{ marginLeft: "auto", display: "inline-flex", gap: 12, alignItems: "center" }}>
+                          <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                            <VisibilityIcon fontSize="small" /> <strong style={{ fontWeight: 600 }}>{obj.views || 0}</strong>
+                          </span>
+                          <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                            <BookmarkIcon fontSize="small" /> <strong style={{ fontWeight: 600 }}>{obj.saves || 0}</strong>
+                          </span>
+                        </div>
                       </div>
 
                       {user && user.uloga !== "admin" && (
@@ -593,7 +644,7 @@ export default function Objava() {
                 if (userId) navigate(`/profil/${userId}?tab=submitted`);
                 else navigate("/profil");
               }}
-              sx={{ backgroundColor: "#971d21", "&:hover": { backgroundColor: "#701013" } }}
+              sx={{ backgroundColor: ACCENT, "&:hover": { backgroundColor: "#701013" } }}
             >
               Vidi poslane objave
             </Button>
