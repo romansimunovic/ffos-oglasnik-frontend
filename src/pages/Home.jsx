@@ -1,3 +1,4 @@
+// src/pages/Home.jsx
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -6,6 +7,7 @@ import {
   Typography,
   Box,
   Container,
+  Chip,
 } from "@mui/material";
 import TrendingUpIcon from "@mui/icons-material/TrendingUp";
 import CategoryIcon from "@mui/icons-material/Category";
@@ -17,6 +19,7 @@ import SearchOffIcon from "@mui/icons-material/SearchOff";
 import api from "../api/axiosInstance";
 import { ODSJECI } from "../constants/odsjeci";
 import { useAuth } from "../context/AuthContext";
+import { getTypeDetails, getDeptDetails } from "../utils/uiHelpers";
 
 export default function Home() {
   const [objave, setObjave] = useState([]);
@@ -27,6 +30,7 @@ export default function Home() {
 
   useEffect(() => {
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchData = async () => {
@@ -133,7 +137,7 @@ export default function Home() {
         {/* ZADNJE OBJAVE */}
         <Typography variant="h1" sx={{ fontSize: { xs: "1.5rem", md: "2.5rem" }, fontWeight: 700, mb: 2, textShadow: "5px 2px 8px rgba(146, 139, 139, 0.5)", letterSpacing: -1 }}>
             Najnovije objave
-          </Typography>
+        </Typography>
 
         {loading ? (
           <p className="center-msg">Učitavanje objava...</p>
@@ -153,6 +157,15 @@ export default function Home() {
               const autorAvatar = autor?.avatar || obj.autorAvatar || null;
               const avatarSrc = buildAvatarSrc(autorAvatar);
               const isNew = obj.datum && new Date() - new Date(obj.datum) < 3 * 24 * 60 * 60 * 1000;
+
+              // type + dept visuals
+              const t = getTypeDetails((obj.tip || "ostalo").toLowerCase());
+              const TypeIcon = t.Icon;
+              const found = ODSJECI.find((x) => x.id === obj.odsjek);
+              const deptKey = found?.id || (obj.odsjek || "");
+              const d = getDeptDetails(deptKey);
+              const DeptIcon = d.Icon;
+              const DeptLabel = found?.naziv || (typeof obj.odsjek === "string" ? obj.odsjek : "-");
 
               return (
                 <Card key={obj._id} sx={{ cursor: "pointer", p: 2, position: "relative" }} onClick={() => navigate(`/objava/${obj._id}`)}>
@@ -178,44 +191,25 @@ export default function Home() {
                   </Typography>
 
                   <Box sx={{ display: "flex", gap: 1, mt: 2, alignItems: "center", flexWrap: "wrap" }}>
-  {/* tip */}
-  {(() => {
-    const t = getTypeDetails((obj.tip || "ostalo").toLowerCase());
-    const TypeIcon = t.Icon;
-    return (
-      <Chip
-        icon={<TypeIcon sx={{ color: "#fff" }} />}
-        label={t.label}
-        size="small"
-        sx={{ bgcolor: t.color, color: "#fff" }}
-      />
-    );
-  })()}
+                    <Chip
+                      icon={<TypeIcon sx={{ color: "#fff" }} />}
+                      label={t.label}
+                      size="small"
+                      sx={{ bgcolor: t.color, color: "#fff" }}
+                    />
 
-  {/* odsjek */}
-  {(() => {
-    const found = ODSJECI.find((x) => x.id === obj.odsjek);
-    const deptKey = found?.id || (obj.odsjek || "");
-    const d = getDeptDetails(deptKey);
-    const DeptIcon = d.Icon;
-    const label = found?.naziv || (typeof obj.odsjek === "string" ? obj.odsjek : "-");
-    return (
-      <Chip
-        icon={<DeptIcon sx={{ color: "#fff" }} />}
-        label={label}
-        size="small"
-        sx={{ bgcolor: d.color, color: "#fff" }}
-      />
-    );
-  })()}
+                    <Chip
+                      icon={<DeptIcon sx={{ color: "#fff" }} />}
+                      label={DeptLabel}
+                      size="small"
+                      sx={{ bgcolor: d.color, color: "#fff" }}
+                    />
 
-  {/* datum */}
-  <Box sx={{ ml: "auto", display: "flex", alignItems: "center", gap: 1 }}>
-    <EventIcon fontSize="small" />
-    <Typography variant="body2">{obj.datum ? new Date(obj.datum).toLocaleDateString("hr-HR") : ""}</Typography>
-  </Box>
-</Box>
-
+                    <Box sx={{ ml: "auto", display: "flex", alignItems: "center", gap: 1 }}>
+                      <EventIcon fontSize="small" />
+                      <Typography variant="body2">{obj.datum ? new Date(obj.datum).toLocaleDateString("hr-HR") : ""}</Typography>
+                    </Box>
+                  </Box>
                 </Card>
               );
             })}
