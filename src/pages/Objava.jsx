@@ -349,22 +349,42 @@ export default function Objava() {
     <section className="page-bg">
       <div className="container">
         {/* HEADER */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, marginBottom: "2rem" }}>
-          <Typography variant="h2" sx={{ fontSize: { xs: "1.5rem", md: "2.1rem" }, fontWeight: 900, mb: 2, textShadow: "5px 2px 8px rgba(185, 185, 185, 0.5)", letterSpacing: -1 }}>
-            Objave
-          </Typography>
-          {user && user.uloga !== "admin" && (
-            <Button
-              variant="contained"
-              sx={{ backgroundColor: ACCENT, "&:hover": { backgroundColor: "#701013" } }}
-              onClick={() => setShowForm((s) => !s)}
-              aria-expanded={showForm}
-              aria-controls="nova-objava-form"
-            >
-              {showForm ? "Zatvori" : "+ Nova objava"}
-            </Button>
-          )}
-        </div>
+        <div
+  style={{
+    display: "grid",
+    gridTemplateColumns: "1fr auto",
+    alignItems: "center",
+    gap: 16,
+    marginBottom: "2rem",
+  }}
+>
+  <Typography
+    variant="h2"
+    align="center"
+    sx={{
+      fontSize: { xs: "1.5rem", md: "2.1rem" },
+      fontWeight: 900,
+      mb: 2,
+      textShadow: "5px 2px 8px rgba(185, 185, 185, 0.5)",
+      letterSpacing: -1,
+    }}
+  >
+    Objave
+  </Typography>
+
+  {user && user.uloga !== "admin" && (
+    <Button
+      variant="contained"
+      sx={{ backgroundColor: ACCENT, "&:hover": { backgroundColor: "#701013" } }}
+      onClick={() => setShowForm((s) => !s)}
+      aria-expanded={showForm}
+      aria-controls="nova-objava-form"
+    >
+      {showForm ? "Zatvori" : "+ Nova objava"}
+    </Button>
+  )}
+</div>
+
 
         {/* FORMA ZA NOVU OBJAVU */}
         {showForm && user && user.uloga !== "admin" && (
