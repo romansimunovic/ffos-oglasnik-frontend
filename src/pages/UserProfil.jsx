@@ -6,45 +6,70 @@ import BookmarkBorderOutlinedIcon from "@mui/icons-material/BookmarkBorderOutlin
 import { getTypeDetails, getDeptDetails } from "../utils/uiHelpers";
 
 export default function UserProfil() {
-  const { id } = useParams();
+  const { id } = useParams(); // id iz URL-a
   const [user, setUser] = useState(null);
   const [objave, setObjave] = useState([]);
+  const [loading, setLoading] = useState(true); // loading state
+  const [error, setError] = useState(null);
 
-useEffect(() => {
-  const fetchData = async () => {
-    try {
-      const userLocal = JSON.parse(localStorage.getItem("user") || "null");
-      const userIdParam = id || userLocal?._id;
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
 
-      if (!userIdParam) {
-        console.error("Nema userId za učitavanje profila!");
-        return;
+        // dohvati userId: iz URL param ili iz localStorage
+        const userLocal = JSON.parse(localStorage.getItem("user") || "null");
+        const userIdParam = id || userLocal?._id;
+        console.log("userIdParam:", userIdParam);
+
+        if (!userIdParam) {
+          throw new Error("Nije definiran userId!");
+        }
+
+        // fetch korisnika
+        const userRes = await fetch(`/api/users/${userIdParam}`);
+        console.log("userRes ok?", userRes.ok, "status:", userRes.status);
+        if (!userRes.ok) throw new Error(`Greška pri dohvaćanju korisnika: ${userRes.status}`);
+
+        const userData = await userRes.json();
+        console.log("userData:", userData);
+        if (!userData || Object.keys(userData).length === 0) throw new Error("Korisnik ne postoji!");
+
+        setUser(userData);
+
+        // fetch objava korisnika
+        const objaveRes = await fetch(`/api/posts/user/${userIdParam}`);
+        console.log("objaveRes ok?", objaveRes.ok, "status:", objaveRes.status);
+        if (!objaveRes.ok) throw new Error(`Greška pri dohvaćanju objava: ${objaveRes.status}`);
+
+        const postsData = await objaveRes.json();
+        console.log("postsData:", postsData);
+        setObjave(Array.isArray(postsData) ? postsData : postsData.objave || []);
+
+      } catch (err) {
+        console.error("❌ Error u fetchData:", err);
+        setError(err.message || "Došlo je do pogreške.");
+        setUser(null);
+        setObjave([]);
+      } finally {
+        setLoading(false);
       }
+    };
 
-      const userRes = await fetch(`/api/users/${userIdParam}`);
-      const userData = await userRes.json();
-      setUser(userData);
+    fetchData();
+  }, [id]);
 
-      const objaveRes = await fetch(`/api/posts/user/${userIdParam}`);
-      const postsData = await objaveRes.json();
-      setObjave(Array.isArray(postsData) ? postsData : postsData.objave || []);
-    } catch (err) {
-      console.error(err);
-      setObjave([]);
-    }
-  };
-  fetchData();
-}, [id]);
-
-
-  if (!user) return <div>Učitavanje korisnika...</div>;
+  if (loading) return <div>Učitavanje korisnika...</div>;
+  if (error) return <div style={{ color: "red" }}>Greška: {error}</div>;
+  if (!user) return <div>Korisnik nije pronađen.</div>;
 
   const avatarSrc = user.avatar || "/default-avatar.png";
 
   return (
     <Box className="page-container">
       {/* HEADER */}
-      <Box className="profile-header">
+      <Box className="profile-header" sx={{ display: "flex", gap: 2, alignItems: "center" }}>
         <Avatar src={avatarSrc} alt={user.ime} sx={{ width: 90, height: 90 }} />
         <Box className="profile-info">
           <Typography variant="h5">{user.ime}</Typography>
@@ -65,7 +90,7 @@ useEffect(() => {
 
           return (
             <Link key={objava._id} to={`/objava/${objava._id}`} style={{ textDecoration: "none" }}>
-              <Box className="post-card">
+              <Box className="post-card" sx={{ border: "1px solid #ccc", p: 2, mb: 2, borderRadius: 1 }}>
                 <Typography variant="h6">{objava.naslov}</Typography>
                 <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mb: 1 }}>
                   <Chip label={tip.label} size="small" />
