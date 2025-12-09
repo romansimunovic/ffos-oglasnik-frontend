@@ -1,6 +1,6 @@
 // src/App.jsx
 import React from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 // Providers
 import { ToastProvider } from "./components/Toast";
@@ -37,10 +37,14 @@ export default function App() {
 
             <main className="flex-grow pt-8 md:pt-12">
               <Routes>
-                {/* Javne stranice */}
-                <Route path="/" element={<Navigate to="/objave" replace />} />
+                {/* Početna */}
+                <Route path="/" element={<Home />} />
+
+                {/* Objave */}
                 <Route path="/objave" element={<Objava />} />
                 <Route path="/objava/:id" element={<ObjavaDetalj />} />
+
+                {/* Ostale javne stranice */}
                 <Route path="/kalendar" element={<Kalendar />} />
                 <Route path="/kontakt" element={<Kontakt />} />
                 <Route path="/login" element={<Login />} />
