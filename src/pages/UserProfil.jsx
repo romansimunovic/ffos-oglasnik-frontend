@@ -1,153 +1,139 @@
-// src/pages/UserProfil.jsx
-import { useParams, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
-import api from "../api/axiosInstance";
-import { ODSJECI } from "../constants/odsjeci";
-import { Button } from "@mui/material";
-import { useToast } from "../components/Toast";
+import React, { useEffect, useState } from "react";
+import { useParams, Link } from "react-router-dom";
+import axios from "axios";
+import {
+  Box,
+  Typography,
+  Avatar,
+  Chip,
+  IconButton,
+} from "@mui/material";
+import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
+import BookmarkBorderOutlinedIcon from "@mui/icons-material/BookmarkBorderOutlined";
 
-const ROLE_LABELS = {
-  admin: "Administrator",
-  user: "Korisnik",
-  moderator: "Moderator",
-};
+import getTypeDetails from "../utils/getTypeDetails";
+import getDeptDetails from "../utils/getDeptDetails";
 
 export default function UserProfil() {
   const { id } = useParams();
-  const navigate = useNavigate();
-  const toast = useToast();
-
-  const [korisnik, setKorisnik] = useState(null);
+  const [user, setUser] = useState(null);
   const [objave, setObjave] = useState([]);
-  const [loadingUser, setLoadingUser] = useState(true);
-  const [loadingPosts, setLoadingPosts] = useState(true);
-
-  const localUser = JSON.parse(localStorage.getItem("user") || "null");
-  const localUserId = localUser?._id || localUser?.id || null;
-
-  // redirect ako je ovo moj profil
-  useEffect(() => {
-    if (localUserId && id && localUserId.toString() === id.toString()) {
-      navigate("/profil");
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, localUserId]);
-
-  const buildAvatarSrc = (avatarPath) => {
-    if (!avatarPath) return "/default-avatar.png";
-    if (avatarPath.startsWith("http://") || avatarPath.startsWith("https://"))
-      return `${avatarPath}?t=${Date.now()}`;
-    const base = api.defaults.baseURL || "";
-    const backendOrigin = base.replace(/\/api\/?$/i, "");
-    return `${backendOrigin}${avatarPath}?t=${Date.now()}`;
-  };
 
   useEffect(() => {
-    let mounted = true;
+    const fetchData = async () => {
+      const userRes = await axios.get(`/api/users/${id}`);
+      setUser(userRes.data);
 
-    const fetchUser = async () => {
-      try {
-        const res = await api.get(`/korisnik/${id}`);
-        if (mounted) setKorisnik(res.data);
-      } catch (err) {
-        console.error("fetch user profil:", err);
-        toast("Greška pri dohvaćanju profila.", "error");
-      } finally {
-        if (mounted) setLoadingUser(false);
-      }
+      const objaveRes = await axios.get(`/api/posts/user/${id}`);
+      setObjave(objaveRes.data);
     };
+    fetchData();
+  }, [id]);
 
-    const fetchPosts = async () => {
-      try {
-        const res = await api.get(`/objave/autor/${id}`);
-        if (mounted) setObjave(res.data || []);
-      } catch (err) {
-        console.error("fetch user posts:", err);
-        toast("Greška pri dohvaćanju objava autora.", "error");
-      } finally {
-        if (mounted) setLoadingPosts(false);
-      }
-    };
-
-    fetchUser();
-    fetchPosts();
-
-    return () => {
-      mounted = false;
-    };
-  }, [id]); // eslint-disable-line
-
-  if (loadingUser) {
-    return (
-      <section className="page-bg">
-        <div className="container">
-          <p className="center-msg">Učitavanje profila...</p>
-        </div>
-      </section>
-    );
-  }
-
-  if (!korisnik) {
-    return (
-      <section className="page-bg">
-        <div className="container">
-          <p className="center-msg">Korisnik nije pronađen.</p>
-        </div>
-      </section>
-    );
-  }
+  if (!user) return <div>Učitavanje...</div>;
 
   return (
-    <section className="page-bg">
-      <div className="container" style={{ maxWidth: 1000, margin: "0 auto" }}>
-        {/* Profil korisnika */}
-        <div className="card profile-card" style={{ marginBottom: 20, textAlign: "center" }}>
-          <div className="avatar-wrap">
-            <img
-              src={buildAvatarSrc(korisnik.avatar)}
-              alt={korisnik.ime}
-              className="profile-avatar"
-            />
-          </div>
-          <h2>{korisnik.ime}</h2>
-          <p style={{ color: "#666", margin: "4px 0" }}>
-            <strong>Uloga:</strong> {ROLE_LABELS[korisnik.uloga] || korisnik.uloga}
-          </p>
-        </div>
+    <Box className="page-container">
 
-        {/* Objave korisnika */}
-        <section className="card" style={{ marginBottom: 16 }}>
-          <h3 style={{ marginTop: 0 }}>Objave autora</h3>
-          {loadingPosts ? (
-            <p className="center-msg">Učitavanje objava...</p>
-          ) : objave.length === 0 ? (
-            <p className="center-msg">Ovaj korisnik nema javno objavljenih sadržaja.</p>
-          ) : (
-            <div className="card-grid">
-              {objave.map((o) => (
-                <div
-                  key={o._id}
-                  className="card-link"
-                  onClick={() => navigate(`/objava/${o._id}`)}
-                  style={{ cursor: "pointer" }}
+      {/* -------------------------- */}
+      {/* KORISNIČKI HEADER */}
+      {/* -------------------------- */}
+      <Box className="profile-header">
+        <Avatar
+          src={user.avatar_url}
+          alt={user.username}
+          sx={{ width: 90, height: 90 }}
+        />
+        <Box className="profile-info">
+          <Typography variant="h5" className="accent-text">
+            {user.username}
+          </Typography>
+          <Typography variant="body1" className="muted-text">
+            {user.bio || "Korisnik nema biografiju."}
+          </Typography>
+        </Box>
+      </Box>
+
+      {/* -------------------------- */}
+      {/* LISTA OBJAVA */}
+      {/* -------------------------- */}
+      <Typography variant="h6" className="section-title" sx={{ mt: 4, mb: 2 }}>
+        Objave korisnika
+      </Typography>
+
+      <Box className="posts-list">
+        {objave.length === 0 && (
+          <Typography variant="body2" className="muted-text">
+            Korisnik još nema objava.
+          </Typography>
+        )}
+
+        {objave.map((objava) => {
+          const tip = getTypeDetails(objava.type);
+          const odsjek = getDeptDetails(objava.dept);
+
+          return (
+            <Link
+              key={objava.id}
+              to={`/objava/${objava.id}`}
+              className="post-card-link"
+            >
+              <Box className="post-card">
+
+                {/* Naslov */}
+                <Typography variant="h6" className="post-title">
+                  {objava.title}
+                </Typography>
+
+                {/* Chip meta */}
+                <Box className="chip-row">
+                  <Chip
+                    label={tip.label}
+                    icon={tip.icon}
+                    size="small"
+                    className="chip-type"
+                  />
+                  <Chip
+                    label={odsjek.label}
+                    icon={odsjek.icon}
+                    size="small"
+                    className="chip-dept"
+                  />
+                  <Chip
+                    label={new Date(objava.created_at).toLocaleDateString()}
+                    size="small"
+                    className="chip-date"
+                  />
+                </Box>
+
+                {/* Kratki preview sadržaja */}
+                <Typography
+                  variant="body2"
+                  className="post-preview"
                 >
-                  <div className="card">
-                    <h4 style={{ marginTop: 0 }}>{o.naslov || "Bez naslova"}</h4>
-                    <p className="card-desc">
-                      {o.sadrzaj ? (o.sadrzaj.length > 140 ? o.sadrzaj.slice(0, 140) + "..." : o.sadrzaj) : "Nema opisa."}
-                    </p>
-                    <div className="meta-info" style={{ display: "flex", gap: 12, fontSize: 12, color: "#666", flexWrap: "wrap" }}>
-                      <span>Tip: <i>{o.tip}</i></span>
-                      <span>Odsjek: {ODSJECI.find(x => x.id === (o.odsjek?._id || o.odsjek))?.naziv || "-"}</span>
-                      <span>{o.datum ? new Date(o.datum).toLocaleDateString("hr-HR") : ""}</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
-      </div>
-    </section>
+                  {objava.content.length > 150
+                    ? objava.content.slice(0, 150) + "..."
+                    : objava.content}
+                </Typography>
+
+                {/* Footer: views + saves */}
+                <Box className="post-card-footer">
+                  <Box className="post-meta">
+                    <VisibilityOutlinedIcon className="meta-icon" />
+                    <span>{objava.views}</span>
+                  </Box>
+
+                  <Box className="post-meta">
+                    <BookmarkBorderOutlinedIcon className="meta-icon" />
+                    <span>{objava.saves}</span>
+                  </Box>
+                </Box>
+
+              </Box>
+            </Link>
+          );
+        })}
+      </Box>
+    </Box>
   );
 }
