@@ -11,8 +11,8 @@ import {
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import BookmarkBorderOutlinedIcon from "@mui/icons-material/BookmarkBorderOutlined";
 
-import getTypeDetails from "../utils/getTypeDetails";
-import getDeptDetails from "../utils/getDeptDetails";
+import { getTypeDetails, getDeptDetails } from "../utils/uiHelpers";
+
 
 export default function UserProfil() {
   const { id } = useParams();
