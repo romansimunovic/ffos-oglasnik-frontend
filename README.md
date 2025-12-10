@@ -1,7 +1,4 @@
-Naravno!
-Evo **kompletan, profesionalno uređen i pojednostavljen README.md za FRONTEND repo** — spreman za GitHub, s mentorom, autorima i svim važnim uputama.
 
-Ako želiš, mogu ti ga dodatno brendirati, staviti badgeve, slike ili GIF preview aplikacije.
 
 ---
 
