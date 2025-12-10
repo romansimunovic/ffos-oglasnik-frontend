@@ -1,4 +1,3 @@
-````md
 # 🎓 FFOS Oglasnik – Frontend
 
 Frontend dio web aplikacije **FFOS Oglasnik**, izrađen u Reactu (Vite) s TailwindCSS-om.  
