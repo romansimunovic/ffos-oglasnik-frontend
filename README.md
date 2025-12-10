@@ -1,85 +1,91 @@
 # FFOS Oglasnik – Frontend
 
-Frontend aplikacija za **FFOS Oglasnik**, razvijena u sklopu diplomskog studija Informacijskih tehnologija na Filozofskom fakultetu u Osijeku.  
-**Mentor:** izv. prof. dr. sc. Tomislav Jakopec
+Frontend aplikacija za **FFOS Oglasnik**, razvijena u sklopu diplomskog studija Informacijskih tehnologija  
+na Filozofskom fakultetu u Osijeku.  
+**Mentor: izv. prof. dr. sc. Tomislav Jakopec**
 
 ---
 
-## Preduvjeti
+## 🚀 Preduvjeti
 
-Prije pokretanja frontend-a, provjerite imate li instalirano:
+Prije pokretanja potrebno je instalirati:
 
-- Node.js ≥ 18  
-- Visual Studio Code  
-- Git  
+- **Node.js ≥ 18**
+- **Git**
+- **Visual Studio Code**
 
-Provjera verzije:
+Provjera verzija:
 
 ```bash
 node -v
 npm -v
-````
-
----
-
-## Instalacija i pokretanje
-
-### 1. Kloniranje repozitorija
-
-```bash
-git clone https://github.com/romansimunovic/ffos-oglasnik-frontend.git
-cd ffos-oglasnik-frontend
-```
-
-Otvorite folder u Visual Studio Codeu.
-
----
-
-### 2. Instalacija ovisnosti
-
-```bash
+📥 Instalacija i pokretanje
+1️⃣ Kloniranje repozitorija
+bash
+Copy code
+git clone <URL-TVOG-FRONTEND-REPOZITORIJA>
+cd frontend
+2️⃣ Instalacija ovisnosti
+bash
+Copy code
 npm install
-```
+3️⃣ Kreiraj .env datoteku
+U frontend root folderu napravi:
 
----
+bash
+Copy code
+VITE_API_URL=http://localhost:5000/api
+Za produkciju (Vercel):
 
-### 3. Konfiguracija `.env` datoteke
-
-Provjerite da u root folderu postoji `.env` s:
-
-```
-VITE_API_URL=http://localhost:5000
-```
-
-> **Napomena:** Ova URL adresa treba odgovarati portu na kojem radi backend.
-
----
-
-### 4. Pokretanje frontend aplikacije
-
-```bash
+ini
+Copy code
+VITE_API_URL=https://tvoj-backend-render-url/api
+4️⃣ Pokretanje frontend aplikacije
+bash
+Copy code
 npm run dev
-```
+Vite dev server će raditi na:
 
-Frontend će biti dostupan na: [http://localhost:5176](http://localhost:5176)
+👉 http://localhost:5173
 
----
+🔧 Proxy (vite.config.js)
+Već konfigurirano:
 
-## Testiranje login funkcionalnosti
+js
+Copy code
+server: {
+  proxy: {
+    "/api": {
+      target: "http://localhost:5000",
+      changeOrigin: true,
+      secure: false,
+    },
+  },
+},
+🔐 Testni admin
+makefile
+Copy code
+Email: admin@ffos.hr
+Lozinka: 55tDUUjy12
+❗ Troubleshooting
+❌ Frontend se ne spaja na backend
+Backend mora raditi na http://localhost:5000
 
-* URL: [http://localhost:5176/login](http://localhost:5176/login)
-* Testni korisnički podaci:
+Provjeri .env varijable
 
-  | Email                                 | Lozinka  |
-  | ------------------------------------- | -------- |
-  | [admin@ffos.hr](mailto:admin@ffos.hr) | admin123 |
+Provjeri browser CORS greške
 
----
+❌ “Failed to load resource /api”
+Mogući uzrok → backend nije pokrenut.
 
-## Troubleshooting
+🌐 Deployment (Vercel)
+Deployaj GitHub repo na Vercel
 
-* **Frontend ne može dohvatiti API**: Provjerite `VITE_API_URL` i da backend radi.
-* **Port već zauzet**: Promijenite port u `vite.config.js` ili zatvorite aplikaciju koja koristi isti port.
-* **Node modules error**: Pokrenite `npm install` prije `npm run dev`.
+Dodaj environment varijablu:
 
----
+ini
+Copy code
+VITE_API_URL=https://backend-on-render/api
+Redeploy
+
+Sve radi automatski.
