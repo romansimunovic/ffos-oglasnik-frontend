@@ -38,8 +38,8 @@ export default function ObjavaDetalj() {
   const [showFull, setShowFull] = useState(false);
   const navigate = useNavigate();
   const toast = useToast();
-const user = JSON.parse(localStorage.getItem("user") || "null");
-const userId = user?._id || user?.id || null;
+  const user = JSON.parse(localStorage.getItem("user") || "null");
+  const userId = user?._id || user?.id || null;
   const currentUrl = typeof window !== "undefined" ? window.location.href : "";
 
   useEffect(() => {
@@ -74,7 +74,7 @@ const userId = user?._id || user?.id || null;
   if (!objava) return <p className="center-msg">Objava nije pronađena.</p>;
 
   const shareText = objava?.naslov || "Pogledaj ovu objavu";
-  const canShare = objava.status === "odobreno" || !objava.status;
+  const canShare = objava.status === "odobreno" || !objava.status; // ostavljeno kao prije (ako želiš strože: objava.status === "odobreno")
 
   const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(currentUrl)}`;
   const xUrl = `https://x.com/intent/tweet?url=${encodeURIComponent(currentUrl)}&text=${encodeURIComponent(shareText)}`;
@@ -119,7 +119,6 @@ const userId = user?._id || user?.id || null;
   // visuals
   const typeDetails = getTypeDetails(tipNaziv.toLowerCase());
   const deptDetails = getDeptDetails(
-    // getDeptDetails expects either id or readable label — pass readable label if possible
     ODSJECI.find((x) => x.id === (objava.odsjek?._id || objava.odsjek))?.id ||
       (typeof objava.odsjek === "string" ? objava.odsjek : "")
   );
@@ -139,50 +138,65 @@ const userId = user?._id || user?.id || null;
           {/* header */}
           <Box sx={{ display: "flex", gap: 2, alignItems: "center", mb: 2 }}>
             <Avatar
-  src={avatarSrc}
-  sx={{ width: 56, height: 56, border: `2px solid ${ACCENT}` }}
-  onClick={(e) => {
-    e.stopPropagation();
-    if (!autorId) return;
-    if (autorId === userId) navigate("/profil");
-    else navigate(`/profil/${autorId}`);
-  }}
-/>
+              src={avatarSrc}
+              sx={{ width: 56, height: 56, border: `2px solid ${ACCENT}` }}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (!autorId) return;
+                if (autorId === userId) navigate("/profil");
+                else navigate(`/profil/${autorId}`);
+              }}
+            />
             <Box sx={{ flex: 1 }}>
               <Typography variant="h5" sx={{ color: ACCENT, fontWeight: 800 }}>{objava.naslov}</Typography>
               <Typography variant="body2" sx={{ color: "#444" }}>Autor: <strong>{autorIme}</strong></Typography>
             </Box>
 
             <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
-              <Button size="small" variant="outlined" onClick={() => setShareOpen(true)}>Podijeli</Button>
+              {/* Ovdje onemogućimo dijeljenje ako nije odobreno */}
+              <Button
+                variant="text"
+                size="small"
+                onClick={() => {
+                  if (!canShare) {
+                    toast("Objavu nije moguće dijeliti dok nije odobrena.", "info");
+                    return;
+                  }
+                  setShareOpen(true);
+                }}
+                sx={{ color: ACCENT }}
+                disabled={!canShare}
+                title={!canShare ? "Objavu nije moguće dijeliti dok nije odobrena." : "Podijeli objavu"}
+              >
+                Podijeli
+              </Button>
             </Box>
           </Box>
 
           {/* meta row */}
           <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1.5, mb: 2, alignItems: "center" }}>
             <Chip
-  icon={<TypeIcon sx={typeDetails.iconSx} />}
-  label={typeDetails.label}
-  size="small"
-  sx={{ 
-    bgcolor: typeDetails.color, 
-    color: typeDetails.contrastText, 
-    fontWeight: 700,
-    "& .MuiChip-icon": { color: `${typeDetails.contrastText} !important` }
-  }}
-/>
+              icon={<TypeIcon sx={typeDetails.iconSx} />}
+              label={typeDetails.label}
+              size="small"
+              sx={{
+                bgcolor: typeDetails.color,
+                color: typeDetails.contrastText,
+                fontWeight: 700,
+                "& .MuiChip-icon": { color: `${typeDetails.contrastText} !important` }
+              }}
+            />
 
-<Chip
-  icon={<DeptIcon sx={deptDetails.iconSx} />}
-  label={ODSJECI.find((x) => x.id === (objava.odsjek?._id || objava.odsjek))?.naziv || (typeof objava.odsjek === "string" ? objava.odsjek : "-")}
-  size="small"
-  sx={{ 
-    bgcolor: deptDetails.color, 
-    color: deptDetails.contrastText,
-    "& .MuiChip-icon": { color: `${deptDetails.contrastText} !important` }
-  }}
-/>
-
+            <Chip
+              icon={<DeptIcon sx={deptDetails.iconSx} />}
+              label={ODSJECI.find((x) => x.id === (objava.odsjek?._id || objava.odsjek))?.naziv || (typeof objava.odsjek === "string" ? objava.odsjek : "-")}
+              size="small"
+              sx={{
+                bgcolor: deptDetails.color,
+                color: deptDetails.contrastText,
+                "& .MuiChip-icon": { color: `${deptDetails.contrastText} !important` }
+              }}
+            />
 
             <Chip icon={<EventIcon />} label={datum || ""} size="small" />
 
