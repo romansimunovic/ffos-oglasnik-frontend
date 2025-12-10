@@ -1,11 +1,3 @@
-
-
----
-
-# 📘 **README.md – FRONTEND**
-
-*(spremno za kopiranje u tvoj frontend GitHub repozitorij)*
-
 ````md
 # 🎓 FFOS Oglasnik – Frontend
 
@@ -105,23 +97,6 @@ Email: admin@ffos.hr
 Lozinka: 55tDUUjy12
 ```
 
----
-
-# 📁 Struktura projekta
-
-```
-src/
-│── components/
-│── pages/
-│── context/
-│── hooks/
-│── services/
-│── utils/
-│── App.jsx
-│── main.jsx
-```
-
----
 
 # 🌐 Deployment (Vercel)
 
