@@ -1,9 +1,30 @@
-// src/pages/Kontakt.jsx
+import { useState } from "react";
 import MailOutlineIcon from "@mui/icons-material/MailOutline";
+import { Dialog, DialogTitle, DialogContent, DialogActions, Button } from "@mui/material";
 
 export default function Kontakt() {
+  const [openLoginPopup, setOpenLoginPopup] = useState(false);
+
+  const isLoggedIn = !!localStorage.getItem("token"); // prilagodi po svom
+
+  const handleClick = (e) => {
+    if (!isLoggedIn) {
+      e.preventDefault();
+      setOpenLoginPopup(true);
+    }
+  };
+
   return (
-    <section className="page-bg" style={{ backgroundColor: "#f7f7f7", minHeight: "70vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+    <section
+      className="page-bg"
+      style={{
+        backgroundColor: "#f7f7f7",
+        minHeight: "70vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
       <div
         className="card card-static"
         style={{
@@ -18,6 +39,7 @@ export default function Kontakt() {
         }}
       >
         <h1 style={{ color: "#a80b1d", marginBottom: "1rem" }}>Kontakt</h1>
+
         <p
           className="kontakt-text"
           style={{
@@ -29,6 +51,7 @@ export default function Kontakt() {
         >
           Imate upit, prijedlog ili želite suradnju? Javite nam se putem e-mail adrese:
         </p>
+
         <a
           href="mailto:oglasnik@ffos.hr"
           className="kontakt-email"
@@ -45,13 +68,32 @@ export default function Kontakt() {
             textDecoration: "none",
             transition: "all 0.2s ease-in-out",
           }}
-          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#d4182d"}
-          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "#a80b1d"}
+          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#d4182d")}
+          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#a80b1d")}
+          onClick={handleClick}
         >
           <MailOutlineIcon />
           Pošalji mail
         </a>
       </div>
+
+      {/* 🔒 Modal za login */}
+      <Dialog open={openLoginPopup} onClose={() => setOpenLoginPopup(false)}>
+        <DialogTitle>Prijavite se</DialogTitle>
+        <DialogContent>
+          Morate biti prijavljeni kako biste poslali upit putem e-maila.
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenLoginPopup(false)}>Zatvori</Button>
+          <Button
+            onClick={() => (window.location.href = "/login")}
+            variant="contained"
+            sx={{ backgroundColor: "#a80b1d" }}
+          >
+            Prijava
+          </Button>
+        </DialogActions>
+      </Dialog>
     </section>
   );
 }
