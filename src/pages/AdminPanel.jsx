@@ -20,11 +20,12 @@ export default function AdminPanel() {
   const [selectedIds, setSelectedIds] = useState([]);
   const [lastBulkAction, setLastBulkAction] = useState(null);
 
+  // dialog kontrola
   const [reasonDialogOpen, setReasonDialogOpen] = useState(false);
   const [reasonForId, setReasonForId] = useState(null); // single id or "__bulk__:statusKey"
-  const [rejectReason, setRejectReason] = useState("");
+  const reasonRef = useRef(null); // UNCONTROLLED input
 
-  const bulkTargetIdsRef = useRef([]); // koristi umjesto window.__admin_bulk_targetIds
+  const bulkTargetIdsRef = useRef([]); // koristi umjesto global var
 
   const toast = useToast();
 
@@ -80,15 +81,17 @@ export default function AdminPanel() {
       toast("Greška pri promjeni statusa.", "error");
     } finally {
       setLoadingId(null);
+      // zatvori dialog ako je bio single
       if (reasonForId === id) {
         setReasonDialogOpen(false);
         setReasonForId(null);
-        setRejectReason("");
+        if (reasonRef.current) reasonRef.current.value = "";
       }
     }
   };
 
   // bulk: može primiti override listu i razlog (ako je odbijanje)
+  // NOTE: ne koristimo nijedan local rejectReason state - koristimo reasonOverride kad ga proslijedimo
   const handleBulkStatusChange = async (statusKey, noviStatus, askReason = false, targetIdsOverride = null, reasonOverride = null) => {
     const candidate = grupirane[statusKey].map(o => o._id);
     const targetIds = Array.isArray(targetIdsOverride) ? targetIdsOverride : candidate.filter(o => selectedIds.includes(o));
@@ -105,9 +108,10 @@ export default function AdminPanel() {
     setBulkLoading(true);
     const prevStatuses = objave.filter(o => targetIds.includes(o._id)).map(o => ({ id: o._id, prevStatus: o.status }));
     try {
-      // pošalji reason ako imamo
-      const reasonToSend = reasonOverride || (noviStatus === "odbijeno" ? rejectReason || undefined : undefined);
+      // proslijedi reasonOverride ako ga ima (inače undefined)
+      const reasonToSend = reasonOverride;
 
+      // slanje paralelno (ako želiš, backend batch endpoint bi bio brži)
       await Promise.all(targetIds.map(id =>
         api.patch(`/objave/${id}/status`, { status: noviStatus, reason: reasonToSend })
       ));
@@ -126,11 +130,11 @@ export default function AdminPanel() {
       toast("Greška pri grupnoj promjeni statusa.", "error");
     } finally {
       setBulkLoading(false);
-      // zatvori dialog ako je bulk
+      // zatvori dialog ako je bio bulk
       if (reasonForId && reasonForId.startsWith("__bulk__:")) {
         setReasonDialogOpen(false);
         setReasonForId(null);
-        setRejectReason("");
+        if (reasonRef.current) reasonRef.current.value = "";
       }
     }
   };
@@ -219,6 +223,38 @@ export default function AdminPanel() {
     }
   };
 
+  // submit iz dialoga (single ili bulk) - čitamo iz reasonRef (uncontrolled)
+  const handleReasonSubmit = async () => {
+    const val = reasonRef.current?.value || "";
+    if (!val.trim() || val.trim().length < 3) {
+      return toast("Unesi konkretan razlog (bar 3 znaka).", "info");
+    }
+
+    try {
+      if (reasonForId?.startsWith("__bulk__:")) {
+        const statusKey = reasonForId.split("__bulk__:")[1];
+        const targetIds = Array.isArray(bulkTargetIdsRef.current) ? bulkTargetIdsRef.current : [];
+        // zatvorimo dialog odmah za bolji UX
+        setReasonDialogOpen(false);
+        setReasonForId(null);
+        if (reasonRef.current) reasonRef.current.value = "";
+
+        // proslijedi reasonOverride kao zadnji argument
+        await handleBulkStatusChange(statusKey, "odbijeno", false, targetIds, val);
+      } else {
+        const id = reasonForId;
+        setReasonDialogOpen(false);
+        setReasonForId(null);
+        if (reasonRef.current) reasonRef.current.value = "";
+
+        await handleStatusChange(id, "odbijeno", val);
+      }
+    } catch (err) {
+      console.error("handleReasonSubmit err:", err);
+      toast("Greška pri slanju razloga.", "error");
+    }
+  };
+
   return (
     <section className="page-bg">
       <div className="container">
@@ -234,7 +270,7 @@ export default function AdminPanel() {
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
           {statusi.map(st => (
             <div key={st.key} className="card card-static">
-              <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
+              <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }} >
                 <h2>{st.label} <Chip label={grupirane[st.key].length} size="small" sx={{ bgcolor: st.color, color: "#fff" }} /></h2>
                 <Checkbox
                   checked={grupirane[st.key].length > 0 && grupirane[st.key].every(o => selectedIds.includes(o._id))}
@@ -277,26 +313,29 @@ export default function AdminPanel() {
           ))}
         </div>
 
-        <Dialog open={reasonDialogOpen} onClose={() => { setReasonDialogOpen(false); setReasonForId(null); setRejectReason(""); }}>
+        <Dialog
+          open={reasonDialogOpen}
+          onClose={() => { setReasonDialogOpen(false); setReasonForId(null); if (reasonRef.current) reasonRef.current.value = ""; }}
+          fullWidth
+          maxWidth="md"
+          PaperProps={{ sx: { minWidth: 560, maxWidth: "90vw", p: 1 } }}
+        >
           <DialogTitle>Razlog odbijanja</DialogTitle>
           <DialogContent>
-            <TextField fullWidth multiline minRows={3} value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} placeholder="Unesi razlog..." />
+            {/* UNCONTROLLED TextField - koristimo ref */}
+            <TextField
+              fullWidth
+              multiline
+              minRows={4}
+              inputRef={reasonRef}
+              defaultValue=""
+              placeholder="Unesi razlog... (što konkretnije — korisniku će stići obavijest)"
+              inputProps={{ maxLength: 1000 }}
+            />
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => { setReasonDialogOpen(false); setReasonForId(null); setRejectReason(""); }}>Odustani</Button>
-            <Button color="error" variant="contained" onClick={async () => {
-              if (reasonForId?.startsWith("__bulk__")) {
-                const statusKey = reasonForId.split("__bulk__:")[1];
-                const targetIds = Array.isArray(bulkTargetIdsRef.current) ? bulkTargetIdsRef.current : [];
-                setReasonDialogOpen(false);
-                setReasonForId(null);
-                // proslijedi targetIdsOverride i reasonOverride
-                await handleBulkStatusChange(statusKey, "odbijeno", false, targetIds, rejectReason);
-              } else {
-                await handleStatusChange(reasonForId, "odbijeno", rejectReason);
-              }
-              setRejectReason("");
-            }}>Pošalji</Button>
+            <Button onClick={() => { setReasonDialogOpen(false); setReasonForId(null); if (reasonRef.current) reasonRef.current.value = ""; }}>Odustani</Button>
+            <Button color="error" variant="contained" onClick={handleReasonSubmit}>Pošalji</Button>
           </DialogActions>
         </Dialog>
       </div>
