@@ -433,12 +433,7 @@ const openProfil = (e, autorId) => {
           <div style={{ marginBottom: isMobile ? "1rem" : "2rem", display: "flex", gap: 12, alignItems: "center" }}>
             <SearchIcon sx={{ color: ACCENT, fontSize: 28, opacity: 0.8 }} />
             <TextField size="small" variant="outlined" label="Pretraži objave" value={search} onChange={(e) => setSearch(e.target.value)} autoComplete="off" placeholder="Upiši pojam..." sx={{ flex: 1, maxWidth: 400, "& .MuiOutlinedInput-root": { borderRadius: "8px", transition: "all 0.2s", "&:hover": { borderColor: ACCENT }, "&.Mui-focused": { boxShadow: "0 0 0 3px rgba(151, 29, 33, 0.08)" } } }} />
-            {/* quick filters */}
-            <div style={{ display: "flex", gap: 8 }}>
-              <Button size="small" onClick={() => handleQuickFilter("radionice")}>Radionice</Button>
-              <Button size="small" onClick={() => handleQuickFilter("natječaji")}>Natječaji</Button>
-            </div>
-          </div>
+             </div>
 
           {isMobile && (
             <div style={{ marginBottom: "1rem", display: "flex", justifyContent: "center" }}>
