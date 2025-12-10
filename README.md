@@ -175,7 +175,3 @@ Projekt izrađen u edukacijske svrhe na Filozofskom fakultetu u Osijeku, studij 
 
 ```
 
----
-
-Ako želiš, sad mogu izraditi i **backend README.md** u istom stilu, s mentorom, autorima i instrukcijama — samo reci!
-```
