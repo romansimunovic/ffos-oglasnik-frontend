@@ -163,20 +163,7 @@ export default function Objava() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filterTip, odsjek, sortBy, debouncedSearch, periodFilter]);
 
-  const handleQuickFilter = (type) => {
-    if (type === "myDepartment") {
-      setOdsjek(userOdsjek);
-      setFilterTip("Sve");
-    } else if (type === "radionice") {
-      setFilterTip("radionice");
-      setOdsjek("");
-    } else if (type === "natječaji") {
-      setFilterTip("natječaji");
-      setOdsjek("");
-    }
-  };
-
-  const handleClearFilters = () => {
+    const handleClearFilters = () => {
     setFilterTip("Sve");
     setOdsjek("");
     setSortBy("newest");
@@ -306,7 +293,7 @@ const openProfil = (e, autorId) => {
           disabled={currentPage === 1 || loading}
           sx={{ minWidth: 40 }}
         >
-          Prev
+          Prethodna
         </Button>
 
         {pages.map((p, idx) =>
@@ -345,7 +332,7 @@ const openProfil = (e, autorId) => {
           disabled={currentPage === totalPages || loading}
           sx={{ minWidth: 40 }}
         >
-          Next
+          Sljedeća
         </Button>
       </div>
     );
@@ -392,41 +379,131 @@ const openProfil = (e, autorId) => {
 </div>
 
 
-        {/* FORMA ZA NOVU OBJAVU */}
-        {showForm && user && user.uloga !== "admin" && (
-          <div id="nova-objava-form" className="card card-static" style={{ marginBottom: "2rem" }}>
-            <h2 style={{ marginTop: 0, color: ACCENT }}>Nova objava</h2>
-            <form onSubmit={handleCreateObjava}>
-              <TextField label="Naslov" fullWidth margin="normal" value={novaNaslov} onChange={(e) => setNovaNaslov(e.target.value)} placeholder="Upiši naslov objave..." required />
-              <TextField label="Sadržaj" fullWidth margin="normal" multiline minRows={4} value={novaSadrzaj} onChange={(e) => setNovaSadrzaj(e.target.value)} placeholder="Detaljno objasni što objavljuješ..." required />
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 16 }}>
-                <FormControl fullWidth size="small">
-                  <InputLabel id="nova-tip-label">Vrsta</InputLabel>
-                  <Select labelId="nova-tip-label" value={novaTip} label="Vrsta" onChange={(e) => setNovaTip(e.target.value)}>
-                    {tipovi.filter((t) => t.value !== "Sve").map((t) => (
-                      <MenuItem key={t.value} value={t.value}>
-                        {t.label}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-                <FormControl fullWidth size="small">
-                  <InputLabel id="nova-odsjek-label">Odsjek</InputLabel>
-                  <Select labelId="nova-odsjek-label" value={novaOdsjek} label="Odsjek" onChange={(e) => setNovaOdsjek(e.target.value)}>
-                    {ODSJECI.map((ods) => (
-                      <MenuItem key={ods.id} value={ods.id}>
-                        {ods.naziv}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </div>
-              <Button type="submit" variant="contained" fullWidth sx={{ marginTop: 2, backgroundColor: ACCENT, "&:hover": { backgroundColor: "#701013" } }}>
-                Pošalji na odobrenje
-              </Button>
-            </form>
-          </div>
-        )}
+      {/* FORMA ZA NOVU OBJAVU */}
+{showForm && user && user.uloga !== "admin" && (
+  <div className="card card-static" style={{
+    marginBottom: "2rem",
+    padding: "2rem",
+    borderRadius: "12px",
+    boxShadow: "0 4px 16px rgba(0,0,0,0.1)",
+    backgroundColor: "#fff",
+  }}>
+    <h2 style={{ marginTop: 0, marginBottom: "1.5rem", color: ACCENT, textAlign: "center", fontWeight: 600 }}>
+      Nova objava
+    </h2>
+    <form onSubmit={handleCreateObjava} style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+      
+      <TextField
+        label="Naslov"
+        fullWidth
+        value={novaNaslov}
+        onChange={(e) => setNovaNaslov(e.target.value)}
+        placeholder="Upiši naslov objave..."
+        required
+        multiline
+        maxRows={2}
+        InputProps={{
+          style: { padding: "12px 14px", fontSize: "1rem" }
+        }}
+        InputLabelProps={{ style: { fontSize: "0.95rem" } }}
+      />
+
+      <TextField
+        label="Sadržaj"
+        fullWidth
+        multiline
+        minRows={5}
+        value={novaSadrzaj}
+        onChange={(e) => setNovaSadrzaj(e.target.value)}
+        placeholder="Detaljno objasni što objavljuješ..."
+        required
+        InputProps={{ style: { padding: "12px 14px", fontSize: "1rem" } }}
+        InputLabelProps={{ style: { fontSize: "0.95rem" } }}
+      />
+
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+        <FormControl fullWidth size="small">
+ <InputLabel
+  id="nova-tip-label"
+  shrink={true}
+  style={{ fontSize: "0.95rem", top: -6 }}
+>
+  Vrsta
+</InputLabel>
+<Select
+  labelId="nova-tip-label"
+  value={novaTip}
+  onChange={(e) => setNovaTip(e.target.value)}
+  displayEmpty
+  renderValue={(selected) =>
+    selected
+      ? tipovi.find((t) => t.value === selected)?.label || selected
+      : "Odaberi vrstu"
+  }
+  sx={{
+    padding: "12px 14px",
+    fontSize: "1rem",
+  }}
+>
+  {tipovi.filter((t) => t.value !== "Sve").map((t) => (
+    <MenuItem key={t.value} value={t.value}>
+      {t.label}
+    </MenuItem>
+  ))}
+</Select>
+
+</FormControl>
+
+<FormControl fullWidth size="small">
+  <InputLabel
+    id="nova-odsjek-label"
+    shrink={true}
+    style={{ fontSize: "0.95rem", top: -6 }}
+  >
+    Odsjek
+  </InputLabel>
+  <Select
+    labelId="nova-odsjek-label"
+    value={novaOdsjek}
+    onChange={(e) => setNovaOdsjek(e.target.value)}
+    displayEmpty
+    renderValue={(selected) => {
+      const odsjek = ODSJECI.find((o) => o.id === selected);
+      return odsjek ? odsjek.naziv : "Odaberi odsjek";
+    }}
+    sx={{ padding: "12px 14px", fontSize: "1rem" }}
+  >
+    {ODSJECI.map((ods) => (
+      <MenuItem key={ods.id} value={ods.id}>
+        {ods.naziv}
+      </MenuItem>
+    ))}
+  </Select>
+</FormControl>
+
+      </div>
+
+      <Button
+        type="submit"
+        variant="contained"
+        fullWidth
+        sx={{
+          marginTop: 1,
+          backgroundColor: ACCENT,
+          color: "#fff",
+          fontWeight: 600,
+          fontSize: "1rem",
+          borderRadius: "8px",
+          "&:hover": { backgroundColor: "#701013" }
+        }}
+      >
+        Pošalji na odobrenje
+      </Button>
+
+    </form>
+  </div>
+)}
+
 
         {/* SEARCH & FILTERS */}
         <div className="filters-section">
