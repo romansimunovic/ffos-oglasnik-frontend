@@ -9,56 +9,53 @@ Projekt je razvijen u sklopu kolegija **Projektni rad**, 2. godina diplomskog st
 ## 👨‍🏫 Mentor
 
 **izv. prof. dr. sc. Tomislav Jakopec**  
-Odsjek za informacijske znanosti  
-Filozofski fakultet Osijek
+Odsjek za informacijske znanosti, Filozofski fakultet Osijek
 
 ---
 
 ## 👥 Autori
 
-- **Lucija Sabljak**
-- **Franjo Čopčić**
-- **Roman Šimunović**
+- Lucija Sabljak  
+- Franjo Čopčić  
+- Roman Šimunović  
 
 ---
 
 ## 📝 Opis projekta
 
-FFOS Oglasnik je aplikacija namijenjena studentima i nastavnicima Filozofskog fakulteta u Osijeku za pregled i objavu obavijesti, događaja, natječaja i aktivnosti vezanih uz pojedine odsjeke fakulteta.
+FFOS Oglasnik je aplikacija namijenjena studentima i nastavnicima Filozofskog fakulteta u Osijeku za pregled i objavu obavijesti, događaja, natječaja i aktivnosti vezanih uz pojedine odsjeke fakulteta.  
 
-Frontend je izgrađen kao moderna SPA aplikacija u Reactu, a komunicira s backend API-jem razvijenim u Node.js/Express okruženju.
+Frontend je SPA aplikacija izrađena u Reactu koja komunicira s backend API-jem razvijenim u Node.js/Express okruženju.
 
 ---
 
 ## 🚀 Tehnologije
 
-- React (Vite)
-- TailwindCSS
-- Axios
-- React Router
-- JWT autentikacija
+- React (Vite)  
+- TailwindCSS  
+- Axios  
+- React Router  
+- JWT autentikacija  
 - Vercel (deploy)
 
 ---
 
-# 📦 Instalacija i pokretanje
+## 📦 Instalacija i pokretanje
 
-## 1️⃣ Kloniranje repozitorija
+### 1️⃣ Kloniranje repozitorija
 
 ```bash
 git clone <URL_TVOG_FRONTEND_REPOZITORIJA>
 cd ffos-oglasnik-frontend
 ````
 
-## 2️⃣ Instalacija ovisnosti
+### 2️⃣ Instalacija ovisnosti
 
 ```bash
 npm install
 ```
 
----
-
-# ⚙️ Postavljanje environment varijabli
+### 3️⃣ Postavljanje environment varijabli
 
 U root direktoriju kreiraj datoteku **.env**:
 
@@ -74,76 +71,73 @@ VITE_API_URL=https://tvoj-backend-render.url/api
 
 ---
 
-# ▶️ Pokretanje aplikacije
-
-## Dev način (lokalno)
+### 4️⃣ Pokretanje aplikacije
 
 ```bash
 npm run dev
 ```
 
-Aplikacija će biti dostupna na:
-
+Frontend će biti dostupan na:
 👉 [http://localhost:5173](http://localhost:5173)
 
 ---
 
-# 🔑 Testni admin korisnik
+## 🔑 Testni admin korisnik
 
-Za lokalni rad možeš koristiti admin račun:
+Za lokalni rad:
 
 ```
 Email: admin@ffos.hr
 Lozinka: 55tDUUjy12
 ```
 
+---
 
-# 🌐 Deployment (Vercel)
+## 🌐 Deployment (Vercel)
 
-1. Poveži GitHub repo s Vercelom
-2. Dodaj environment varijablu:
-
-```
-VITE_API_URL=https://tvoj-backend-render.url/api
-```
-
+1. Poveži GitHub repozitorij s Vercelom
+2. Dodaj environment varijablu `VITE_API_URL=https://tvoj-backend-render.url/api`
 3. Deploy će se automatski izvršiti
 
 ---
 
-# ❗ Troubleshooting
+## ❗ Troubleshooting
 
-### 1. "Failed to fetch"
+* **"Failed to fetch"**
+  Provjeriti: backend radi, ispravan `VITE_API_URL`, CORS dopušta localhost:5173
 
-Provjeriti:
+* **Port je zauzet**
+  Promijeni port u `vite.config.js`:
 
-* backend radi
-* ispravan `VITE_API_URL`
-* CORS dopušta localhost:5173
+  ```js
+  server: { port: 5173 }
+  ```
 
-### 2. Port je zauzet
+* **CSS se ne učitava**
+  Pokreni:
 
-Promijeni port:
+  ```bash
+  npm install
+  ```
 
-**vite.config.js**
+---
 
-```js
-server: { port: 5173 }
+## 📁 Struktura projekta
+
 ```
-
-### 3. Ne učitava CSS
-
-Pokreni:
-
-```bash
-npm install
+src/
+│── components/
+│── pages/
+│── context/
+│── hooks/
+│── services/
+│── utils/
+│── App.jsx
+│── main.jsx
 ```
 
 ---
 
-# 📜 Licenca
+## 📜 Licenca
 
 Projekt izrađen u edukacijske svrhe na Filozofskom fakultetu u Osijeku, studij Informacijskih tehnologija.
-
-```
-
