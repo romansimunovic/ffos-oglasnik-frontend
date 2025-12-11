@@ -1,18 +1,32 @@
 import { getTypeDetails, getDeptDetails } from "../utils/uiHelpers";
 import { useEffect, useState, useRef } from "react";
 import {
-  Box, Button, Checkbox, Chip,
-  Dialog, DialogTitle, DialogContent, DialogActions,
-  IconButton, TextField
+  Box,
+  Button,
+  Checkbox,
+  Chip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  IconButton,
+  TextField,
+  Typography, // <-- dodano
 } from "@mui/material";
+
 import PushPinIcon from "@mui/icons-material/PushPin";
 import PushPinOutlinedIcon from "@mui/icons-material/PushPinOutlined";
 import NewReleasesIcon from "@mui/icons-material/NewReleases";
 import NewReleasesOutlinedIcon from "@mui/icons-material/NewReleasesOutlined";
 import DeleteIcon from "@mui/icons-material/Delete";
+import EventIcon from "@mui/icons-material/Event";           // <-- dodano
+import VisibilityIcon from "@mui/icons-material/Visibility"; // <-- dodano
+import BookmarkIcon from "@mui/icons-material/Bookmark";     // <-- dodano
+
 import api from "../api/axiosInstance";
 import { useToast } from "../components/Toast";
 import { ODSJECI } from "../constants/odsjeci";
+
 
 export default function AdminPanel() {
   const [objave, setObjave] = useState([]);
