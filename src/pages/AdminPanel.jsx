@@ -1,3 +1,4 @@
+import { getTypeDetails, getDeptDetails } from "../utils/uiHelpers";
 import { useEffect, useState, useRef } from "react";
 import {
   Box, Button, Checkbox, Chip,
@@ -256,89 +257,228 @@ export default function AdminPanel() {
   };
 
   return (
-    <section className="page-bg">
-      <div className="container">
-        <h1>Admin Panel</h1>
+  <section className="page-bg">
+    <div className="container">
+      <h1>Admin Panel</h1>
 
-        <Box sx={{ display: "flex", gap: 1, mb: 2, flexWrap: "wrap" }}>
-          <Button variant="outlined" onClick={() => handleBulkStatusChange("na čekanju", "odobreno")} disabled={bulkLoading}>Odobri odabrane</Button>
-          <Button variant="outlined" color="error" onClick={() => handleBulkStatusChange("na čekanju", "odbijeno", true)} disabled={bulkLoading}>Odbij odabrane</Button>
-          <Button variant="outlined" color="error" startIcon={<DeleteIcon />} onClick={handleBulkDeleteSelected} disabled={bulkLoading}>Obriši odabrane</Button>
-          <Button variant="outlined" onClick={handleUndoLastAction} disabled={!lastBulkAction || bulkLoading}>Poništi zadnju</Button>
-        </Box>
+      <Box sx={{ display: "flex", gap: 1, mb: 2, flexWrap: "wrap" }}>
+        <Button variant="outlined" onClick={() => handleBulkStatusChange("na čekanju", "odobreno")} disabled={bulkLoading}>
+          Odobri odabrane
+        </Button>
+        <Button variant="outlined" color="error" onClick={() => handleBulkStatusChange("na čekanju", "odbijeno", true)} disabled={bulkLoading}>
+          Odbij odabrane
+        </Button>
+        <Button variant="outlined" color="error" startIcon={<DeleteIcon />} onClick={handleBulkDeleteSelected} disabled={bulkLoading}>
+          Obriši odabrane
+        </Button>
+        <Button variant="outlined" onClick={handleUndoLastAction} disabled={!lastBulkAction || bulkLoading}>
+          Poništi zadnju
+        </Button>
+      </Box>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
-          {statusi.map(st => (
-            <div key={st.key} className="card card-static">
-              <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }} >
-                <h2>{st.label} <Chip label={grupirane[st.key].length} size="small" sx={{ bgcolor: st.color, color: "#fff" }} /></h2>
-                <Checkbox
-                  checked={grupirane[st.key].length > 0 && grupirane[st.key].every(o => selectedIds.includes(o._id))}
-                  indeterminate={grupirane[st.key].some(o => selectedIds.includes(o._id)) && !grupirane[st.key].every(o => selectedIds.includes(o._id))}
-                  onChange={() => toggleSelectStatus(st.key)}
-                />
-              </Box>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
+        {statusi.map((st) => (
+          <div key={st.key} className="card card-static" style={{ padding: 12 }}>
+            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1 }}>
+              <h2 style={{ margin: 0 }}>
+                {st.label}{" "}
+                <Chip label={grupirane[st.key].length} size="small" sx={{ bgcolor: st.color, color: "#fff", ml: 1 }} />
+              </h2>
 
-              {grupirane[st.key].length === 0 ? <p className="center-msg">Nema objava.</p> :
-                grupirane[st.key].map(o => (
-                  <div key={o._id} className="card card-static inner-card" style={{ marginBottom: 12, position: "relative" }}>
-                    <Checkbox size="small" checked={selectedIds.includes(o._id)} onChange={() => toggleSelect(o._id)} style={{ position: "absolute", top: 8, right: 8 }} />
-                    <h3 style={{ marginTop: 0 }}>{o.naslov}</h3>
-                    <p style={{ color: "#555" }}>{o.sadrzaj?.slice(0, 160)}{o.sadrzaj?.length > 160 ? "..." : ""}</p>
-                    <Box sx={{ display: "flex", gap: 1 }}>
-                      {st.key === "na čekanju" && <>
-                        <Button size="small" onClick={() => handleStatusChange(o._id, "odobreno")} disabled={loadingId === o._id || bulkLoading}>Odobri</Button>
-                        <Button size="small" color="error" onClick={() => { setReasonForId(o._id); setReasonDialogOpen(true); }} disabled={loadingId === o._id || bulkLoading}>Odbij</Button>
-                      </>}
-                      {st.key === "odobreno" && <>
-                        <IconButton size="small" onClick={() => handleTogglePin(o._id, !!o.pinned)} disabled={loadingId === o._id || bulkLoading} title={o.pinned ? "Otkvači" : "Prikvači"}>
-                          {o.pinned ? <PushPinIcon /> : <PushPinOutlinedIcon />}
-                        </IconButton>
-                        <IconButton size="small" onClick={() => handleToggleUrgentno(o._id, !!o.urgentno)} disabled={loadingId === o._id || bulkLoading} title={o.urgentno ? "Ukloni hitno" : "Označi hitno"}>
-                          {o.urgentno ? <NewReleasesIcon /> : <NewReleasesOutlinedIcon />}
-                        </IconButton>
-                      </>}
-                      <Button size="small" color="error" onClick={() => handleDelete(o._id)} disabled={loadingId === o._id || bulkLoading}>Obriši</Button>
+              <Checkbox
+                checked={grupirane[st.key].length > 0 && grupirane[st.key].every((o) => selectedIds.includes(o._id))}
+                indeterminate={
+                  grupirane[st.key].some((o) => selectedIds.includes(o._id)) &&
+                  !grupirane[st.key].every((o) => selectedIds.includes(o._id))
+                }
+                onChange={() => toggleSelectStatus(st.key)}
+              />
+            </Box>
+
+            {grupirane[st.key].length === 0 ? (
+              <p className="center-msg">Nema objava.</p>
+            ) : (
+              grupirane[st.key].map((o) => {
+                const typeDetails = getTypeDetails((o.tip || "ostalo").toLowerCase());
+                const deptDetails = getDeptDetails(
+                  ODSJECI.find((x) => x.id === (o.odsjek?._id || o.odsjek))?.id ||
+                    (typeof o.odsjek === "string" ? o.odsjek : "")
+                );
+                const TypeIcon = typeDetails.Icon;
+                const DeptIcon = deptDetails.Icon;
+                const shortContent = (o.sadrzaj || "").length > 160 ? (o.sadrzaj || "").slice(0, 160) + "..." : o.sadrzaj || "";
+                const datum = o.datum
+                  ? new Date(o.datum).toLocaleDateString("hr-HR", { day: "2-digit", month: "2-digit", year: "numeric" })
+                  : "";
+
+                return (
+                  <div
+                    key={o._id}
+                    className="card card-static inner-card"
+                    style={{ marginBottom: 12, position: "relative", padding: 12 }}
+                  >
+                    <Checkbox
+                      size="small"
+                      checked={selectedIds.includes(o._id)}
+                      onChange={() => toggleSelect(o._id)}
+                      style={{ position: "absolute", top: 10, right: 10 }}
+                    />
+
+                    <Typography
+                      variant="h6"
+                      sx={{ margin: 0, cursor: "pointer", color: "#111" }}
+                      onClick={() => (window.location.href = `/objava/${o._id}`)} // možeš zamijeniti navigate ako koristiš useNavigate
+                    >
+                      {o.naslov}
+                    </Typography>
+
+                    <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", alignItems: "center", mt: 1, mb: 1 }}>
+                      <Chip
+                        icon={<TypeIcon sx={typeDetails.iconSx} />}
+                        label={typeDetails.label}
+                        size="small"
+                        sx={{
+                          bgcolor: typeDetails.color,
+                          color: typeDetails.contrastText,
+                          fontWeight: 700,
+                          "& .MuiChip-icon": { color: `${typeDetails.contrastText} !important` },
+                        }}
+                      />
+                      <Chip
+                        icon={<DeptIcon sx={deptDetails.iconSx} />}
+                        label={
+                          ODSJECI.find((x) => x.id === (o.odsjek?._id || o.odsjek))?.naziv ||
+                          (typeof o.odsjek === "string" ? o.odsjek : "-")
+                        }
+                        size="small"
+                        sx={{
+                          bgcolor: deptDetails.color,
+                          color: deptDetails.contrastText,
+                          "& .MuiChip-icon": { color: `${deptDetails.contrastText} !important` },
+                        }}
+                      />
+                      {datum && <Chip icon={<EventIcon />} label={datum} size="small" />}
+                      <Box sx={{ ml: "auto", display: "flex", gap: 1, alignItems: "center" }}>
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                          <VisibilityIcon fontSize="small" /> <Typography variant="body2">{o.views || 0}</Typography>
+                        </Box>
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                          <BookmarkIcon fontSize="small" /> <Typography variant="body2">{o.saves || 0}</Typography>
+                        </Box>
+                      </Box>
+                    </Box>
+
+                    <Typography component="div" sx={{ whiteSpace: "pre-wrap", lineHeight: 1.5, color: "#333", mb: 1 }}>
+                      {shortContent}
+                    </Typography>
+
+                    <Box sx={{ display: "flex", gap: 1, mt: 1 }}>
+                      {st.key === "na čekanju" && (
+                        <>
+                          <Button
+                            size="small"
+                            onClick={() => handleStatusChange(o._id, "odobreno")}
+                            disabled={loadingId === o._id || bulkLoading}
+                          >
+                            Odobri
+                          </Button>
+                          <Button
+                            size="small"
+                            color="error"
+                            onClick={() => {
+                              setReasonForId(o._id);
+                              setReasonDialogOpen(true);
+                            }}
+                            disabled={loadingId === o._id || bulkLoading}
+                          >
+                            Odbij
+                          </Button>
+                        </>
+                      )}
+
+                      {st.key === "odobreno" && (
+                        <>
+                          <IconButton
+                            size="small"
+                            onClick={() => handleTogglePin(o._id, !!o.pinned)}
+                            disabled={loadingId === o._id || bulkLoading}
+                            title={o.pinned ? "Otkvači" : "Prikvači"}
+                          >
+                            {o.pinned ? <PushPinIcon /> : <PushPinOutlinedIcon />}
+                          </IconButton>
+                          <IconButton
+                            size="small"
+                            onClick={() => handleToggleUrgentno(o._id, !!o.urgentno)}
+                            disabled={loadingId === o._id || bulkLoading}
+                            title={o.urgentno ? "Ukloni hitno" : "Označi hitno"}
+                          >
+                            {o.urgentno ? <NewReleasesIcon /> : <NewReleasesOutlinedIcon />}
+                          </IconButton>
+                        </>
+                      )}
+
+                      <Button size="small" color="error" onClick={() => handleDelete(o._id)} disabled={loadingId === o._id || bulkLoading}>
+                        Obriši
+                      </Button>
                     </Box>
 
                     <div style={{ marginTop: 8, color: "#666", fontSize: 13 }}>
                       <span>Autor: {o.autor?.ime || o.autor || "Nepoznato"}</span>
-                      <span style={{ marginLeft: 12 }}>Tip: {o.tip}</span>
-                      <span style={{ marginLeft: 12 }}>Odsjek: {ODSJECI.find(x => x.id === o.odsjek)?.naziv || o.odsjek || "-"}</span>
+                      <span style={{ marginLeft: 12 }}>
+                        Tip: <strong>{typeDetails.label}</strong>
+                      </span>
+                      <span style={{ marginLeft: 12 }}>
+                        Odsjek: {ODSJECI.find((x) => x.id === o.odsjek)?.naziv || o.odsjek || "-"}
+                      </span>
                     </div>
                   </div>
-                ))
-              }
-            </div>
-          ))}
-        </div>
-
-        <Dialog
-          open={reasonDialogOpen}
-          onClose={() => { setReasonDialogOpen(false); setReasonForId(null); if (reasonRef.current) reasonRef.current.value = ""; }}
-          fullWidth
-          maxWidth="md"
-          PaperProps={{ sx: { minWidth: 560, maxWidth: "90vw", p: 1 } }}
-        >
-          <DialogTitle>Razlog odbijanja</DialogTitle>
-          <DialogContent>
-            {/* UNCONTROLLED TextField - koristimo ref */}
-            <TextField
-              fullWidth
-              multiline
-              minRows={4}
-              inputRef={reasonRef}
-              defaultValue=""
-              placeholder="Unesi razlog... (što konkretnije — korisniku će stići obavijest)"
-              inputProps={{ maxLength: 1000 }}
-            />
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => { setReasonDialogOpen(false); setReasonForId(null); if (reasonRef.current) reasonRef.current.value = ""; }}>Odustani</Button>
-            <Button color="error" variant="contained" onClick={handleReasonSubmit}>Pošalji</Button>
-          </DialogActions>
-        </Dialog>
+                );
+              })
+            )}
+          </div>
+        ))}
       </div>
-    </section>
-  );
+
+      <Dialog
+        open={reasonDialogOpen}
+        onClose={() => {
+          setReasonDialogOpen(false);
+          setReasonForId(null);
+          if (reasonRef.current) reasonRef.current.value = "";
+        }}
+        fullWidth
+        maxWidth="md"
+        PaperProps={{ sx: { minWidth: 560, maxWidth: "90vw", p: 1 } }}
+      >
+        <DialogTitle>Razlog odbijanja</DialogTitle>
+        <DialogContent>
+          <TextField
+            fullWidth
+            multiline
+            minRows={4}
+            inputRef={reasonRef}
+            defaultValue=""
+            placeholder="Unesi razlog... (što konkretnije — korisniku će stići obavijest)"
+            inputProps={{ maxLength: 1000 }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => {
+              setReasonDialogOpen(false);
+              setReasonForId(null);
+              if (reasonRef.current) reasonRef.current.value = "";
+            }}
+          >
+            Odustani
+          </Button>
+          <Button color="error" variant="contained" onClick={handleReasonSubmit}>
+            Pošalji
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </div>
+  </section>
+);
+
 }
