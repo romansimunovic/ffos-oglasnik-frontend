@@ -121,22 +121,6 @@ Lozinka: 55tDUUjy12
 
 ---
 
-## 📁 Struktura projekta
-
-```
-src/
-│── components/
-│── pages/
-│── context/
-│── hooks/
-│── services/
-│── utils/
-│── App.jsx
-│── main.jsx
-```
-
----
-
 ## 📜 Licenca
 
 Projekt izrađen u edukacijske svrhe na Filozofskom fakultetu u Osijeku, studij Informacijskih tehnologija.
