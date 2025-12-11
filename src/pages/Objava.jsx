@@ -125,9 +125,6 @@ export default function Objava() {
   return `${backendOrigin}${avatarPath}?t=${Date.now()}`;
 };
 
-const avatarSrc = buildAvatarSrc(autorAvatar);
-
-
   // Init from query params
   useEffect(() => {
     const params = new URLSearchParams(location.search);
