@@ -92,7 +92,7 @@ export default function Home() {
   return `${backendOrigin}${avatarPath}?t=${Date.now()}`;
 };
 
-const avatarSrc = buildAvatarSrc(autorAvatar);
+
 
 
   return (
