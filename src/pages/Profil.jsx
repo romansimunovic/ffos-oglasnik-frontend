@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import {
   Dialog,
   DialogTitle,
@@ -14,12 +14,9 @@ import {
   IconButton,
 } from "@mui/material";
 import SaveIcon from "@mui/icons-material/Bookmark";
+import PhotoCameraIcon from "@mui/icons-material/PhotoCamera";
 import api from "../api/axiosInstance";
 import { useToast } from "../components/Toast";
-import PhotoCameraIcon from "@mui/icons-material/PhotoCamera";
-
-import { useLocation } from "react-router-dom";
-
 
 export default function Profil() {
   const [spremljene, setSpremljene] = useState([]);
@@ -28,58 +25,65 @@ export default function Profil() {
   const [previewUrl, setPreviewUrl] = useState(null);
   const [avatarDialogOpen, setAvatarDialogOpen] = useState(false);
   const [localUser, setLocalUser] = useState(() => JSON.parse(localStorage.getItem("user") || "null"));
+  const [activeTab, setActiveTab] = useState("overview");
+  
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
   const toast = useToast();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-
   const location = useLocation();
   
-  const [activeTab, setActiveTab] = useState("overview"); // default tab
   const user = localUser;
 
+  // 🔑 Tab initialization
   useEffect(() => {
-  const params = new URLSearchParams(location.search);
-  const tab = params.get("tab");
-  if (tab) setActiveTab(tab); // npr. "submitted"
-}, [location.search]);
+    const params = new URLSearchParams(location.search);
+    const tab = params.get("tab");
+    if (tab) setActiveTab(tab);
+  }, [location.search]);
 
+  // 🔑 Avatar preview update when user changes
   useEffect(() => {
-  if (!user) return;
+    if (localUser?.avatar) {
+      setPreviewUrl(buildAvatarSrc(localUser.avatar));
+    }
+  }, [localUser?.avatar]);
 
-  // Postavi previewUrl iz user.avatar odmah pri mountu
-  if (user.avatar) {
-    setPreviewUrl(buildAvatarSrc(user.avatar));
-  }
+  // 🔑 Data fetching
+  useEffect(() => {
+    if (!user) return;
 
-  if (user.uloga === "admin") {
-    setSpremljene([]);
-    setMojeNaCekanju([]);
+    if (user.avatar) {
+      setPreviewUrl(buildAvatarSrc(user.avatar));
+    }
+
+    if (user.uloga === "admin") {
+      setSpremljene([]);
+      setMojeNaCekanju([]);
+      fetchObavijesti();
+      return;
+    }
+
+    fetchSpremljene();
+    fetchMojeNaCekanju();
     fetchObavijesti();
-    return;
-  }
 
-  fetchSpremljene();
-  fetchMojeNaCekanju();
-  fetchObavijesti();
+    const refreshSpremljeneHandler = () => fetchSpremljene();
+    const refreshObavijestiHandler = () => fetchObavijesti();
 
-  const refreshSpremljeneHandler = () => fetchSpremljene();
-  const refreshObavijestiHandler = () => fetchObavijesti();
+    window.addEventListener("refreshSpremljene", refreshSpremljeneHandler);
+    window.addEventListener("refreshObavijesti", refreshObavijestiHandler);
 
-  window.addEventListener("refreshSpremljene", refreshSpremljeneHandler);
-  window.addEventListener("refreshObavijesti", refreshObavijestiHandler);
-
-  return () => {
-    window.removeEventListener("refreshSpremljene", refreshSpremljeneHandler);
-    window.removeEventListener("refreshObavijesti", refreshObavijestiHandler);
-  };
-}, [user]);
+    return () => {
+      window.removeEventListener("refreshSpremljene", refreshSpremljeneHandler);
+      window.removeEventListener("refreshObavijesti", refreshObavijestiHandler);
+    };
+  }, [user]);
 
   const fetchSpremljene = async () => {
     if (!user) return;
     try {
-      const token = localStorage.getItem("token");
       const { data } = await api.get("/korisnik/spremljene");
       setSpremljene(data || []);
     } catch (err) {
@@ -136,39 +140,49 @@ export default function Profil() {
 
   const buildAvatarSrc = (avatarPath) => {
     if (!avatarPath) return "/default-avatar.png";
+    
     if (avatarPath.startsWith("http://") || avatarPath.startsWith("https://"))
       return `${avatarPath}?t=${Date.now()}`;
+    
     const base = api.defaults.baseURL || "";
-    const backendOrigin = base.replace(/\/api\/?$/i, "");
+    let backendOrigin = base.replace(/\/api\/?$/i, "");
+    
+    // 🔑 FORCE HTTPS
+    if (backendOrigin.startsWith("http://") && !backendOrigin.includes("localhost")) {
+      backendOrigin = backendOrigin.replace("http://", "https://");
+    }
+    
     return `${backendOrigin}${avatarPath}?t=${Date.now()}`;
   };
 
   const handleAvatarChange = async (e) => {
-  const file = e.target.files?.[0];
-  if (!file) return;
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-  const formData = new FormData();
-  formData.append("avatar", file);
+    const formData = new FormData();
+    formData.append("avatar", file);
 
-  try {
-    const res = await api.put("/korisnik/upload-avatar", formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
+    try {
+      // 🔑 POST umjesto PUT
+      const res = await api.post("/korisnik/upload-avatar", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
 
-    // 🔑 Spremi RELATIVNU putanju iz baze
-    const updatedUser = {
-      ...user,
-      avatar: res.data.avatar, // "/uploads/avatars/..."
-    };
-    localStorage.setItem("user", JSON.stringify(updatedUser));
-    setUser(updatedUser);
+      const updatedUser = {
+        ...user,
+        avatar: res.data.avatar,
+      };
+      localStorage.setItem("user", JSON.stringify(updatedUser));
+      
+      // 🔑 setLocalUser umjesto setUser
+      setLocalUser(updatedUser);
 
-    toast("Avatar uspješno promijenjen!", "success");
-  } catch (err) {
-    toast(err.response?.data?.message || "Greška pri uploadu", "error");
-  }
-};
-
+      toast("Avatar uspješno promijenjen!", "success");
+    } catch (err) {
+      console.error("Avatar upload error:", err);
+      toast(err.response?.data?.message || "Greška pri uploadu", "error");
+    }
+  };
 
   if (!user) {
     return (
