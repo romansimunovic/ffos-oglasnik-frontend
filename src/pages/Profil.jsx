@@ -144,29 +144,31 @@ export default function Profil() {
   };
 
   const handleAvatarChange = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+  const file = e.target.files?.[0];
+  if (!file) return;
 
-    const formData = new FormData();
-    formData.append("avatar", file);
+  const formData = new FormData();
+  formData.append("avatar", file);
 
-    try {
-      const token = localStorage.getItem("token");
-      const { data } = await api.post("/korisnik/upload-avatar", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      setPreviewUrl(data.avatar);
-      setLocalUser(data.user);
-      localStorage.setItem("user", JSON.stringify(data.user));
-      toast("Avatar uspješno ažuriran.", "success");
-    } catch (err) {
-      console.error(err);
-      toast("Greška pri uploadu avatara.", "error");
-    }
-  };
+  try {
+    const res = await api.put("/korisnik/upload-avatar", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+
+    // 🔑 Spremi RELATIVNU putanju iz baze
+    const updatedUser = {
+      ...user,
+      avatar: res.data.avatar, // "/uploads/avatars/..."
+    };
+    localStorage.setItem("user", JSON.stringify(updatedUser));
+    setUser(updatedUser);
+
+    toast("Avatar uspješno promijenjen!", "success");
+  } catch (err) {
+    toast(err.response?.data?.message || "Greška pri uploadu", "error");
+  }
+};
+
 
   if (!user) {
     return (
