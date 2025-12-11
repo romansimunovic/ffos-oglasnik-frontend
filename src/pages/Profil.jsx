@@ -163,7 +163,7 @@ export default function Profil() {
     formData.append("avatar", file);
 
     try {
-      // 🔑 POST umjesto PUT
+
       const res = await api.post("/korisnik/upload-avatar", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
