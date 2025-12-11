@@ -106,13 +106,27 @@ export default function Objava() {
   };
 
   const buildAvatarSrc = (avatarPath) => {
-    if (!avatarPath) return "/default-avatar.png";
-    if (avatarPath.startsWith("http://") || avatarPath.startsWith("https://"))
-      return `${avatarPath}?t=${Date.now()}`;
-    const base = api.defaults.baseURL || "";
-    const backendOrigin = base.replace(/\/api\/?$/i, "");
-    return `${backendOrigin}${avatarPath}?t=${Date.now()}`;
-  };
+  if (!avatarPath) return "/default-avatar.png";
+  
+  // Ako je već puni URL
+  if (avatarPath.startsWith("http://") || avatarPath.startsWith("https://")) {
+    return `${avatarPath}?t=${Date.now()}`;
+  }
+  
+  // Dohvati base URL iz axios instance
+  const base = api.defaults.baseURL || "";
+  let backendOrigin = base.replace(/\/api\/?$/i, "");
+  
+  // 🔑 FORCE HTTPS za production (Render deployment)
+  if (backendOrigin.startsWith("http://") && !backendOrigin.includes("localhost")) {
+    backendOrigin = backendOrigin.replace("http://", "https://");
+  }
+  
+  return `${backendOrigin}${avatarPath}?t=${Date.now()}`;
+};
+
+const avatarSrc = buildAvatarSrc(autorAvatar);
+
 
   // Init from query params
   useEffect(() => {

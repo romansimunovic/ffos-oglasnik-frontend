@@ -64,12 +64,21 @@ export default function UserProfil() {
     fetchData();
   }, [id]);
 
+  // 🔑 DEFINIRAJ buildAvatarSrc FUNKCIJU
   const buildAvatarSrc = (avatarPath) => {
     if (!avatarPath) return "/default-avatar.png";
-    if (avatarPath.startsWith("http://") || avatarPath.startsWith("https://"))
+    
+    if (avatarPath.startsWith("http://") || avatarPath.startsWith("https://")) {
       return `${avatarPath}?t=${Date.now()}`;
+    }
+    
     const base = api.defaults.baseURL || "";
-    const backendOrigin = base.replace(/\/api\/?$/i, "");
+    let backendOrigin = base.replace(/\/api\/?$/i, "");
+    
+    if (backendOrigin.startsWith("http://") && !backendOrigin.includes("localhost")) {
+      backendOrigin = backendOrigin.replace("http://", "https://");
+    }
+    
     return `${backendOrigin}${avatarPath}?t=${Date.now()}`;
   };
 
@@ -98,16 +107,12 @@ export default function UserProfil() {
       </div>
     );
 
+  // ✅ SADA koristi user.avatar
   const avatarSrc = buildAvatarSrc(user.avatar);
-  const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
-    shareUrl
-  )}`;
-  const xUrl = `https://x.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(
-    shareTitle
-  )}`;
-  const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(
-    shareTitle + " " + shareUrl
-  )}`;
+  
+  const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
+  const xUrl = `https://x.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareTitle)}`;
+  const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareTitle + " " + shareUrl)}`;
 
   return (
     <Box className="page-bg" sx={{ py: 4 }}>
@@ -203,7 +208,6 @@ export default function UserProfil() {
 
                 const postUrl = `${window.location.origin}/objava/${objava._id}`;
 
-                // Truncate content to 150 characters
                 const MAX_CHARS = 150;
                 let displayText = objava.sadrzaj || "";
                 let isTruncated = false;
@@ -314,9 +318,7 @@ export default function UserProfil() {
 
                       <Chip
                         icon={<DeptIcon sx={deptDetails.iconSx} />}
-                        label={getDeptName(
-                          objava.odsjek?._id || objava.odsjek
-                        )}
+                        label={getDeptName(objava.odsjek?._id || objava.odsjek)}
                         size="small"
                         sx={{
                           bgcolor: deptDetails.color,
